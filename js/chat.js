@@ -15,10 +15,12 @@ const recordBtn = document.getElementById('recordBtn');
 const recordingOverlay = document.getElementById('recordingOverlay');
 const recordingTimer = document.getElementById('recordingTimer');
 const chatInputArea = document.getElementById('chatInputArea');
+const waveformContainer = document.getElementById('waveform-container');
 
 let currentUser = null;
 let chatId = "";
-let wavesurfer, record;
+let mediaRecorder;
+let audioChunks = [];
 let isRecording = false;
 let timerInterval;
 let startTime;
@@ -112,25 +114,50 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// --- VOICE RECORDING WITH WAVESURFER & PUTER.JS ---
+// --- NATIVE MEDIARECORDER (NO WAVESURFER) ---
 recordBtn.addEventListener('click', async () => {
     if (isRecording) return;
     
     try {
-        // Initialize WaveSurfer for recording
-        if (wavesurfer) wavesurfer.destroy();
-        wavesurfer = WaveSurfer.create({
-            container: '#waveform-container',
-            waveColor: 'rgb(200, 0, 200)',
-            progressColor: 'rgb(100, 0, 100)',
-            height: 40,
-        });
-        
-        record = wavesurfer.registerPlugin(WaveSurfer.RecordPlugin.create({
-            renderRecordedAudio: false,
-        }));
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
 
-        await record.startRecording({ audio: true });
+        mediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+            clearInterval(timerInterval);
+            recordingOverlay.classList.add('hidden');
+            chatInputArea.style.display = 'flex';
+            
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            recordBtn.style.color = "#ffd700"; // Loading color
+
+            const formData = new FormData();
+            formData.append("file", audioBlob, "voice.webm");
+
+            try {
+                const response = await fetch("https://0x0.st", { method: "POST", body: formData });
+                const audioUrl = await response.text(); 
+                
+                if (audioUrl && audioUrl.startsWith("https://")) {
+                    await addDoc(collection(db, "messages"), { 
+                        chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
+                        type: "audio", audioUrl: audioUrl.trim(), createdAt: serverTimestamp() 
+                    });
+                } else { 
+                    alert("Upload failed. Server response: " + audioUrl); 
+                }
+            } catch (err) { 
+                console.error(err);
+                alert("Error uploading: " + err.message); 
+            }
+            recordBtn.style.color = "#0095f6"; 
+        };
+
+        mediaRecorder.start();
         isRecording = true;
         
         recordingOverlay.classList.remove('hidden');
@@ -146,52 +173,24 @@ recordBtn.addEventListener('click', async () => {
         }, 1000);
 
     } catch (err) {
-        alert("Mic permission denied or not available.");
+        alert("Mic Error: " + err.name + " - " + err.message);
     }
 });
 
-window.stopAndSendRecording = async function() {
-    if (!isRecording) return;
-    
-    clearInterval(timerInterval);
-    record.stopRecording();
-    isRecording = false;
-    recordingOverlay.classList.add('hidden');
-    chatInputArea.style.display = 'flex';
-
-    record.on('record-end', async (blob) => {
-        recordBtn.style.color = "#ffd700"; // Loading state
-        
-        const fileName = `voice_${Date.now()}.webm`;
-        
-        try {
-            // Upload via Puter.js (No CORS issues)
-            const file = new File([blob], fileName, { type: 'audio/webm' });
-            const uploadedFile = await puter.fs.write(fileName, file);
-            const audioUrl = await puter.fs.get_url(uploadedFile.path);
-            
-            if (audioUrl) {
-                await addDoc(collection(db, "messages"), { 
-                    chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
-                    type: "audio", audioUrl: audioUrl, createdAt: serverTimestamp() 
-                });
-            } else {
-                alert("Upload failed: URL not generated.");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Error uploading voice. Please try again.");
-        }
-        recordBtn.style.color = "#0095f6"; 
-    });
+window.stopAndSendRecording = function() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+    }
 };
 
 window.cancelRecording = function() {
-    if (!isRecording) return;
-    clearInterval(timerInterval);
-    record.stopRecording();
-    isRecording = false;
-    recordingOverlay.classList.add('hidden');
-    chatInputArea.style.display = 'flex';
-    // We don't upload anything, just discard the blob
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.onstop = null; // Prevent upload
+        mediaRecorder.stop();
+        isRecording = false;
+        clearInterval(timerInterval);
+        recordingOverlay.classList.add('hidden');
+        chatInputArea.style.display = 'flex';
+    }
 };
