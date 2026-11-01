@@ -1,6 +1,6 @@
 import { auth, db, authReady } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const receiverId = urlParams.get('uid');
@@ -34,6 +34,17 @@ authReady.then(() => {
     });
 });
 
+// --- INPUT TOGGLE LOGIC (Mic <-> Send) ---
+messageInput.addEventListener('input', () => {
+    if (messageInput.value.trim().length > 0) {
+        recordBtn.style.display = 'none';
+        sendBtn.style.display = 'flex';
+    } else {
+        recordBtn.style.display = 'flex';
+        sendBtn.style.display = 'none';
+    }
+});
+
 function renderMessagesHTML(msgs) {
     messagesContainer.innerHTML = ''; 
     msgs.forEach((msg) => {
@@ -61,30 +72,20 @@ function loadMessages() {
     const messagesRef = collection(db, "messages");
     const q = query(messagesRef, where("chatId", "==", chatId));
 
-    // 1. Cache se foran load karein (0 second)
     const cachedChat = localStorage.getItem('chmat_chat_' + chatId);
     if (cachedChat) {
-        try {
-            const cachedMsgs = JSON.parse(cachedChat);
-            renderMessagesHTML(cachedMsgs);
-        } catch(e) {}
+        try { renderMessagesHTML(JSON.parse(cachedChat)); } catch(e) {}
     }
 
-    // 2. Real-time update
     onSnapshot(q, (snapshot) => {
         let msgs = [];
         snapshot.forEach((doc) => { msgs.push({ id: doc.id, ...doc.data() }); });
-        
-        // Sort by time (Oldest first)
         msgs.sort((a,b) => { 
             const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
             const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
             return timeA - timeB; 
         });
-
-        // Save to cache for next time
         localStorage.setItem('chmat_chat_' + chatId, JSON.stringify(msgs));
-        
         renderMessagesHTML(msgs);
     });
 }
@@ -92,7 +93,13 @@ function loadMessages() {
 async function sendTextMessage() {
     const text = messageInput.value.trim();
     if (text === "" || !currentUser) return;
+    
     messageInput.value = ""; 
+    
+    // Message send hote hi wapas Mic icon par switch karein
+    recordBtn.style.display = 'flex';
+    sendBtn.style.display = 'none';
+
     try {
         await addDoc(collection(db, "messages"), {
             chatId: chatId, senderId: currentUser.uid, receiverId: receiverId,
@@ -101,21 +108,10 @@ async function sendTextMessage() {
     } catch (error) { console.error(error); }
 }
 
-// Toggle Send/Mic Button on Typing
-messageInput.addEventListener('input', () => {
-    if (messageInput.value.trim().length > 0) {
-        recordBtn.style.display = 'none';
-        sendBtn.style.display = 'flex';
-    } else {
-        recordBtn.style.display = 'flex';
-        sendBtn.style.display = 'none';
-    }
-});
-
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// VOICE RECORDING (0x0.st Upload)
+// --- VOICE RECORDING LOGIC ---
 recordBtn.addEventListener('click', async () => {
     if (!isRecording) {
         try {
