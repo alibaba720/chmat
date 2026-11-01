@@ -15,13 +15,11 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Ye Promise ensure karega ke session save hone ke baad hi aage ka code chale
+// Ye promise ensure karega ke session save hone ke baad hi aage ka code chale
 export const authReady = setPersistence(auth, browserLocalPersistence)
   .then(() => {
-    console.log("Session Persistence Set to LOCAL");
-    return true;
+    console.log("✅ Session Save Mode Activated");
   })
   .catch((error) => {
-    console.error("Persistence Error:", error);
-    return false;
+    console.error("❌ Session Error:", error);
   });
