@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <script>
+    // Agar browser se khula hai (App nahi hai), toh direct login par bhej dein
+    if (!navigator.userAgent.includes("CHMAT_APP")) {
+      window.location.href = "login.html";
+    }
+  </script>
+  
   <div class="decoy-app">
     <header class="decoy-header">
       <span class="back-arrow">←</span>
@@ -26,7 +33,6 @@
       <div class="input-wrapper">
         <input type="text" id="decoyInput" placeholder="Message" autocomplete="off">
       </div>
-      <!-- WhatsApp jaisa proper SVG Send Button -->
       <button id="decoySend" class="send-btn">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
           <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
