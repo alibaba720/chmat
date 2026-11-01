@@ -95,7 +95,7 @@ submitPostBtn.addEventListener('click', async () => {
       comments: [] 
     });
 
-    alert("Post shared successfully!");
+    document.getElementById("successModal").classList.remove("hidden");
     window.location.href = "app.html";
 
   } catch (error) {

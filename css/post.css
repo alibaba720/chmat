@@ -157,3 +157,65 @@ textarea::placeholder {
 .hidden {
   display: none !important;
 }
+
+/* --- CUSTOM SUCCESS MODAL --- */
+.success-modal {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.success-modal.hidden {
+  display: none !important;
+}
+
+.success-content {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 30px 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  animation: popIn 0.3s ease-out;
+}
+
+.success-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.success-content h3 {
+  color: #fff;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.success-content p {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.success-content button {
+  background: #0095f6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}

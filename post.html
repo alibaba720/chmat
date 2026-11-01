@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Create Post - CHMAT</title>
-  <link rel="stylesheet" href="css/post.css">
+  <link rel="stylesheet" href="css/post.css?v=5">
 </head>
 <body>
   <div class="post-container">
@@ -53,6 +53,16 @@
     </div>
   </div>
 
-  <script type="module" src="js/post.js"></script>
+  <!-- CUSTOM SUCCESS MODAL -->
+  <div id="successModal" class="success-modal hidden">
+    <div class="success-content">
+      <div class="success-icon">✅</div>
+      <h3>Post Shared Successfully!</h3>
+      <p>Your post is now live on your feed.</p>
+      <button onclick="window.location.href='app.html'">OK</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/post.js?v=5"></script>
 </body>
 </html>
