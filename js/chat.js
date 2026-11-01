@@ -101,6 +101,17 @@ async function sendTextMessage() {
     } catch (error) { console.error(error); }
 }
 
+// Toggle Send/Mic Button on Typing
+messageInput.addEventListener('input', () => {
+    if (messageInput.value.trim().length > 0) {
+        recordBtn.style.display = 'none';
+        sendBtn.style.display = 'flex';
+    } else {
+        recordBtn.style.display = 'flex';
+        sendBtn.style.display = 'none';
+    }
+});
+
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
