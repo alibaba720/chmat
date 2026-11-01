@@ -14,6 +14,7 @@ let mySentRequests = [];
 let currentPostIdForComment = null;
 let currentReplyTo = null;
 let activePostIdForOptions = null; 
+let isFirstLoad = true; // Shuffle track karne ke liye
 
 function getAvatarHtml(profilePicUrl, initial) {
     if (profilePicUrl) { return `<img src="${profilePicUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`; }
@@ -116,8 +117,30 @@ function createPostHTML(post, docId) {
     `;
 }
 
+function renderFeedHTML(posts) {
+    let html = '';
+    posts.forEach((post) => {
+        let canSee = false;
+        if (post.privacy === "Public") canSee = true;
+        else if (post.uid === currentUser.uid) canSee = true;
+        else if (post.privacy === "Friends" && myFriendsList.includes(post.uid)) canSee = true;
+        if (canSee) { html += createPostHTML(post, post.id); }
+    });
+    document.getElementById('feedContainer').innerHTML = html !== '' ? html : '<div class="empty-feed">No posts to show.</div>';
+}
+
 async function loadFeed() {
     const feedContainer = document.getElementById('feedContainer');
+    
+    // 1. Load from cache instantly (0 seconds)
+    const cachedFeed = localStorage.getItem('chmat_feed_cache');
+    if (cachedFeed) {
+        try {
+            const cachedPosts = JSON.parse(cachedFeed);
+            renderFeedHTML(cachedPosts);
+        } catch(e) {}
+    }
+
     try {
         const q = query(collection(db, "posts"));
         onSnapshot(q, async (snapshot) => {
@@ -128,32 +151,32 @@ async function loadFeed() {
                 uidsToFetch.add(post.uid); 
             });
             
-            // PARALLEL FETCHING (6 second ki delay khatam karne ke liye)
             await Promise.all(Array.from(uidsToFetch).map(uid => getUserProfile(uid)));
             
-            globalPosts.sort((a,b) => {
-                const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-                const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
-                return timeB - timeA;
-            });
+            if (isFirstLoad) {
+                // Shuffle on first load (Just like FB/Insta algorithm refreshing)
+                globalPosts.sort(() => Math.random() - 0.5);
+                isFirstLoad = false;
+            } else {
+                // Normal time sort for subsequent updates
+                globalPosts.sort((a,b) => {
+                    const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                    const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+            }
             
-            let html = '';
-            globalPosts.forEach((post) => {
-                let canSee = false;
-                if (post.privacy === "Public") canSee = true;
-                else if (post.uid === currentUser.uid) canSee = true;
-                else if (post.privacy === "Friends" && myFriendsList.includes(post.uid)) canSee = true;
-                if (canSee) { html += createPostHTML(post, post.id); }
-            });
+            // Save to cache for next instant load
+            localStorage.setItem('chmat_feed_cache', JSON.stringify(globalPosts));
             
-            feedContainer.innerHTML = html !== '' ? html : '<div class="empty-feed">No posts to show.</div>';
+            renderFeedHTML(globalPosts);
             loadMyPosts();
             
         }, (error) => {
-            feedContainer.innerHTML = `<p style="color: red; text-align: center; margin-top: 20px;">Feed Error: ${error.message}</p>`;
+            if(!cachedFeed) feedContainer.innerHTML = `<p style="color: red; text-align: center; margin-top: 20px;">Feed Error: ${error.message}</p>`;
         });
     } catch (error) {
-        feedContainer.innerHTML = `<p style="color: red; text-align: center; margin-top: 20px;">Error: ${error.message}</p>`;
+        if(!cachedFeed) feedContainer.innerHTML = `<p style="color: red; text-align: center; margin-top: 20px;">Error: ${error.message}</p>`;
     }
 }
 
