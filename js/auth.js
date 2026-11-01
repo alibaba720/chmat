@@ -1,4 +1,4 @@
-import { auth, db } from './firebase-config.js';
+import { auth, db, authReady } from './firebase-config.js';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
@@ -60,7 +60,7 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('loginBtn').addEventListener('click', async () => {
+document.getElementById('loginBtn').addEventListener('click', async () => { await authReady;
   const identifier = document.getElementById('loginIdentifier').value.trim();
   const password = document.getElementById('loginPassword').value;
   const btn = document.getElementById('loginBtn');

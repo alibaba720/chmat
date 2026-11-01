@@ -15,7 +15,13 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Ye line session ko phone/browser ki memory mein force save karti hai
-setPersistence(auth, browserLocalPersistence).catch((error) => {
-  console.error("Session Persistence Error:", error);
-});
+// Ye Promise ensure karega ke session save hone ke baad hi aage ka code chale
+export const authReady = setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Session Persistence Set to LOCAL");
+    return true;
+  })
+  .catch((error) => {
+    console.error("Persistence Error:", error);
+    return false;
+  });

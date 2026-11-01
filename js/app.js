@@ -1,4 +1,4 @@
-import { auth, db } from './firebase-config.js';
+import { auth, db, authReady } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { doc, getDoc, deleteDoc, collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
@@ -240,7 +240,7 @@ if(sendCommentBtn) {
 const commentInput = document.getElementById('commentInput');
 if(commentInput) { commentInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('sendCommentBtn').click(); }); }
 
-onAuthStateChanged(auth, async (user) => {
+authReady.then(() => { onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
     const docSnap = await getDoc(doc(db, "users", user.uid));
@@ -546,3 +546,4 @@ window.cancelFriendRequest = async function(requestId, btnElement) {
 }
 const adminPanelBtn = document.getElementById('adminPanelBtn'); if (adminPanelBtn) { adminPanelBtn.addEventListener('click', () => window.location.href = 'admin.html'); }
 const logoutBtn = document.getElementById('logoutBtn'); if (logoutBtn) { logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html')); }
+});
