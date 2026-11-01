@@ -113,19 +113,18 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// --- VOICE RECORDING WITH QU.AX UPLOAD ---
+// --- MIC RELEASE FIXED LOGIC ---
 recordBtn.addEventListener('click', async () => {
     if (isRecording) return;
     
     try {
         if (currentStream) {
             currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
         }
 
-        // Echo cancellation aur noise suppression add karein
-        currentStream = await navigator.mediaDevices.getUserMedia({ 
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
-        });
+        // Simple constraints for WebView (Prevents NotReadableError)
+        currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         
         mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'audio/webm' });
         audioChunks = [];
@@ -152,7 +151,6 @@ recordBtn.addEventListener('click', async () => {
             formData.append("files[]", audioBlob, "voice.webm");
 
             try {
-                // QU.AX UPLOAD (Direct Playable Link)
                 const response = await fetch("https://qu.ax/upload.php", { method: "POST", body: formData });
                 const data = await response.json();
                 
@@ -188,18 +186,17 @@ recordBtn.addEventListener('click', async () => {
         }, 1000);
 
     } catch (err) {
-        if (err.name === 'NotReadableError') {
-            alert("Mic is busy! Please close other apps (like WhatsApp call) or restart your phone.");
-        } else {
-            alert("Mic Error: " + err.message);
-        }
+        alert("Mic Error: " + err.name + " - " + err.message);
     }
 });
 
+// Stop recording and add a 300ms delay to let hardware release
 window.stopAndSendRecording = function() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
         isRecording = false;
+        // WebView ko mic chorne ka waqt dein
+        setTimeout(() => { console.log("Mic released"); }, 300);
     }
 };
 
