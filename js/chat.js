@@ -63,6 +63,7 @@ function renderMessagesHTML(msgs) {
         }
 
         if (msg.type === 'audio') {
+            // Base64 audio direct play
             msgDiv.innerHTML = `<audio controls preload="metadata" src="${msg.audioUrl}" style="width: 200px;"></audio><div class="msg-time" style="float:none; text-align:right; margin-top:4px;">${timeStr}</div>`;
         } else {
             msgDiv.innerHTML = `${msg.text} <span class="msg-time">${timeStr}</span>`;
@@ -113,7 +114,7 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// --- MIC RELEASE FIXED LOGIC ---
+// --- BASE64 RECORDING (NO THIRD-PARTY UPLOAD) ---
 recordBtn.addEventListener('click', async () => {
     if (isRecording) return;
     
@@ -123,9 +124,7 @@ recordBtn.addEventListener('click', async () => {
             currentStream = null;
         }
 
-        // Simple constraints for WebView (Prevents NotReadableError)
         currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
         mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'audio/webm' });
         audioChunks = [];
 
@@ -145,29 +144,25 @@ recordBtn.addEventListener('click', async () => {
             chatInputArea.style.display = 'flex';
             
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            recordBtn.style.color = "#ffd700"; 
+            recordBtn.style.color = "#ffd700"; // Loading color
 
-            const formData = new FormData();
-            formData.append("files[]", audioBlob, "voice.webm");
-
-            try {
-                const response = await fetch("https://qu.ax/upload.php", { method: "POST", body: formData });
-                const data = await response.json();
+            // Convert to Base64 instead of uploading to a server
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = async () => {
+                const base64Audio = reader.result;
                 
-                if (data && data[0] && data[0].url) {
-                    const audioUrl = data[0].url;
+                try {
                     await addDoc(collection(db, "messages"), { 
                         chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
-                        type: "audio", audioUrl: audioUrl, createdAt: serverTimestamp() 
+                        type: "audio", audioUrl: base64Audio, createdAt: serverTimestamp() 
                     });
-                } else { 
-                    alert("Upload failed. Try again."); 
+                } catch (err) {
+                    console.error(err);
+                    alert("Failed to send voice note. (File might be too large)");
                 }
-            } catch (err) { 
-                console.error(err);
-                alert("Error uploading voice."); 
-            }
-            recordBtn.style.color = "#0095f6"; 
+                recordBtn.style.color = "#0095f6"; 
+            };
         };
 
         mediaRecorder.start();
@@ -186,17 +181,14 @@ recordBtn.addEventListener('click', async () => {
         }, 1000);
 
     } catch (err) {
-        alert("Mic Error: " + err.name + " - " + err.message);
+        alert("Mic Error: " + err.message);
     }
 });
 
-// Stop recording and add a 300ms delay to let hardware release
 window.stopAndSendRecording = function() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
         isRecording = false;
-        // WebView ko mic chorne ka waqt dein
-        setTimeout(() => { console.log("Mic released"); }, 300);
     }
 };
 
