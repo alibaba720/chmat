@@ -7,7 +7,6 @@ const receiverId = urlParams.get('uid');
 const receiverName = urlParams.get('name');
 
 const chatName = document.getElementById('chatName');
-const chatAvatar = document.getElementById('chatAvatar');
 const messagesContainer = document.getElementById('chatMessages');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendMessageBtn');
@@ -15,7 +14,6 @@ const recordBtn = document.getElementById('recordBtn');
 const recordingOverlay = document.getElementById('recordingOverlay');
 const recordingTimer = document.getElementById('recordingTimer');
 const chatInputArea = document.getElementById('chatInputArea');
-const waveformContainer = document.getElementById('waveform-container');
 
 let currentUser = null;
 let chatId = "";
@@ -24,6 +22,7 @@ let audioChunks = [];
 let isRecording = false;
 let timerInterval;
 let startTime;
+let currentStream = null; // Mic track release ke liye
 
 if (!receiverId || !receiverName) { window.location.href = 'app.html'; }
 chatName.innerText = receiverName;
@@ -114,13 +113,18 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// --- NATIVE MEDIARECORDER (NO WAVESURFER) ---
+// --- RECORDING LOGIC WITH MIC RELEASE ---
 recordBtn.addEventListener('click', async () => {
     if (isRecording) return;
     
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
+        // Purana mic stream band karein agar mojood hai
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
+
+        currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(currentStream);
         audioChunks = [];
 
         mediaRecorder.ondataavailable = event => {
@@ -129,6 +133,13 @@ recordBtn.addEventListener('click', async () => {
 
         mediaRecorder.onstop = async () => {
             clearInterval(timerInterval);
+            
+            // MIC KO FORAN FREE KAREIN
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+
             recordingOverlay.classList.add('hidden');
             chatInputArea.style.display = 'flex';
             
@@ -136,23 +147,25 @@ recordBtn.addEventListener('click', async () => {
             recordBtn.style.color = "#ffd700"; // Loading color
 
             const formData = new FormData();
-            formData.append("file", audioBlob, "voice.webm");
+            formData.append("files[]", audioBlob, "voice.webm");
 
             try {
-                const response = await fetch("https://0x0.st", { method: "POST", body: formData });
-                const audioUrl = await response.text(); 
+                // UGUU.SE UPLOAD (Direct Playable Link)
+                const response = await fetch("https://uguu.se/upload.php", { method: "POST", body: formData });
+                const data = await response.json();
                 
-                if (audioUrl && audioUrl.startsWith("https://")) {
+                if (data.success && data.files && data.files[0].url) {
+                    const audioUrl = data.files[0].url;
                     await addDoc(collection(db, "messages"), { 
                         chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
-                        type: "audio", audioUrl: audioUrl.trim(), createdAt: serverTimestamp() 
+                        type: "audio", audioUrl: audioUrl, createdAt: serverTimestamp() 
                     });
                 } else { 
-                    alert("Upload failed. Server response: " + audioUrl); 
+                    alert("Upload failed. Try again."); 
                 }
             } catch (err) { 
                 console.error(err);
-                alert("Error uploading: " + err.message); 
+                alert("Error uploading voice."); 
             }
             recordBtn.style.color = "#0095f6"; 
         };
@@ -186,10 +199,16 @@ window.stopAndSendRecording = function() {
 
 window.cancelRecording = function() {
     if (mediaRecorder && isRecording) {
-        mediaRecorder.onstop = null; // Prevent upload
+        mediaRecorder.onstop = null; // Upload cancel karein
         mediaRecorder.stop();
         isRecording = false;
         clearInterval(timerInterval);
+        
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        
         recordingOverlay.classList.add('hidden');
         chatInputArea.style.display = 'flex';
     }
