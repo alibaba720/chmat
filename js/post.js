@@ -85,7 +85,7 @@ submitPostBtn.addEventListener('click', async () => {
       uid: currentUser.uid,
       username: currentUserData.username,
       displayName: currentUserData.displayName || currentUserData.username,
-      profilePicUrl: currentUserData.profilePicUrl || "", // DP saved with post
+      profilePicUrl: currentUserData.profilePicUrl || "",
       text: text,
       feeling: feeling,
       imageUrl: imageUrl,
@@ -95,8 +95,8 @@ submitPostBtn.addEventListener('click', async () => {
       comments: [] 
     });
 
-    document.getElementById("successModal").classList.remove("hidden");
-    window.location.href = "app.html";
+    // Yahan ab koi auto redirect nahi hoga
+    document.getElementById('successModal').classList.remove('hidden');
 
   } catch (error) {
     console.error("Error creating post:", error);
