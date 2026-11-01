@@ -357,3 +357,75 @@ audio {
 .send-btn {
     padding-left: 8px; /* Thora sa adjust for paper plane */
 }
+
+/* --- RECORDING UI (WAVING ANIMATION) --- */
+.recording-ui {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #1a1a1a;
+    border-top: 1px solid #262626;
+    border-bottom: 1px solid #262626;
+    gap: 15px;
+    height: 60px;
+    animation: slideUp 0.3s ease;
+}
+
+.recording-ui.hidden {
+    display: none !important;
+}
+
+.recording-timer {
+    color: #ff3b30;
+    font-weight: bold;
+    font-size: 16px;
+    font-family: monospace;
+}
+
+.waving-bars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    flex: 1;
+    justify-content: center;
+}
+
+.waving-bars span {
+    width: 4px;
+    height: 8px;
+    background: #ff3b30;
+    border-radius: 4px;
+    animation: wave 0.6s infinite alternate;
+}
+
+.waving-bars span:nth-child(2) { animation-delay: 0.1s; }
+.waving-bars span:nth-child(3) { animation-delay: 0.2s; }
+.waving-bars span:nth-child(4) { animation-delay: 0.3s; }
+.waving-bars span:nth-child(5) { animation-delay: 0.4s; }
+.waving-bars span:nth-child(6) { animation-delay: 0.5s; }
+
+@keyframes wave {
+    0% { height: 6px; }
+    100% { height: 24px; }
+}
+
+.stop-record-btn {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}

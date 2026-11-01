@@ -12,12 +12,17 @@ const messagesContainer = document.getElementById('chatMessages');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendMessageBtn');
 const recordBtn = document.getElementById('recordBtn');
+const recordingUI = document.getElementById('recordingUI');
+const recordingTimer = document.getElementById('recordingTimer');
+const chatInputArea = document.getElementById('chatInputArea');
 
 let currentUser = null;
 let chatId = "";
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
+let timerInterval;
+let startTime;
 
 if (!receiverId || !receiverName) { window.location.href = 'app.html'; }
 chatName.innerText = receiverName;
@@ -34,7 +39,6 @@ authReady.then(() => {
     });
 });
 
-// --- INPUT TOGGLE LOGIC (Mic <-> Send) ---
 messageInput.addEventListener('input', () => {
     if (messageInput.value.trim().length > 0) {
         recordBtn.style.display = 'none';
@@ -95,8 +99,6 @@ async function sendTextMessage() {
     if (text === "" || !currentUser) return;
     
     messageInput.value = ""; 
-    
-    // Message send hote hi wapas Mic icon par switch karein
     recordBtn.style.display = 'flex';
     sendBtn.style.display = 'none';
 
@@ -111,41 +113,76 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// --- VOICE RECORDING LOGIC ---
+// --- VOICE RECORDING WITH UI ---
 recordBtn.addEventListener('click', async () => {
     if (!isRecording) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
+            
             mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
             
             mediaRecorder.onstop = async () => {
+                clearInterval(timerInterval);
+                recordingUI.classList.add('hidden');
+                chatInputArea.style.display = 'flex';
+                recordBtn.style.display = 'flex';
+
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                recordBtn.style.color = "#ffd700"; 
+                recordBtn.style.color = "#ffd700"; // Loading color
                 
                 const formData = new FormData();
                 formData.append("file", audioBlob, "voice.webm");
 
                 try {
-                    const response = await fetch("https://0x0.st", { method: "POST", body: formData });
-                    const audioUrl = await response.text(); 
+                    const response = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body: formData });
+                    const data = await response.json(); 
                     
-                    if (audioUrl && audioUrl.startsWith("https://")) {
-                        await addDoc(collection(db, "messages"), { chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, type: "audio", audioUrl: audioUrl.trim(), createdAt: serverTimestamp() });
-                    } else { alert("Voice upload failed!"); }
-                } catch (err) { alert("Error uploading voice."); }
+                    if (data.status === "success") {
+                        // TmpFiles direct download URL
+                        let audioUrl = data.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+                        await addDoc(collection(db, "messages"), { 
+                            chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
+                            type: "audio", audioUrl: audioUrl, createdAt: serverTimestamp() 
+                        });
+                    } else { 
+                        alert("Voice upload failed. Try again."); 
+                    }
+                } catch (err) { 
+                    console.error(err);
+                    alert("Error uploading voice. Check internet."); 
+                }
                 recordBtn.style.color = "#0095f6"; 
             };
             
             mediaRecorder.start();
             isRecording = true;
-            recordBtn.style.color = "red"; 
-            messageInput.disabled = true;
-        } catch (err) { alert("Mic permission denied."); }
-    } else {
-        mediaRecorder.stop();
-        isRecording = false;
-        messageInput.disabled = false;
+            
+            // UI Toggle
+            recordingUI.classList.remove('hidden');
+            chatInputArea.style.display = 'none'; // Hide normal input
+            
+            // Timer Start
+            startTime = Date.now();
+            recordingTimer.innerText = "0:00";
+            timerInterval = setInterval(() => {
+                const diff = Math.floor((Date.now() - startTime) / 1000);
+                const mins = Math.floor(diff / 60).toString().padStart(2, '0');
+                const secs = (diff % 60).toString().padStart(2, '0');
+                recordingTimer.innerText = `${mins}:${secs}`;
+            }, 1000);
+
+        } catch (err) { 
+            alert("Mic permission denied."); 
+        }
     }
 });
+
+// Stop Recording Function
+window.stopRecording = function() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+    }
+}

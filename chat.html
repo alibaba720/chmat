@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Chat - CHMAT</title>
-  <link rel="stylesheet" href="css/chat.css?v=12">
+  <link rel="stylesheet" href="css/chat.css?v=15">
 </head>
 <body>
   <div class="chat-container">
@@ -25,7 +25,16 @@
 
     <main class="chat-messages" id="chatMessages"></main>
 
-    <footer class="chat-input-area">
+    <!-- Waving Recording UI (Hidden by default) -->
+    <div id="recordingUI" class="recording-ui hidden">
+      <div class="recording-timer" id="recordingTimer">0:00</div>
+      <div class="waving-bars">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <button id="stopRecordBtn" class="stop-record-btn" onclick="stopRecording()">⏹</button>
+    </div>
+
+    <footer class="chat-input-area" id="chatInputArea">
       <div class="camera-icon" onclick="alert('Camera feature coming soon!')">📷</div>
       
       <div class="input-wrapper">
@@ -36,14 +45,12 @@
         </button>
         
         <button id="sendMessageBtn" class="send-btn" style="display:none;">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-          </svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
         </button>
       </div>
     </footer>
   </div>
 
-  <script type="module" src="js/chat.js?v=12"></script>
+  <script type="module" src="js/chat.js?v=15"></script>
 </body>
 </html>
