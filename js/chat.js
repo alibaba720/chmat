@@ -7,6 +7,7 @@ const receiverId = urlParams.get('uid');
 const receiverName = urlParams.get('name');
 
 const chatName = document.getElementById('chatName');
+const chatAvatar = document.getElementById('chatAvatar');
 const messagesContainer = document.getElementById('chatMessages');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendMessageBtn');
@@ -19,6 +20,7 @@ let currentUser = null;
 let currentUserData = null;
 let receiverData = null;
 let chatId = "";
+let currentMessages = [];
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
@@ -36,54 +38,85 @@ authReady.then(() => {
         if (user) {
             currentUser = user;
             chatId = getChatId(currentUser.uid, receiverId);
+            
             const myDoc = await getDoc(doc(db, "users", currentUser.uid));
             if(myDoc.exists()) currentUserData = myDoc.data();
+            
+            const recDoc = await getDoc(doc(db, "users", receiverId));
+            if(recDoc.exists()) {
+                receiverData = recDoc.data();
+                updateHeaderUI();
+            }
             loadMessages();
-            loadReceiverInfo();
         } else { window.location.href = 'login.html'; }
     });
 });
 
-async function loadReceiverInfo() {
-    const docSnap = await getDoc(doc(db, "users", receiverId));
-    if(docSnap.exists()) receiverData = docSnap.data();
-}
-
-// --- CHAT INFO LOGIC ---
-window.openChatInfo = function() {
-    document.getElementById('chatInfoOverlay').classList.remove('hidden');
-    
-    const infoAvatar = document.getElementById('infoAvatar');
-    const infoName = document.getElementById('infoName');
-    
+function updateHeaderUI() {
     if (receiverData) {
-        infoName.innerText = receiverData.displayName || receiverData.username;
+        chatName.innerText = receiverData.displayName || receiverData.username;
         if (receiverData.profilePicUrl) {
-            infoAvatar.innerHTML = `<img src="${receiverData.profilePicUrl}">`;
-        } else {
-            infoAvatar.innerText = (receiverData.displayName || receiverData.username).charAt(0).toUpperCase();
+            chatAvatar.innerHTML = `<img src="${receiverData.profilePicUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
         }
     }
+}
 
-    // Check Pin Status
-    const pinnedChats = currentUserData.pinnedChats || [];
-    if (pinnedChats.includes(receiverId)) {
-        document.getElementById('pinIcon').innerText = "📌";
-        document.getElementById('pinText').innerText = "Unpin from top";
-    } else {
-        document.getElementById('pinIcon').innerText = "📍";
-        document.getElementById('pinText').innerText = "Pin to top";
-    }
+// --- SEARCH LOGIC ---
+window.openSearch = function() {
+    document.getElementById('searchContainer').classList.remove('hidden');
+    document.getElementById('mainChatHeader').style.display = 'none';
+    document.getElementById('chatSearchInput').focus();
+};
 
-    // Check Mute Status
-    const mutedChats = currentUserData.mutedChats || [];
-    if (mutedChats.includes(receiverId)) {
-        document.getElementById('muteIcon').innerText = "🔕";
-        document.getElementById('muteText').innerText = "Unmute";
-    } else {
-        document.getElementById('muteIcon').innerText = "🔔";
-        document.getElementById('muteText').innerText = "Mute";
+window.closeSearch = function() {
+    document.getElementById('searchContainer').classList.add('hidden');
+    document.getElementById('mainChatHeader').style.display = 'flex';
+    document.getElementById('searchResultsList').classList.add('hidden');
+    document.getElementById('chatSearchInput').value = '';
+};
+
+window.performSearch = function() {
+    const term = document.getElementById('chatSearchInput').value.toLowerCase();
+    const resultsList = document.getElementById('searchResultsList');
+    
+    if (term.length < 2) {
+        resultsList.classList.add('hidden');
+        return;
     }
+    
+    resultsList.classList.remove('hidden');
+    let html = '';
+    currentMessages.forEach(msg => {
+        if (msg.type === 'text' && msg.text.toLowerCase().includes(term)) {
+            html += `<div class="search-result-item" onclick="scrollToMessage('${msg.id}')">...${msg.text}...</div>`;
+        }
+    });
+    
+    resultsList.innerHTML = html !== '' ? html : '<div class="search-result-item">No messages found.</div>';
+};
+
+window.scrollToMessage = function(msgId) {
+    const el = document.getElementById(`msg-${msgId}`);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.backgroundColor = 'rgba(0,149,246,0.3)'; // Highlight
+        setTimeout(() => { el.style.backgroundColor = ''; }, 1500);
+        closeSearch();
+    }
+};
+
+// --- CHAT INFO & MODALS ---
+window.openChatInfo = function() {
+    document.getElementById('chatInfoOverlay').classList.remove('hidden');
+    if (receiverData) {
+        document.getElementById('infoName').innerText = receiverData.displayName || receiverData.username;
+        const infoAvatar = document.getElementById('infoAvatar');
+        if (receiverData.profilePicUrl) infoAvatar.innerHTML = `<img src="${receiverData.profilePicUrl}">`;
+        else infoAvatar.innerText = (receiverData.displayName || receiverData.username).charAt(0).toUpperCase();
+    }
+    checkPinStatus();
+    checkMuteStatus();
+    checkDisappearStatus();
 };
 
 window.closeChatInfo = function() {
@@ -93,6 +126,63 @@ window.closeChatInfo = function() {
 
 window.toggleOptionsMenu = function() {
     document.getElementById('infoOptionsMenu').classList.toggle('hidden');
+};
+
+// MUTE LOGIC
+window.openMuteModal = function() { document.getElementById('muteModal').classList.remove('hidden'); };
+window.closeMuteModal = function() { document.getElementById('muteModal').classList.add('hidden'); };
+window.setMute = async function(duration) {
+    let muteUntil = 0;
+    if(duration === '1h') muteUntil = Date.now() + (60*60*1000);
+    else if(duration === '24h') muteUntil = Date.now() + (24*60*60*1000);
+    else if(duration === 'forever') muteUntil = 9999999999999;
+    
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), { [`muted_${receiverId}`]: muteUntil });
+        closeMuteModal();
+        checkMuteStatus();
+    } catch(e) { alert("Error: " + e.message); }
+};
+
+function checkMuteStatus() {
+    const muteUntil = currentUserData[`muted_${receiverId}`] || 0;
+    if (muteUntil > Date.now()) {
+        document.getElementById('muteIcon').innerText = "🔕";
+        document.getElementById('muteText').innerText = "Muted";
+    } else {
+        document.getElementById('muteIcon').innerText = "🔔";
+        document.getElementById('muteText').innerText = "Mute";
+    }
+}
+
+// DISAPPEARING LOGIC
+window.openDisappearingModal = function() { document.getElementById('disappearModal').classList.remove('hidden'); };
+window.closeDisappearingModal = function() { document.getElementById('disappearModal').classList.add('hidden'); };
+window.setDisappear = async function(time) {
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), { [`disappear_${receiverId}`]: time });
+        closeDisappearingModal();
+        checkDisappearStatus();
+    } catch(e) { alert("Error: " + e.message); }
+};
+
+function checkDisappearStatus() {
+    const status = currentUserData[`disappear_${receiverId}`] || 'Off';
+    document.getElementById('disappearStatus').innerText = status;
+}
+
+// PIN & PRIVACY LOGIC
+window.openPrivacyModal = function() {
+    // For now, prompt for PIN. In next step we'll build the UI.
+    let pin = prompt("Set 4-digit PIN for this chat (Cancel to remove):");
+    if(pin) {
+        if(pin.length !== 4 || isNaN(pin)) { alert("Must be 4 digits!"); return; }
+        localStorage.setItem('chmat_pin_' + chatId, pin);
+        alert("PIN set successfully!");
+    } else {
+        localStorage.removeItem('chmat_pin_' + chatId);
+        alert("PIN removed.");
+    }
 };
 
 window.togglePin = async function() {
@@ -110,26 +200,19 @@ window.togglePin = async function() {
             document.getElementById('pinText').innerText = "Unpin from top";
             document.getElementById('pinIcon').innerText = "📌";
         }
-    } catch(e) { alert("Error updating pin: " + e.message); }
+    } catch(e) { alert("Error: " + e.message); }
 };
 
-window.toggleMute = async function() {
-    try {
-        const mutedChats = currentUserData.mutedChats || [];
-        if (mutedChats.includes(receiverId)) {
-            await updateDoc(doc(db, "users", currentUser.uid), { mutedChats: arrayRemove(receiverId) });
-            currentUserData.mutedChats = currentUserData.mutedChats.filter(id => id !== receiverId);
-            document.getElementById('muteText').innerText = "Mute";
-            document.getElementById('muteIcon').innerText = "🔔";
-        } else {
-            await updateDoc(doc(db, "users", currentUser.uid), { mutedChats: arrayUnion(receiverId) });
-            if(!currentUserData.mutedChats) currentUserData.mutedChats = [];
-            currentUserData.mutedChats.push(receiverId);
-            document.getElementById('muteText').innerText = "Unmute";
-            document.getElementById('muteIcon').innerText = "🔕";
-        }
-    } catch(e) { alert("Error updating mute: " + e.message); }
-};
+function checkPinStatus() {
+    const pinnedChats = currentUserData.pinnedChats || [];
+    if (pinnedChats.includes(receiverId)) {
+        document.getElementById('pinIcon').innerText = "📌";
+        document.getElementById('pinText').innerText = "Unpin from top";
+    } else {
+        document.getElementById('pinIcon').innerText = "📍";
+        document.getElementById('pinText').innerText = "Pin to top";
+    }
+}
 
 window.blockUser = async function() {
     if(!confirm("Block this user? They will be removed from your friends.")) return;
@@ -138,7 +221,7 @@ window.blockUser = async function() {
         await updateDoc(doc(db, "users", receiverId), { friends: arrayRemove(currentUser.uid) });
         alert("User blocked.");
         window.location.href = 'app.html';
-    } catch(e) { alert("Error blocking: " + e.message); }
+    } catch(e) { alert("Error: " + e.message); }
 };
 
 window.reportUser = async function() {
@@ -150,8 +233,8 @@ window.reportUser = async function() {
         document.getElementById('infoOptionsMenu').classList.add('hidden');
     } catch(e) { alert("Error reporting: " + e.message); }
 };
-// --- END CHAT INFO LOGIC ---
 
+// --- MESSAGES LOGIC ---
 messageInput.addEventListener('input', () => {
     if (messageInput.value.trim().length > 0) {
         recordBtn.style.display = 'none';
@@ -168,6 +251,7 @@ function renderMessagesHTML(msgs) {
         const isSentByMe = msg.senderId === currentUser.uid;
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${isSentByMe ? 'sent' : 'received'}`;
+        msgDiv.id = `msg-${msg.id}`; // For search jumping
         
         let timeStr = "";
         if (msg.createdAt) {
@@ -191,7 +275,10 @@ function loadMessages() {
 
     const cachedChat = localStorage.getItem('chmat_chat_' + chatId);
     if (cachedChat) {
-        try { renderMessagesHTML(JSON.parse(cachedChat)); } catch(e) {}
+        try { 
+            currentMessages = JSON.parse(cachedChat);
+            renderMessagesHTML(currentMessages); 
+        } catch(e) {}
     }
 
     onSnapshot(q, (snapshot) => {
@@ -202,6 +289,22 @@ function loadMessages() {
             const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
             return timeA - timeB; 
         });
+        
+        // Disappearing Messages Logic (Client-side filter)
+        const disappearTime = currentUserData[`disappear_${receiverId}`] || 'Off';
+        if (disappearTime !== 'Off') {
+            let maxAge = 0;
+            if(disappearTime === '24h') maxAge = 24*60*60*1000;
+            if(disappearTime === '7d') maxAge = 7*24*60*60*1000;
+            
+            const now = Date.now();
+            msgs = msgs.filter(m => {
+                const mTime = m.createdAt ? m.createdAt.toMillis() : now;
+                return (now - mTime) < maxAge;
+            });
+        }
+
+        currentMessages = msgs;
         localStorage.setItem('chmat_chat_' + chatId, JSON.stringify(msgs));
         renderMessagesHTML(msgs);
     });
@@ -226,31 +329,19 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
+// --- RECORDING (Base64) ---
 recordBtn.addEventListener('click', async () => {
     if (isRecording) return;
-    
     try {
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-            currentStream = null;
-        }
-
+        if (currentStream) currentStream.getTracks().forEach(track => track.stop());
         currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'audio/webm' });
         audioChunks = [];
 
-        mediaRecorder.ondataavailable = event => {
-            if (event.data.size > 0) audioChunks.push(event.data);
-        };
-
+        mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
         mediaRecorder.onstop = async () => {
             clearInterval(timerInterval);
-            
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-                currentStream = null;
-            }
-
+            if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; }
             recordingOverlay.classList.add('hidden');
             chatInputArea.style.display = 'flex';
             
@@ -260,16 +351,12 @@ recordBtn.addEventListener('click', async () => {
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = async () => {
-                const base64Audio = reader.result;
                 try {
                     await addDoc(collection(db, "messages"), { 
                         chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
-                        type: "audio", audioUrl: base64Audio, createdAt: serverTimestamp() 
+                        type: "audio", audioUrl: reader.result, createdAt: serverTimestamp() 
                     });
-                } catch (err) {
-                    console.error(err);
-                    alert("Failed to send voice note.");
-                }
+                } catch (err) { alert("Failed to send voice note."); }
                 recordBtn.style.color = "#0095f6"; 
             };
         };
@@ -283,35 +370,19 @@ recordBtn.addEventListener('click', async () => {
         recordingTimer.innerText = "0:00";
         timerInterval = setInterval(() => {
             const diff = Math.floor((Date.now() - startTime) / 1000);
-            const mins = Math.floor(diff / 60).toString().padStart(2, '0');
-            const secs = (diff % 60).toString().padStart(2, '0');
-            recordingTimer.innerText = `${mins}:${secs}`;
+            recordingTimer.innerText = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
         }, 1000);
-
-    } catch (err) {
-        alert("Mic Error: " + err.message);
-    }
+    } catch (err) { alert("Mic Error: " + err.message); }
 });
 
-window.stopAndSendRecording = function() {
-    if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        isRecording = false;
-    }
-};
-
+window.stopAndSendRecording = function() { if (mediaRecorder && isRecording) { mediaRecorder.stop(); isRecording = false; } };
 window.cancelRecording = function() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.onstop = null; 
         mediaRecorder.stop();
         isRecording = false;
         clearInterval(timerInterval);
-        
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-            currentStream = null;
-        }
-        
+        if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; }
         recordingOverlay.classList.add('hidden');
         chatInputArea.style.display = 'flex';
     }

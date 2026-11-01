@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Chat - CHMAT</title>
-  <link rel="stylesheet" href="css/chat.css?v=25">
+  <link rel="stylesheet" href="css/chat.css?v=30">
 </head>
 <body>
   <div class="chat-container">
     <!-- Chat Header -->
-    <header class="chat-header">
+    <header class="chat-header" id="mainChatHeader">
       <div style="display:flex; align-items:center; flex:1;">
         <button class="back-btn" onclick="window.location.href='app.html'">←</button>
         <div class="chat-user-info">
@@ -18,11 +18,20 @@
         </div>
       </div>
       <div class="chat-header-icons">
-        <span onclick="alert('Audio Call coming soon!')">📞</span>
+        <span onclick="openSearch()" style="cursor:pointer;">🔍</span>
         <span onclick="alert('Video Call coming soon!')">📹</span>
         <span onclick="openChatInfo()" style="cursor:pointer;">ℹ️</span>
       </div>
     </header>
+
+    <!-- Search Bar (Hidden by default) -->
+    <div id="searchContainer" class="search-container hidden">
+      <input type="text" id="chatSearchInput" placeholder="Search in chat..." oninput="performSearch()">
+      <button onclick="closeSearch()">✕</button>
+    </div>
+
+    <!-- Search Results -->
+    <div id="searchResultsList" class="search-results-list hidden"></div>
 
     <!-- Chat Messages -->
     <main class="chat-messages" id="chatMessages"></main>
@@ -30,16 +39,15 @@
     <!-- Recording Overlay -->
     <div id="recordingOverlay" class="recording-overlay hidden">
       <div class="recording-content">
-        <button id="deleteRecordBtn" class="delete-record-btn" onclick="cancelRecording()">🗑️</button>
-        <div id="waveform-container" class="waveform-container"></div>
+        <button class="delete-record-btn" onclick="cancelRecording()">🗑️</button>
         <div id="recordingTimer" class="recording-timer">0:00</div>
-        <button id="stopRecordBtn" class="stop-record-btn" onclick="stopAndSendRecording()">➡️</button>
+        <button class="stop-record-btn" onclick="stopAndSendRecording()">➡️</button>
       </div>
     </div>
 
     <!-- Chat Input -->
     <footer class="chat-input-area" id="chatInputArea">
-      <div class="camera-icon" onclick="alert('Camera feature coming soon!')">📷</div>
+      <div class="camera-icon" onclick="alert('Camera coming soon!')">📷</div>
       <div class="input-wrapper">
         <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
         <button id="recordBtn" class="record-btn">
@@ -52,59 +60,60 @@
     </footer>
   </div>
 
-  <!-- CHAT INFO OVERLAY (Instagram Style) -->
+  <!-- CHAT INFO OVERLAY -->
   <div id="chatInfoOverlay" class="chat-info-overlay hidden">
-    <div class="info-header">
-      <button onclick="closeChatInfo()">←</button>
-    </div>
-    
+    <div class="info-header"><button onclick="closeChatInfo()">←</button></div>
     <div class="info-profile">
       <div class="info-avatar" id="infoAvatar">U</div>
       <h2 class="info-name" id="infoName">Loading...</h2>
     </div>
-
     <div class="info-actions">
-      <div class="action-item"><span>👤</span> Profile</div>
-      <div class="action-item"><span>🔍</span> Search</div>
-      <div class="action-item" onclick="toggleMute()"><span id="muteIcon">🔔</span> <span id="muteText">Mute</span></div>
+      <div class="action-item" onclick="openPrivacyModal()"><span>🔒</span> Privacy</div>
+      <div class="action-item" onclick="openSearch()"><span>🔍</span> Search</div>
+      <div class="action-item" onclick="openMuteModal()"><span id="muteIcon">🔔</span> <span id="muteText">Mute</span></div>
       <div class="action-item" onclick="toggleOptionsMenu()"><span>⋮</span> Options</div>
     </div>
-
-    <!-- Options Dropdown -->
+    
     <div id="infoOptionsMenu" class="info-options-menu hidden">
-      <div onclick="alert('Restrict feature coming soon')">🚫 Restrict</div>
       <div onclick="blockUser()" style="color:#ff3b30;">⛔ Block</div>
       <div onclick="reportUser()" style="color:#ff3b30;">⚠️ Report</div>
     </div>
 
     <div class="info-list">
-      <div class="list-item">
-        <div class="list-icon" style="background: linear-gradient(45deg, #8a2be2, #4169e1);"></div>
-        <div class="list-text">Theme <br><span>Default</span></div>
-      </div>
-      <div class="list-item">
+      <div class="list-item" onclick="openDisappearingModal()">
         <div class="list-icon">⏱️</div>
-        <div class="list-text">Disappearing messages <br><span>Off</span></div>
+        <div class="list-text">Disappearing messages <br><span id="disappearStatus">Off</span></div>
       </div>
       <div class="list-item" onclick="togglePin()">
-        <div class="list-icon" id="pinIcon">📌</div>
+        <div class="list-icon" id="pinIcon">📍</div>
         <div class="list-text" id="pinText">Pin to top</div>
-      </div>
-      <div class="list-item">
-        <div class="list-icon">💬</div>
-        <div class="list-text">Chat controls</div>
-      </div>
-      <div class="list-item">
-        <div class="list-icon">🔒</div>
-        <div class="list-text">Privacy and safety</div>
-      </div>
-      <div class="list-item">
-        <div class="list-icon">👥</div>
-        <div class="list-text">Create a group chat</div>
       </div>
     </div>
   </div>
 
-  <script type="module" src="js/chat.js?v=25"></script>
+  <!-- MUTE MODAL -->
+  <div id="muteModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3>Mute Notifications</h3>
+      <button onclick="setMute('1h')">For 1 hour</button>
+      <button onclick="setMute('24h')">For 24 hours</button>
+      <button onclick="setMute('forever')">Until I turn it back on</button>
+      <button class="cancel-btn" onclick="closeMuteModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- DISAPPEARING MODAL -->
+  <div id="disappearModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3>Disappearing Messages</h3>
+      <p>New messages will disappear from this chat after the selected time.</p>
+      <button onclick="setDisappear('Off')">Off</button>
+      <button onclick="setDisappear('24h')">24 hours</button>
+      <button onclick="setDisappear('7d')">7 days</button>
+      <button class="cancel-btn" onclick="closeDisappearingModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/chat.js?v=30"></script>
 </body>
 </html>
