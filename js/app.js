@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { doc, getDoc, deleteDoc, collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, orderBy, increment, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { doc, getDoc, deleteDoc, collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const dropdownMenu = document.getElementById('dropdownMenu');
 const navItems = document.querySelectorAll('.nav-item');
@@ -118,12 +118,15 @@ function createPostHTML(post, docId) {
 
 async function loadFeed() {
     const feedContainer = document.getElementById('feedContainer');
-    // Ye limit(20) add karne se feed fast load hoga
-    const q = query(collection(db, "posts"), );
+    const q = query(collection(db, "posts")); // No orderBy to avoid index error
     onSnapshot(q, async (snapshot) => {
         globalPosts = []; let uidsToFetch = new Set();
         snapshot.forEach((doc) => { const post = doc.data(); globalPosts.push({ id: doc.id, ...post }); uidsToFetch.add(post.uid); });
         for (let uid of uidsToFetch) { await getUserProfile(uid); }
+        
+        // Sort in JS
+        globalPosts.sort((a,b) => { return (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0); });
+        
         let html = '';
         globalPosts.forEach((post) => {
             let canSee = false;
@@ -171,11 +174,13 @@ window.setReply = function(commentId, username) { currentReplyTo = { id: comment
 function loadComments(postId) {
     const commentList = document.getElementById('commentList'); if(!commentList) return;
     commentList.innerHTML = '<p style="text-align:center; color:#888;">Loading comments...</p>';
-    const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"));
+    const q = query(collection(db, "posts", postId, "comments"));
     onSnapshot(q, (snapshot) => {
         updateDoc(doc(db, "posts", postId), { commentCount: snapshot.size }).catch(e=>console.log(e));
         if (snapshot.empty) { commentList.innerHTML = '<p style="text-align:center; color:#888; margin-top:20px;">No comments yet.</p>'; return; }
         let allComments = []; snapshot.forEach((doc) => { allComments.push({ id: doc.id, ...doc.data() }); });
+        allComments.sort((a,b) => { return (a.createdAt ? a.createdAt.toMillis() : 0) - (b.createdAt ? b.createdAt.toMillis() : 0); });
+        
         const topLevel = allComments.filter(c => !c.parentId); const replies = allComments.filter(c => c.parentId);
         let html = '';
         topLevel.forEach((comment) => {
@@ -227,13 +232,6 @@ if(sendCommentBtn) {
             if (currentReplyTo) { commentData.parentId = currentReplyTo.id; commentData.parentUsername = currentReplyTo.username; }
             await addDoc(collection(db, "posts", currentPostIdForComment, "comments"), commentData);
             await updateDoc(doc(db, "posts", currentPostIdForComment), { commentCount: increment(1) });
-            const postSnap = await getDoc(doc(db, "posts", currentPostIdForComment));
-            if(postSnap.exists()) {
-                const postData = postSnap.data();
-                if(postData.uid !== currentUser.uid) {
-                    await addDoc(collection(db, "notifications"), { receiverId: postData.uid, senderId: currentUser.uid, senderUsername: currentUserData.username, type: "comment", postId: currentPostIdForComment, text: text, read: false, createdAt: serverTimestamp() });
-                }
-            }
             cancelReply(); 
         } catch (error) { alert("Failed to post comment: " + error.message); }
     });
@@ -271,7 +269,7 @@ onAuthStateChanged(auth, async (user) => {
                 <div class="profile-avatar">${avatarHtml}</div>
                 <div class="profile-stats">
                   <div class="stat-item"><span>${myPostsCount}</span>Posts</div>
-                  <div class="stat-item" onclick="openFriendsModal()" style="cursor:pointer;"><span>${myFriendsList.length}</span>Friends</div>
+                  <div class="stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span>${myFriendsList.length}</span>Friends</div>
                 </div>
                 <div class="profile-menu-btn" id="menuBtn">⋮</div>
               </div>
@@ -302,41 +300,84 @@ onAuthStateChanged(auth, async (user) => {
   } else { window.location.href = 'login.html'; }
 });
 
-// Simple Search (No index needed)
-const searchInput = document.getElementById('searchInput'); const searchResults = document.getElementById('searchResults');
-if (searchInput && searchResults) {
-  searchInput.addEventListener('input', async (e) => {
-    const searchTerm = e.target.value.trim().toLowerCase();
-    if (searchTerm.length < 2) { searchResults.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">Type at least 2 letters...</p>'; return; }
-    searchResults.innerHTML = '';
-    try {
-      const usersRef = collection(db, "users"); 
-      const querySnapshot = await getDocs(usersRef); // Get all and filter locally (for small app)
-      let html = '';
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (data.uid !== currentUser.uid && data.username.includes(searchTerm)) { 
-          const initial = (data.displayName || data.username).charAt(0).toUpperCase(); const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
-          let btnHtml = '';
-          if (myFriendsList.includes(data.uid)) { 
-              btnHtml = `<button class="add-friend-btn" style="background:#262626; color:#fff;" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'">Message</button>`; 
-          } else {
-              const existingReq = mySentRequests.find(r => r.receiverId === data.uid);
-              if(existingReq) {
-                  btnHtml = `<button class="add-friend-btn" style="background:#333; color:#ff3b30;" onclick="cancelFriendRequest('${existingReq.id}', this)">Cancel</button>`;
-              } else {
-                  btnHtml = `<button class="add-friend-btn" onclick="sendRequest('${data.uid}', '${data.username}', this)">Add Friend</button>`; 
-              }
-          }
-          html += `<div class="user-result"><div class="user-info-left" onclick="window.location.href='profile.html?uid=${data.uid}'" style="cursor:pointer;"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div></div><div style="display:flex; gap:8px; align-items:center;">${btnHtml}<button onclick="reportProfile('${data.uid}', '${data.username}')" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">⋮</button></div></div>`; 
+window.openFriendsModal = async function() {
+    const modal = document.getElementById('friendsModal');
+    const container = document.getElementById('friendsListContainer');
+    if(!modal || !container) return;
+
+    modal.style.display = 'flex';
+    container.innerHTML = '<p style="text-align:center; color:#888;">Loading friends...</p>';
+
+    if(myFriendsList.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#888;">No friends yet.</p>';
+        return;
+    }
+
+    let html = '';
+    for(let friendId of myFriendsList) {
+        const data = await getUserProfile(friendId);
+        if(data) {
+            const initial = (data.displayName || data.username).charAt(0).toUpperCase();
+            const avatarHtml = getAvatarHtml(data.profilePicUrl, initial);
+            html += `
+                <div class="user-result" style="padding: 10px 0; border-bottom: 1px solid #222;">
+                    <div class="user-info-left" onclick="window.location.href='profile.html?uid=${data.uid}'" style="cursor:pointer; display:flex; align-items:center; gap:10px;">
+                        <div class="user-avatar-small">${avatarHtml}</div>
+                        <div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div>
+                    </div>
+                    <div style="position:relative;">
+                         <button onclick="toggleFriendMenu('${data.uid}', event)" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">⋮</button>
+                         <div id="friend-menu-${data.uid}" style="display:none; position:absolute; right:30px; top:0; background:#1a1a1a; border:1px solid #333; border-radius:8px; z-index:100; width:140px; overflow:hidden;">
+                             <div onclick="unfriendFromList('${data.uid}')" style="padding:12px; color:#fff; font-size:14px; cursor:pointer; border-bottom:1px solid #333;">Unfriend</div>
+                             <div onclick="blockUser('${data.uid}')" style="padding:12px; color:#ff3b30; font-size:14px; cursor:pointer;">Block</div>
+                         </div>
+                    </div>
+                </div>
+            `;
         }
-      });
-      searchResults.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No user found.</p>';
-    } catch (error) { searchResults.innerHTML = '<p style="text-align: center; color: red;">Error.</p>'; }
-  });
+    }
+    container.innerHTML = html;
 }
 
-// Baqi Functions (Notifications, ChatList, etc.)
+window.closeFriendsModal = function() {
+    document.getElementById('friendsModal').style.display = 'none';
+}
+
+window.toggleFriendMenu = function(uid, event) {
+    event.stopPropagation();
+    document.querySelectorAll('[id^="friend-menu-"]').forEach(el => el.style.display = 'none');
+    const menu = document.getElementById('friend-menu-' + uid);
+    if(menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', () => {
+    document.querySelectorAll('[id^="friend-menu-"]').forEach(el => el.style.display = 'none');
+});
+
+window.unfriendFromList = async function(friendId) {
+    if(!confirm("Unfriend this user?")) return;
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), { friends: arrayRemove(friendId) });
+        await updateDoc(doc(db, "users", friendId), { friends: arrayRemove(currentUser.uid) });
+        myFriendsList = myFriendsList.filter(id => id !== friendId); 
+        document.querySelector('.profile-stats .stat-item:nth-child(2) span').innerText = myFriendsList.length;
+        openFriendsModal(); 
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+window.blockUser = async function(friendId) {
+    if(!confirm("Block this user?")) return;
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), { friends: arrayRemove(friendId) });
+        await updateDoc(doc(db, "users", friendId), { friends: arrayRemove(currentUser.uid) });
+        await updateDoc(doc(db, "users", currentUser.uid), { blocked: arrayUnion(friendId) });
+        myFriendsList = myFriendsList.filter(id => id !== friendId);
+        document.querySelector('.profile-stats .stat-item:nth-child(2) span').innerText = myFriendsList.length;
+        openFriendsModal();
+        alert("User blocked.");
+    } catch(e) { alert("Error: " + e.message); }
+}
+
 function loadMySentRequests() {
     const qSent = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid));
     onSnapshot(qSent, (snapshot) => {
@@ -346,7 +387,6 @@ function loadMySentRequests() {
 }
 
 let allNotifications = [];
-let deleteTimeouts = {}; 
 function loadNotifications() {
   const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid));
   onSnapshot(qReq, (snapReq) => {
@@ -457,11 +497,39 @@ async function loadChatList() {
   } catch (error) { chatList.innerHTML = '<p style="text-align: center; color: red;">Error loading chats.</p>'; }
 }
 
-window.cancelFriendRequest = async function(requestId, btnElement) {
-    if(!confirm("Cancel this friend request?")) return;
-    btnElement.innerText = "Cancelling...";
-    try { await deleteDoc(doc(db, "friend_requests", requestId)); btnElement.innerText = "Add Friend"; btnElement.style.background = "#0095f6"; } catch(e) { alert("Error: " + e.message); btnElement.innerText = "Cancel"; }
+const searchInput = document.getElementById('searchInput'); const searchResults = document.getElementById('searchResults');
+if (searchInput && searchResults) {
+  searchInput.addEventListener('input', async (e) => {
+    const searchTerm = e.target.value.trim().toLowerCase();
+    if (searchTerm.length < 2) { searchResults.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">Type at least 2 letters...</p>'; return; }
+    searchResults.innerHTML = '';
+    try {
+      const usersRef = collection(db, "users"); 
+      const querySnapshot = await getDocs(usersRef); 
+      let html = '';
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.uid !== currentUser.uid && data.username.includes(searchTerm)) { 
+          const initial = (data.displayName || data.username).charAt(0).toUpperCase(); const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
+          let btnHtml = '';
+          if (myFriendsList.includes(data.uid)) { 
+              btnHtml = `<button class="add-friend-btn" style="background:#262626; color:#fff;" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'">Message</button>`; 
+          } else {
+              const existingReq = mySentRequests.find(r => r.receiverId === data.uid);
+              if(existingReq) {
+                  btnHtml = `<button class="add-friend-btn" style="background:#333; color:#ff3b30;" onclick="cancelFriendRequest('${existingReq.id}', this)">Cancel</button>`;
+              } else {
+                  btnHtml = `<button class="add-friend-btn" onclick="sendRequest('${data.uid}', '${data.username}', this)">Add Friend</button>`; 
+              }
+          }
+          html += `<div class="user-result"><div class="user-info-left" onclick="window.location.href='profile.html?uid=${data.uid}'" style="cursor:pointer;"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div></div><div style="display:flex; gap:8px; align-items:center;">${btnHtml}<button onclick="reportProfile('${data.uid}', '${data.username}')" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">⋮</button></div></div>`; 
+        }
+      });
+      searchResults.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No user found.</p>';
+    } catch (error) { searchResults.innerHTML = '<p style="text-align: center; color: red;">Error.</p>'; }
+  });
 }
+
 window.reportProfile = async function(targetUid, targetUsername) {
     if(targetUid === currentUser.uid) { alert("Aap apni profile report nahi kar sakte."); return; }
     let reason = prompt("Report @"+targetUsername+"\n\nChoose Reason:\n1. Fake Account\n2. Harassment\n3. Nudity\n4. Spam");
@@ -470,6 +538,11 @@ window.reportProfile = async function(targetUid, targetUsername) {
 window.sendRequest = async function(receiverId, receiverUsername, btnElement) {
     btnElement.innerText = "Sending..."; btnElement.disabled = true;
     try { await addDoc(collection(db, "friend_requests"), { senderId: currentUser.uid, senderUsername: currentUserData.username, receiverId: receiverId, receiverUsername: receiverUsername, status: "pending", createdAt: serverTimestamp() }); btnElement.innerText = "Requested"; btnElement.style.background = "#333"; } catch (error) { btnElement.innerText = "Add Friend"; btnElement.disabled = false; }
+}
+window.cancelFriendRequest = async function(requestId, btnElement) {
+    if(!confirm("Cancel this friend request?")) return;
+    btnElement.innerText = "Cancelling...";
+    try { await deleteDoc(doc(db, "friend_requests", requestId)); btnElement.innerText = "Add Friend"; btnElement.style.background = "#0095f6"; } catch(e) { alert("Error: " + e.message); btnElement.innerText = "Cancel"; }
 }
 const adminPanelBtn = document.getElementById('adminPanelBtn'); if (adminPanelBtn) { adminPanelBtn.addEventListener('click', () => window.location.href = 'admin.html'); }
 const logoutBtn = document.getElementById('logoutBtn'); if (logoutBtn) { logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html')); }

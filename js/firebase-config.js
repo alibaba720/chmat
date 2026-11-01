@@ -15,7 +15,7 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Force Login Session to stay saved (Fixes logout issue)
+// Ye line session ko force save karti hai
 setPersistence(auth, browserLocalPersistence).catch((error) => {
-  console.error("Auth Persistence Error:", error);
+  console.error("Auth Error:", error);
 });
