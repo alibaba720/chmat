@@ -119,7 +119,7 @@ function createPostHTML(post, docId) {
 async function loadFeed() {
     const feedContainer = document.getElementById('feedContainer');
     try {
-        const q = query(collection(db, "posts")); // Bina orderBy (Index error se bachne ke liye)
+        const q = query(collection(db, "posts"));
         onSnapshot(q, async (snapshot) => {
             globalPosts = []; let uidsToFetch = new Set();
             snapshot.forEach((doc) => { 
@@ -128,9 +128,9 @@ async function loadFeed() {
                 uidsToFetch.add(post.uid); 
             });
             
-            for (let uid of uidsToFetch) { await getUserProfile(uid); }
+            // PARALLEL FETCHING (6 second ki delay khatam karne ke liye)
+            await Promise.all(Array.from(uidsToFetch).map(uid => getUserProfile(uid)));
             
-            // JavaScript mein sorting (Newest first)
             globalPosts.sort((a,b) => {
                 const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
                 const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
@@ -337,7 +337,7 @@ window.openFriendsModal = async function() {
     }
 
     let html = '';
-    for(let friendId of myFriendsList) {
+    await Promise.all(myFriendsList.map(async (friendId) => {
         const data = await getUserProfile(friendId);
         if(data) {
             const initial = (data.displayName || data.username).charAt(0).toUpperCase();
@@ -358,25 +358,13 @@ window.openFriendsModal = async function() {
                 </div>
             `;
         }
-    }
+    }));
     container.innerHTML = html;
 }
 
-window.closeFriendsModal = function() {
-    document.getElementById('friendsModal').style.display = 'none';
-}
-
-window.toggleFriendMenu = function(uid, event) {
-    event.stopPropagation();
-    document.querySelectorAll('[id^="friend-menu-"]').forEach(el => el.style.display = 'none');
-    const menu = document.getElementById('friend-menu-' + uid);
-    if(menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
-
-document.addEventListener('click', () => {
-    document.querySelectorAll('[id^="friend-menu-"]').forEach(el => el.style.display = 'none');
-});
-
+window.closeFriendsModal = function() { document.getElementById('friendsModal').style.display = 'none'; }
+window.toggleFriendMenu = function(uid, event) { event.stopPropagation(); document.querySelectorAll('[id^="friend-menu-"]').forEach(el => el.style.display = 'none'); const menu = document.getElementById('friend-menu-' + uid); if(menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none'; }
+document.addEventListener('click', () => { document.querySelectorAll('[id^="friend-menu-"]').forEach(el => el.style.display = 'none'); });
 window.unfriendFromList = async function(friendId) {
     if(!confirm("Unfriend this user?")) return;
     try {
@@ -387,7 +375,6 @@ window.unfriendFromList = async function(friendId) {
         openFriendsModal(); 
     } catch(e) { alert("Error: " + e.message); }
 }
-
 window.blockUser = async function(friendId) {
     if(!confirm("Block this user?")) return;
     try {
@@ -510,13 +497,13 @@ async function loadChatList() {
     if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
     let html = '';
     if (myFriendsList.length > 0) {
-        for (const friendId of myFriendsList) {
+        await Promise.all(myFriendsList.map(async (friendId) => {
           const data = await getUserProfile(friendId);
           if (data) {
             const initial = (data.displayName || data.username).charAt(0).toUpperCase(); const avatarHtml = getAvatarHtml(data.profilePicUrl, initial);
             html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'"><div class="user-info-left"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div></div></div>`;
           }
-        }
+        }));
     }
     chatList.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No chats yet.</p>';
   } catch (error) { chatList.innerHTML = '<p style="text-align: center; color: red;">Error loading chats.</p>'; }
