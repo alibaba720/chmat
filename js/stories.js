@@ -1,3 +1,4 @@
+import { db } from "./firebase-config.js";
 import { doc, deleteDoc, collection, query, onSnapshot, addDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 let currentUser, currentUserData, myFriendsList;
