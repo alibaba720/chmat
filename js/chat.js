@@ -113,7 +113,7 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// --- VOICE RECORDING WITH UI ---
+// --- VOICE RECORDING WITH CATBOX UPLOAD ---
 recordBtn.addEventListener('click', async () => {
     if (!isRecording) {
         try {
@@ -132,19 +132,19 @@ recordBtn.addEventListener('click', async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 recordBtn.style.color = "#ffd700"; // Loading color
                 
+                // CATBOX Upload Logic
                 const formData = new FormData();
-                formData.append("file", audioBlob, "voice.webm");
+                formData.append("reqtype", "fileupload");
+                formData.append("fileToUpload", audioBlob, "voice.webm");
 
                 try {
-                    const response = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body: formData });
-                    const data = await response.json(); 
+                    const response = await fetch("https://catbox.moe/user/api.php", { method: "POST", body: formData });
+                    const audioUrl = await response.text(); // Catbox direct URL as text return karta hai
                     
-                    if (data.status === "success") {
-                        // TmpFiles direct download URL
-                        let audioUrl = data.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+                    if (audioUrl && audioUrl.startsWith("https://")) {
                         await addDoc(collection(db, "messages"), { 
                             chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
-                            type: "audio", audioUrl: audioUrl, createdAt: serverTimestamp() 
+                            type: "audio", audioUrl: audioUrl.trim(), createdAt: serverTimestamp() 
                         });
                     } else { 
                         alert("Voice upload failed. Try again."); 
@@ -159,11 +159,9 @@ recordBtn.addEventListener('click', async () => {
             mediaRecorder.start();
             isRecording = true;
             
-            // UI Toggle
             recordingUI.classList.remove('hidden');
-            chatInputArea.style.display = 'none'; // Hide normal input
+            chatInputArea.style.display = 'none'; 
             
-            // Timer Start
             startTime = Date.now();
             recordingTimer.innerText = "0:00";
             timerInterval = setInterval(() => {
@@ -179,7 +177,6 @@ recordBtn.addEventListener('click', async () => {
     }
 });
 
-// Stop Recording Function
 window.stopRecording = function() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
