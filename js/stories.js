@@ -10,6 +10,8 @@ export function initStories(user, userData, friends) {
     currentUser = user; currentUserData = userData; myFriendsList = friends;
     attachStoryUploadListener();
     loadStories();
+    // Foran "Your Story" button render karein taake UI khali na lage
+    renderStoriesRow([]); 
 }
 
 function attachStoryUploadListener() {
@@ -23,7 +25,8 @@ function attachStoryUploadListener() {
             if(progress) progress.classList.remove('hidden');
             
             try {
-                let duration = 5; // Default for images
+                let duration = 5; // Image ke liye 5 second
+                
                 if (file.type.startsWith('video/')) {
                     duration = await getVideoDuration(file);
                     if(duration > 60) {
@@ -60,6 +63,7 @@ function attachStoryUploadListener() {
         });
     }
 }
+
 function getVideoDuration(file) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
@@ -69,10 +73,7 @@ function getVideoDuration(file) {
     });
 }
 
-async function loadStories() {
-    const container = document.getElementById('storiesContainer');
-    if(!container) return;
-
+function loadStories() {
     const q = query(collection(db, "stories"));
     onSnapshot(q, async (snapshot) => {
         let allStories = [];
@@ -82,7 +83,6 @@ async function loadStories() {
             const story = doc.data();
             const storyTime = story.createdAt ? story.createdAt.toMillis() : 0;
             
-            // AUTO DELETE AFTER 24 HOURS
             if ((now - storyTime) > 24 * 60 * 60 * 1000) {
                 await deleteDoc(doc.ref); 
                 continue;
@@ -99,29 +99,40 @@ async function loadStories() {
         });
 
         globalStories = Object.values(grouped);
-        renderStoriesRow();
+        renderStoriesRow(globalStories);
     });
 }
 
-function renderStoriesRow() {
+function renderStoriesRow(stories) {
     const container = document.getElementById('storiesContainer');
+    if(!container) return;
+    
     let html = '';
     const myInitial = (currentUserData.displayName || currentUserData.username).charAt(0).toUpperCase();
-    const myAvatar = currentUserData.profilePicUrl ? `<img src="${currentUserData.profilePicUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${myInitial}</div>`;
+    const myAvatar = currentUserData.profilePicUrl ? `<img src="${currentUserData.profilePicUrl}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${myInitial}</div>`;
 
-    html += `<div class="story-item" onclick="document.getElementById('storyUploadInput').click()"><div class="story-ring">${myAvatar}<div class="story-add-btn">+</div></div><span>Your Story</span></div>`;
+    // "Your Story" Button
+    html += `<div class="story-item" onclick="document.getElementById('storyUploadInput').click()">
+        <div class="story-ring">${myAvatar}<div class="story-add-btn">+</div></div>
+        <span>Your Story</span>
+    </div>`;
 
-    globalStories.forEach(group => {
+    // Friends' Stories
+    stories.forEach(group => {
         const u = group.user;
         const initial = (u.username).charAt(0).toUpperCase();
-        const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${initial}</div>`;
+        const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${initial}</div>`;
         const hasViewed = group.stories.every(s => s.viewers && s.viewers.includes(currentUser.uid));
         const ringClass = hasViewed ? 'story-ring viewed' : 'story-ring';
 
-        html += `<div class="story-item" onclick="openStoryViewer('${u.uid}')"><div class="${ringClass}">${avatar}</div><span>${u.username}</span></div>`;
+        html += `<div class="story-item" onclick="openStoryViewer('${u.uid}')">
+            <div class="${ringClass}">${avatar}</div>
+            <span>${u.username}</span>
+        </div>`;
     });
     container.innerHTML = html;
 }
+
 window.openStoryViewer = function(uid) {
     const group = globalStories.find(g => g.user.uid === uid);
     if (!group) return;
@@ -130,7 +141,6 @@ window.openStoryViewer = function(uid) {
     currentStoryIndex = 0;
     document.getElementById('storyViewerModal').classList.remove('hidden');
     document.getElementById('storyViewerName').innerText = group.user.username;
-    document.getElementById('storyViewerTime').innerText = "Just now";
     
     const avatar = group.user.profilePicUrl ? `<img src="${group.user.profilePicUrl}">` : `<div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; background:#333; font-weight:bold;">${group.user.username.charAt(0).toUpperCase()}</div>`;
     document.getElementById('storyViewerAvatar').innerHTML = avatar;
@@ -143,9 +153,7 @@ function showStory() {
     const mediaContainer = document.getElementById('storyViewerMedia');
     const progressBar = document.getElementById('storyProgress');
 
-    // Progress bar reset
     progressBar.style.width = '0%';
-    progressBar.parentElement.style.display = 'block';
     if (storyTimer) clearInterval(storyTimer);
 
     if (story.type === 'video') {
@@ -153,7 +161,6 @@ function showStory() {
         const video = mediaContainer.querySelector('video');
         video.onended = nextStory;
         
-        // Video duration progress
         let progress = 0;
         storyTimer = setInterval(() => {
             if(video.duration) {
@@ -164,6 +171,7 @@ function showStory() {
     } else {
         mediaContainer.innerHTML = `<img src="${story.mediaUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
         let progress = 0;
+        // Image ke liye 5 second (50ms * 100 = 5000ms)
         storyTimer = setInterval(() => {
             progress += 2;
             progressBar.style.width = progress + '%';
@@ -189,7 +197,6 @@ window.prevStory = function() {
 
 window.closeStoryViewer = function() {
     if (storyTimer) clearInterval(storyTimer);
-    const mediaContainer = document.getElementById('storyViewerMedia');
-    mediaContainer.innerHTML = ''; // Stop video from playing in background
+    document.getElementById('storyViewerMedia').innerHTML = ''; 
     document.getElementById('storyViewerModal').classList.add('hidden');
 };
