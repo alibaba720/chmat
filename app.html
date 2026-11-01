@@ -85,7 +85,7 @@
         <button onclick="closeStoryViewer()" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
     </div>
     <div class="story-image-container">
-        <img id="storyViewerImage" src="" alt="Story">
+        <div id="storyViewerMedia" style="width:100%; height:100%; display:flex; justify-content:center; align-items:center;"></div>
     </div>
     <div class="story-nav-areas">
         <div class="story-nav-left" onclick="prevStory()"></div>
@@ -93,6 +93,8 @@
     </div>
 </div>
 
+<input type="file" id="storyUploadInput" accept="video/*,image/*" style="display:none;">
+<div id="storyUploadProgress" class="hidden" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#333; padding:10px 20px; border-radius:20px; z-index:99999; color:#fff;">Uploading Story...</div>
 <!-- COMMENT MODAL -->
   <div id="commentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: rgba(0,0,0,0.8); align-items: flex-end;">
     <div class="comment-overlay" onclick="closeCommentModal()" style="position: absolute; width: 100%; height: 100%;"></div>
