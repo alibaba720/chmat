@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Chat - CHMAT</title>
-  <link rel="stylesheet" href="css/chat.css?v=20">
-  <script src="https://js.puter.com/v2/"></script>
-  <script src="https://unpkg.com/wavesurfer.js@7"></script>
-  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/record.js"></script>
+  <link rel="stylesheet" href="css/chat.css?v=25">
 </head>
 <body>
   <div class="chat-container">
+    <!-- Chat Header -->
     <header class="chat-header">
       <div style="display:flex; align-items:center; flex:1;">
         <button class="back-btn" onclick="window.location.href='app.html'">←</button>
@@ -22,13 +20,14 @@
       <div class="chat-header-icons">
         <span onclick="alert('Audio Call coming soon!')">📞</span>
         <span onclick="alert('Video Call coming soon!')">📹</span>
-        <span onclick="alert('Chat Info coming soon!')">ℹ️</span>
+        <span onclick="openChatInfo()" style="cursor:pointer;">ℹ️</span>
       </div>
     </header>
 
+    <!-- Chat Messages -->
     <main class="chat-messages" id="chatMessages"></main>
 
-    <!-- Instagram Style Recording Overlay -->
+    <!-- Recording Overlay -->
     <div id="recordingOverlay" class="recording-overlay hidden">
       <div class="recording-content">
         <button id="deleteRecordBtn" class="delete-record-btn" onclick="cancelRecording()">🗑️</button>
@@ -38,6 +37,7 @@
       </div>
     </div>
 
+    <!-- Chat Input -->
     <footer class="chat-input-area" id="chatInputArea">
       <div class="camera-icon" onclick="alert('Camera feature coming soon!')">📷</div>
       <div class="input-wrapper">
@@ -52,6 +52,59 @@
     </footer>
   </div>
 
-  <script type="module" src="js/chat.js?v=20"></script>
+  <!-- CHAT INFO OVERLAY (Instagram Style) -->
+  <div id="chatInfoOverlay" class="chat-info-overlay hidden">
+    <div class="info-header">
+      <button onclick="closeChatInfo()">←</button>
+    </div>
+    
+    <div class="info-profile">
+      <div class="info-avatar" id="infoAvatar">U</div>
+      <h2 class="info-name" id="infoName">Loading...</h2>
+    </div>
+
+    <div class="info-actions">
+      <div class="action-item"><span>👤</span> Profile</div>
+      <div class="action-item"><span>🔍</span> Search</div>
+      <div class="action-item" onclick="toggleMute()"><span id="muteIcon">🔔</span> <span id="muteText">Mute</span></div>
+      <div class="action-item" onclick="toggleOptionsMenu()"><span>⋮</span> Options</div>
+    </div>
+
+    <!-- Options Dropdown -->
+    <div id="infoOptionsMenu" class="info-options-menu hidden">
+      <div onclick="alert('Restrict feature coming soon')">🚫 Restrict</div>
+      <div onclick="blockUser()" style="color:#ff3b30;">⛔ Block</div>
+      <div onclick="reportUser()" style="color:#ff3b30;">⚠️ Report</div>
+    </div>
+
+    <div class="info-list">
+      <div class="list-item">
+        <div class="list-icon" style="background: linear-gradient(45deg, #8a2be2, #4169e1);"></div>
+        <div class="list-text">Theme <br><span>Default</span></div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">⏱️</div>
+        <div class="list-text">Disappearing messages <br><span>Off</span></div>
+      </div>
+      <div class="list-item" onclick="togglePin()">
+        <div class="list-icon" id="pinIcon">📌</div>
+        <div class="list-text" id="pinText">Pin to top</div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">💬</div>
+        <div class="list-text">Chat controls</div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">🔒</div>
+        <div class="list-text">Privacy and safety</div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">👥</div>
+        <div class="list-text">Create a group chat</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/chat.js?v=25"></script>
 </body>
 </html>
