@@ -22,7 +22,7 @@ let audioChunks = [];
 let isRecording = false;
 let timerInterval;
 let startTime;
-let currentStream = null; // Mic track release ke liye
+let currentStream = null;
 
 if (!receiverId || !receiverName) { window.location.href = 'app.html'; }
 chatName.innerText = receiverName;
@@ -113,18 +113,21 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
-// --- RECORDING LOGIC WITH MIC RELEASE ---
+// --- VOICE RECORDING WITH QU.AX UPLOAD ---
 recordBtn.addEventListener('click', async () => {
     if (isRecording) return;
     
     try {
-        // Purana mic stream band karein agar mojood hai
         if (currentStream) {
             currentStream.getTracks().forEach(track => track.stop());
         }
 
-        currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(currentStream);
+        // Echo cancellation aur noise suppression add karein
+        currentStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+        });
+        
+        mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'audio/webm' });
         audioChunks = [];
 
         mediaRecorder.ondataavailable = event => {
@@ -134,7 +137,6 @@ recordBtn.addEventListener('click', async () => {
         mediaRecorder.onstop = async () => {
             clearInterval(timerInterval);
             
-            // MIC KO FORAN FREE KAREIN
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
                 currentStream = null;
@@ -144,18 +146,18 @@ recordBtn.addEventListener('click', async () => {
             chatInputArea.style.display = 'flex';
             
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            recordBtn.style.color = "#ffd700"; // Loading color
+            recordBtn.style.color = "#ffd700"; 
 
             const formData = new FormData();
             formData.append("files[]", audioBlob, "voice.webm");
 
             try {
-                // UGUU.SE UPLOAD (Direct Playable Link)
-                const response = await fetch("https://uguu.se/upload.php", { method: "POST", body: formData });
+                // QU.AX UPLOAD (Direct Playable Link)
+                const response = await fetch("https://qu.ax/upload.php", { method: "POST", body: formData });
                 const data = await response.json();
                 
-                if (data.success && data.files && data.files[0].url) {
-                    const audioUrl = data.files[0].url;
+                if (data && data[0] && data[0].url) {
+                    const audioUrl = data[0].url;
                     await addDoc(collection(db, "messages"), { 
                         chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
                         type: "audio", audioUrl: audioUrl, createdAt: serverTimestamp() 
@@ -186,7 +188,11 @@ recordBtn.addEventListener('click', async () => {
         }, 1000);
 
     } catch (err) {
-        alert("Mic Error: " + err.name + " - " + err.message);
+        if (err.name === 'NotReadableError') {
+            alert("Mic is busy! Please close other apps (like WhatsApp call) or restart your phone.");
+        } else {
+            alert("Mic Error: " + err.message);
+        }
     }
 });
 
@@ -199,7 +205,7 @@ window.stopAndSendRecording = function() {
 
 window.cancelRecording = function() {
     if (mediaRecorder && isRecording) {
-        mediaRecorder.onstop = null; // Upload cancel karein
+        mediaRecorder.onstop = null; 
         mediaRecorder.stop();
         isRecording = false;
         clearInterval(timerInterval);
