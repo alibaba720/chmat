@@ -1,6 +1,6 @@
-import { auth, db } from './firebase-config.js';
+import { auth, db, authReady } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const receiverId = urlParams.get('uid');
@@ -24,45 +24,68 @@ chatName.innerText = receiverName;
 
 function getChatId(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        currentUser = user;
-        chatId = getChatId(currentUser.uid, receiverId);
-        loadMessages();
-    } else { window.location.href = 'login.html'; }
+authReady.then(() => {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            chatId = getChatId(currentUser.uid, receiverId);
+            loadMessages();
+        } else { window.location.href = 'login.html'; }
+    });
 });
+
+function renderMessagesHTML(msgs) {
+    messagesContainer.innerHTML = ''; 
+    msgs.forEach((msg) => {
+        const isSentByMe = msg.senderId === currentUser.uid;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${isSentByMe ? 'sent' : 'received'}`;
+        
+        let timeStr = "";
+        if (msg.createdAt) {
+            const date = msg.createdAt.toDate();
+            timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        if (msg.type === 'audio') {
+            msgDiv.innerHTML = `<audio controls preload="metadata" src="${msg.audioUrl}" style="width: 200px;"></audio><div class="msg-time" style="float:none; text-align:right; margin-top:4px;">${timeStr}</div>`;
+        } else {
+            msgDiv.innerHTML = `${msg.text} <span class="msg-time">${timeStr}</span>`;
+        }
+        messagesContainer.appendChild(msgDiv);
+    });
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
 function loadMessages() {
     const messagesRef = collection(db, "messages");
     const q = query(messagesRef, where("chatId", "==", chatId));
 
+    // 1. Cache se foran load karein (0 second)
+    const cachedChat = localStorage.getItem('chmat_chat_' + chatId);
+    if (cachedChat) {
+        try {
+            const cachedMsgs = JSON.parse(cachedChat);
+            renderMessagesHTML(cachedMsgs);
+        } catch(e) {}
+    }
+
+    // 2. Real-time update
     onSnapshot(q, (snapshot) => {
         let msgs = [];
         snapshot.forEach((doc) => { msgs.push({ id: doc.id, ...doc.data() }); });
         
-        // Sort in JS (Oldest first)
-        msgs.sort((a,b) => { return (a.createdAt ? a.createdAt.toMillis() : 0) - (b.createdAt ? b.createdAt.toMillis() : 0); });
-
-        messagesContainer.innerHTML = ''; 
-        msgs.forEach((msg) => {
-            const isSentByMe = msg.senderId === currentUser.uid;
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isSentByMe ? 'sent' : 'received'}`;
-            
-            let timeStr = "";
-            if (msg.createdAt) {
-                const date = msg.createdAt.toDate();
-                timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }
-
-            if (msg.type === 'audio') {
-                msgDiv.innerHTML = `<audio controls preload="metadata" src="${msg.audioUrl}" style="width: 200px;"></audio><div class="msg-time" style="float:none; text-align:right; margin-top:4px;">${timeStr}</div>`;
-            } else {
-                msgDiv.innerHTML = `${msg.text} <span class="msg-time">${timeStr}</span>`;
-            }
-            messagesContainer.appendChild(msgDiv);
+        // Sort by time (Oldest first)
+        msgs.sort((a,b) => { 
+            const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+            const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+            return timeA - timeB; 
         });
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Save to cache for next time
+        localStorage.setItem('chmat_chat_' + chatId, JSON.stringify(msgs));
+        
+        renderMessagesHTML(msgs);
     });
 }
 
@@ -81,6 +104,7 @@ async function sendTextMessage() {
 sendBtn.addEventListener('click', sendTextMessage);
 messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTextMessage(); } });
 
+// VOICE RECORDING (0x0.st Upload)
 recordBtn.addEventListener('click', async () => {
     if (!isRecording) {
         try {
@@ -97,7 +121,6 @@ recordBtn.addEventListener('click', async () => {
                 formData.append("file", audioBlob, "voice.webm");
 
                 try {
-                    // 0x0.st Upload
                     const response = await fetch("https://0x0.st", { method: "POST", body: formData });
                     const audioUrl = await response.text(); 
                     
@@ -107,6 +130,7 @@ recordBtn.addEventListener('click', async () => {
                 } catch (err) { alert("Error uploading voice."); }
                 recordBtn.style.color = "#0095f6"; 
             };
+            
             mediaRecorder.start();
             isRecording = true;
             recordBtn.style.color = "red"; 
