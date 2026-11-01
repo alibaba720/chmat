@@ -22,6 +22,9 @@
     <main class="app-content" id="mainContent">
       <!-- Home Tab is Active by Default -->
       <div id="homeTab" class="tab-content">
+        <div class="stories-container" id="storiesContainer">
+          <!-- Story Rings will load here -->
+        </div>
         <div id="feedContainer">
           <p style="text-align: center; color: #888; margin-top: 20px;">Loading Feed...</p>
         </div>
@@ -71,7 +74,26 @@
     <div class="dropdown-item" id="logoutBtn" style="color: #ff3b30;">🚪 Logout</div>
   </div>
 
-  <div id="friendsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: rgba(0,0,0,0.8); align-items: flex-end;"><div onclick="closeFriendsModal()" style="position: absolute; width: 100%; height: 100%;"></div><div style="background: #111; width: 100%; height: 70vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; position: relative;"><div style="padding: 16px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center;"><h3 style="color:#fff; font-size:16px;">Friends</h3><button onclick="closeFriendsModal()" style="background:none; border:none; color:#fff; font-size:20px;">✕</button></div><div id="friendsListContainer" style="flex: 1; overflow-y: auto; padding: 10px 16px; display: flex; flex-direction: column; gap: 10px;"></div></div></div><!-- COMMENT MODAL -->
+  <div id="friendsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: rgba(0,0,0,0.8); align-items: flex-end;"><div onclick="closeFriendsModal()" style="position: absolute; width: 100%; height: 100%;"></div><div style="background: #111; width: 100%; height: 70vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; position: relative;"><div style="padding: 16px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center;"><h3 style="color:#fff; font-size:16px;">Friends</h3><button onclick="closeFriendsModal()" style="background:none; border:none; color:#fff; font-size:20px;">✕</button></div><div id="friendsListContainer" style="flex: 1; overflow-y: auto; padding: 10px 16px; display: flex; flex-direction: column; gap: 10px;"></div></div></div><div id="storyViewerModal" class="story-viewer-modal hidden">
+    <div class="story-progress-bar"><div id="storyProgress" class="story-progress-fill"></div></div>
+    <div class="story-header">
+        <div class="story-user-info">
+            <div class="story-avatar-small" id="storyViewerAvatar"></div>
+            <span id="storyViewerName"></span>
+            <span id="storyViewerTime" style="font-size:12px; color:#aaa; margin-left:8px;"></span>
+        </div>
+        <button onclick="closeStoryViewer()" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
+    </div>
+    <div class="story-image-container">
+        <img id="storyViewerImage" src="" alt="Story">
+    </div>
+    <div class="story-nav-areas">
+        <div class="story-nav-left" onclick="prevStory()"></div>
+        <div class="story-nav-right" onclick="nextStory()"></div>
+    </div>
+</div>
+
+<!-- COMMENT MODAL -->
   <div id="commentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: rgba(0,0,0,0.8); align-items: flex-end;">
     <div class="comment-overlay" onclick="closeCommentModal()" style="position: absolute; width: 100%; height: 100%;"></div>
     <div class="comment-sheet" style="background: #111; width: 100%; height: 70vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; position: relative;">
