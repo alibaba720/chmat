@@ -130,7 +130,7 @@ recordBtn.addEventListener('click', async () => {
             renderRecordedAudio: false,
         }));
 
-        await record.startRecording();
+        await record.startRecording({ audio: true });
         isRecording = true;
         
         recordingOverlay.classList.remove('hidden');
