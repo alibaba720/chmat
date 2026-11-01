@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chat</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="decoy-app">
+    <header class="decoy-header">
+      <span class="back-arrow">←</span>
+      <div class="contact-info">
+        <div class="avatar"></div>
+        <span class="contact-name"></span>
+      </div>
+      <div class="header-icons">
+        <span>📞</span>
+        <span>⋮</span>
+      </div>
+    </header>
+
+    <main class="decoy-chat" id="decoyChat"></main>
+
+    <footer class="decoy-input-bar">
+      <div class="input-wrapper">
+        <input type="text" id="decoyInput" placeholder="Message" autocomplete="off">
+      </div>
+      <!-- WhatsApp jaisa proper SVG Send Button -->
+      <button id="decoySend" class="send-btn">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
+        </svg>
+      </button>
+    </footer>
+  </div>
+  <script src="js/decoy.js"></script>
+</body>
+</html>

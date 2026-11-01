@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Group Chat - CHMAT</title>
+  <link rel="stylesheet" href="css/chat.css?v=2">
+</head>
+<body>
+  <div class="chat-container">
+    <header class="chat-header">
+      <button class="back-btn" onclick="window.location.href='app.html'">←</button>
+      <div class="chat-user-info">
+        <div class="chat-avatar" style="background: #0095f6; color: white;" id="chatAvatar">G</div>
+        <div class="chat-name" id="chatName">Loading...</div>
+      </div>
+    </header>
+
+    <main class="chat-messages" id="chatMessages"></main>
+
+    <footer class="chat-input-area">
+      <input type="text" id="messageInput" placeholder="Message group..." autocomplete="off">
+      <button id="sendMessageBtn" class="send-btn">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
+        </svg>
+      </button>
+    </footer>
+  </div>
+
+  <script type="module" src="js/group-chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin Panel - CHMAT</title>
+  <link rel="stylesheet" href="css/admin.css?v=6">
+  <style>
+    .admin-tabs { display: flex; overflow-x: auto; white-space: nowrap; }
+    .admin-tab { padding: 14px 10px; font-size: 14px; }
+    .admin-tabs::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="admin-title">👑 Admin Dashboard</div>
+    <button class="back-btn" onclick="window.location.href='app.html'">← Back</button>
+  </header>
+  
+  <div class="admin-tabs">
+    <div class="admin-tab active" data-tab="members">👥 Members</div>
+    <div class="admin-tab" data-tab="badges">🏅 Badges</div>
+    <div class="admin-tab" data-tab="reports">🚨 Reports</div>
+    <div class="admin-tab" id="bansTabBtn" data-tab="bans">🔨 Bans</div>
+    <div class="admin-tab" data-tab="appeals">⚖️ Appeals</div>
+  </div>
+
+  <div class="admin-content">
+    <div id="membersTab" class="tab-content">
+      <div class="search-box"><input type="text" id="adminSearchInput" placeholder="Search by username..."></div>
+      <div id="membersList" class="list-container"><p style="text-align:center; color:#888;">Loading...</p></div>
+    </div>
+    
+    <div id="badgesTab" class="tab-content hidden">
+      <div class="search-box"><input type="text" id="badgeSearchInput" placeholder="Search user for badge..."></div>
+      <div id="badgeSearchResults" class="list-container"><p style="text-align:center; color:#888;">Search user.</p></div>
+    </div>
+
+    <div id="reportsTab" class="tab-content hidden">
+       <p style="text-align:center; color:#888; margin-top:20px;">No reports.</p>
+    </div>
+
+    <div id="bansTab" class="tab-content hidden">
+       <div id="bansList" class="list-container"><p style="text-align:center; color:#888; margin-top:20px;">No banned users.</p></div>
+    </div>
+
+    <div id="appealsTab" class="tab-content hidden">
+       <div id="appealsList" class="list-container"><p style="text-align:center; color:#888; margin-top:20px;">No appeals.</p></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/admin.js?v=6"></script>
+</body>
+</html>

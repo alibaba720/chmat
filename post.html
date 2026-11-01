@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Create Post - CHMAT</title>
+  <link rel="stylesheet" href="css/post.css">
+</head>
+<body>
+  <div class="post-container">
+    <header class="post-header">
+      <button class="back-btn" onclick="window.location.href='app.html'">✕</button>
+      <h2>Create Post</h2>
+      <button class="post-btn" id="submitPostBtn">Post</button>
+    </header>
+
+    <div class="post-content">
+      <!-- Feeling & Privacy -->
+      <div class="post-options">
+        <select id="postFeeling">
+          <option value="">Add Feeling...</option>
+          <option value="😊 Happy">😊 Happy</option>
+          <option value="😢 Sad">😢 Sad</option>
+          <option value="🤪 Silly">🤪 Silly</option>
+          <option value="🥱 Bored">🥱 Bored</option>
+          <option value="😡 Angry">😡 Angry</option>
+          <option value="❤️ Loved">❤️ Loved</option>
+        </select>
+
+        <select id="postPrivacy">
+          <option value="Public">🌍 Public</option>
+          <option value="Friends">👥 Friends</option>
+          <option value="Only Me">🔒 Only Me</option>
+        </select>
+      </div>
+
+      <!-- Text Area -->
+      <textarea id="postText" placeholder="What's on your mind?" autofocus></textarea>
+
+      <!-- Image Preview Area (Hidden by default) -->
+      <div id="imagePreviewContainer" class="hidden">
+        <img id="imagePreview" src="" alt="Preview">
+        <button id="removeImageBtn">✕</button>
+      </div>
+
+      <!-- Image Upload Button -->
+      <div class="add-media">
+        <label for="postImage" class="media-btn">
+          📷 Add Photo
+        </label>
+        <input type="file" id="postImage" accept="image/*" style="display: none;">
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/post.js"></script>
+</body>
+</html>

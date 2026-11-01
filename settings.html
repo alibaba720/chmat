@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Settings - CHMAT</title>
+  <link rel="stylesheet" href="css/settings.css?v=2">
+</head>
+<body>
+  <div class="settings-container">
+    <header class="settings-header">
+      <button class="back-btn" id="backBtn">←</button>
+      <h2 id="pageTitle">Settings</h2>
+      <div style="width: 24px;"></div> <!-- Spacer -->
+    </header>
+
+    <!-- MAIN MENU -->
+    <div id="mainMenu" class="settings-content">
+      <div class="settings-group">
+        <div class="settings-item" onclick="openSection('account')">
+          <span>Account</span>
+          <span class="chevron">›</span>
+        </div>
+        <div class="settings-item" onclick="openSection('security')">
+          <span>Security</span>
+          <span class="chevron">›</span>
+        </div>
+        <div class="settings-item" style="color: #ff3b30;" onclick="logout()">
+          <span>Logout</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT SECTION -->
+    <div id="accountSection" class="settings-content hidden">
+      <div class="settings-group">
+        <div class="input-group">
+          <label>Username (Permanent)</label>
+          <input type="text" id="setUsername" disabled>
+        </div>
+        <div class="input-group">
+          <label>Primary Mobile</label>
+          <input type="text" id="setMobile1">
+        </div>
+        <div class="input-group">
+          <label>Secondary Mobile (Backup)</label>
+          <input type="text" id="setMobile2" placeholder="Optional">
+        </div>
+        <div class="input-group">
+          <label>Primary Email</label>
+          <input type="email" id="setEmail1">
+        </div>
+        <div class="input-group">
+          <label>Secondary Email (Backup)</label>
+          <input type="email" id="setEmail2" placeholder="Optional">
+        </div>
+      </div>
+      <button class="save-btn" id="saveDetailsBtn">Save Details</button>
+    </div>
+
+    <!-- SECURITY SECTION -->
+    <div id="securitySection" class="settings-content hidden">
+      <div class="settings-group">
+        <div class="input-group">
+          <label>New Password</label>
+          <input type="password" id="newPassword" placeholder="Enter new password">
+        </div>
+      </div>
+      <button class="save-btn" id="changePasswordBtn" style="background: #262626; border: 1px solid #333;">Update Password</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/settings.js?v=2"></script>
+</body>
+</html>

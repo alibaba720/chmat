@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Profile - CHMAT</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body style="background: #000; color: #fff;">
+  <div class="app-container">
+    <header class="app-header">
+      <button class="back-btn" onclick="window.location.href='app.html'" style="background:none; border:none; color:#fff; font-size:24px; margin-right:15px; cursor:pointer;">←</button>
+      <div class="logo">Profile</div>
+    </header>
+    <main class="app-content" id="viewProfileContent" style="padding: 16px;">
+      <h2>Loading Profile...</h2>
+    </main>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js'; 
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { doc, getDoc, deleteDoc, collection, query, where, onSnapshot, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUid = urlParams.get('uid');
+    const content = document.getElementById('viewProfileContent');
+    
+    let currentUser = null;
+    let currentUserData = null;
+    let targetUserData = null;
+    let isFriendGlobal = false;
+    let pendingReqId = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        const myDoc = await getDoc(doc(db, "users", user.uid));
+        if(myDoc.exists()) currentUserData = myDoc.data();
+        
+        if(!targetUid || targetUid === currentUser.uid) { window.location.href = 'app.html'; return; }
+
+        loadUserProfile();
+        checkRelationship(); 
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    async function loadUserProfile() {
+      try {
+        const docSnap = await getDoc(doc(db, "users", targetUid));
+        if (docSnap.exists()) {
+          targetUserData = docSnap.data();
+          const displayName = targetUserData.displayName || targetUserData.username;
+          const initial = displayName.charAt(0).toUpperCase();
+          const avatar = targetUserData.profilePicUrl ? `<img src="${targetUserData.profilePicUrl}" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">` : `<div class="profile-avatar">${initial}</div>`;
+          
+          content.innerHTML = `
+            <div class="profile-container" style="padding: 0;">
+              <div class="profile-header">
+                ${avatar}
+                <div class="profile-stats">
+                  <div class="stat-item"><span>${targetUserData.friends ? targetUserData.friends.length : 0}</span>Friends</div>
+                </div>
+              </div>
+              <div class="profile-info">
+                <h2 class="display-name">${displayName}</h2>
+                <p class="username">@${targetUserData.username}</p>
+                <p class="bio">${targetUserData.bio || "No bio yet."}</p>
+              </div>
+              <div id="actionBtnContainer" style="margin-top: 15px; display: flex; gap: 10px;">
+                 <p style="color:#888; font-size:14px;">Loading actions...</p>
+              </div>
+            </div>
+            <h3 style="margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">Posts</h3>
+            <div id="userPosts"></div>
+          `;
+          loadUserPosts();
+        }
+      } catch(e) { content.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+    }
+
+    function checkRelationship() {
+        onSnapshot(doc(db, "users", currentUser.uid), (snap) => {
+            if(!snap.exists()) return;
+            currentUserData = snap.data();
+            isFriendGlobal = currentUserData.friends && currentUserData.friends.includes(targetUid);
+            
+            const qReq = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid), where("receiverId", "==", targetUid));
+            onSnapshot(qReq, (reqSnap) => {
+                pendingReqId = null;
+                reqSnap.forEach(d => {
+                    if(d.data().status === "pending") pendingReqId = d.id;
+                });
+                renderButtons();
+                loadUserPosts(); 
+            });
+        });
+    }
+
+    function renderButtons() {
+        const container = document.getElementById('actionBtnContainer');
+        if(!container) return;
+
+        if(isFriendGlobal) {
+            container.innerHTML = `
+                <button onclick="window.location.href='chat.html?uid=${targetUid}&name=${targetUserData.username}'" style="flex:1; background:#0095f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Message</button>
+                <button onclick="unfriendUser(this)" style="flex:1; background:#333; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Unfriend</button>
+            `;
+        } else if(pendingReqId) {
+            container.innerHTML = `
+                <button onclick="cancelRequest('${pendingReqId}', this)" style="flex:1; background:#333; color:#ff3b30; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Cancel Request</button>
+            `;
+        } else {
+            container.innerHTML = `
+                <button onclick="sendRequest(this)" style="flex:1; background:#0095f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Add Friend</button>
+            `;
+        }
+    }
+
+    window.sendRequest = async function(btn) {
+        btn.innerText = "Sending..."; btn.disabled = true;
+        try { 
+            await addDoc(collection(db, "friend_requests"), { 
+                senderId: currentUser.uid, senderUsername: currentUserData.username, 
+                receiverId: targetUid, receiverUsername: targetUserData.username, 
+                status: "pending", createdAt: serverTimestamp() 
+            }); 
+        } catch (error) { alert("Error: " + error.message); btn.innerText = "Add Friend"; btn.disabled = false; }
+    }
+
+    window.cancelRequest = async function(reqId, btn) {
+        btn.innerText = "Cancelling...";
+        try { await deleteDoc(doc(db, "friend_requests", reqId)); } catch(e) { alert("Error: " + e.message); }
+    }
+
+    window.unfriendUser = async function(btn) {
+        if(!confirm("Unfriend this user?")) return;
+        btn.innerText = "Removing...";
+        try {
+            await updateDoc(doc(db, "users", currentUser.uid), { friends: arrayRemove(targetUid) });
+            await updateDoc(doc(db, "users", targetUid), { friends: arrayRemove(currentUser.uid) });
+        } catch(e) { alert("Error: " + e.message); }
+    }
+
+    function loadUserPosts() {
+      const postsDiv = document.getElementById('userPosts');
+      if(!postsDiv) return;
+      const q = query(collection(db, "posts"), where("uid", "==", targetUid)); 
+      onSnapshot(q, (snapshot) => {
+        let posts = [];
+        snapshot.forEach((doc) => { posts.push(doc.data()); });
+        posts.sort((a,b) => { return (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0); });
+        let html = '';
+        posts.forEach((post) => {
+          if(post.privacy === "Public" || (post.privacy === "Friends" && isFriendGlobal)) { 
+             html += `<div class="post-card" style="margin-bottom:10px;"><div class="post-text">${post.text || ''}</div>${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : ''}</div>`;
+          }
+        });
+        postsDiv.innerHTML = html !== '' ? html : '<p style="color:#888;">No posts to show.</p>';
+      });
+    }
+  </script>
+</body>
+</html>

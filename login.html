@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Login - CHMAT</title>
+  <link rel="stylesheet" href="css/login.css?v=2">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="logo-container">
+      <h1 class="logo-text">CHMAT</h1>
+    </div>
+
+    <!-- Login Form -->
+    <div class="form-container" id="loginForm">
+      <input type="text" id="loginIdentifier" placeholder="Mobile or Username" autocomplete="off">
+      
+      <div class="password-wrapper">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <span class="toggle-password" onclick="togglePass('loginPassword')">👁️</span>
+      </div>
+      
+      <button class="btn-primary" id="loginBtn">Log In</button>
+      
+      <div class="divider"><span>OR</span></div>
+      
+      <div class="forgot-link" onclick="window.location.href='forgot-password.html'">Forgot password?</div>
+    </div>
+
+    <!-- Register Form -->
+    <div class="form-container hidden" id="registerForm">
+      <input type="text" id="regMobile" placeholder="Mobile Number" autocomplete="off">
+      <input type="text" id="regUsername" placeholder="Username" autocomplete="off">
+      <input type="email" id="regEmail" placeholder="Real Email (For Password Reset)" autocomplete="off">
+      
+      <div class="password-wrapper">
+        <input type="password" id="regPassword" placeholder="Password">
+        <span class="toggle-password" onclick="togglePass('regPassword')">👁️</span>
+      </div>
+      
+      <select id="regQuestion1">
+        <option value="">Select Security Question 1</option>
+        <option value="teacher">What is your favorite teacher's name?</option>
+        <option value="food">What is your favorite food dish?</option>
+        <option value="friend">What is your best friend's name?</option>
+        <option value="born">Where were you born?</option>
+      </select>
+      <input type="text" id="regAnswer1" placeholder="Answer 1" autocomplete="off">
+
+      <select id="regQuestion2">
+        <option value="">Select Security Question 2</option>
+        <option value="teacher">What is your favorite teacher's name?</option>
+        <option value="food">What is your favorite food dish?</option>
+        <option value="friend">What is your best friend's name?</option>
+        <option value="born">Where were you born?</option>
+      </select>
+      <input type="text" id="regAnswer2" placeholder="Answer 2" autocomplete="off">
+
+      <button class="btn-primary" id="registerBtn">Sign Up</button>
+    </div>
+
+    <div class="bottom-box">
+      <span id="toggleText">Don't have an account?</span> 
+      <span class="toggle-btn" id="toggleBtn">Sign up</span>
+    </div>
+  </div>
+
+  <script>
+    // Eye Icon Toggle Function
+    function togglePass(id) {
+      var input = document.getElementById(id);
+      if (input.type === "password") {
+        input.type = "text";
+      } else {
+        input.type = "password";
+      }
+    }
+  </script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

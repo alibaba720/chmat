@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Account Suspended - CHMAT</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #000; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .box { max-width: 400px; width: 100%; background: #111; border: 1px solid #333; border-radius: 12px; padding: 24px; text-align: center; }
+    h1 { color: #ff3b30; font-size: 22px; margin-bottom: 16px; }
+    p { color: #aaa; font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+    .reason { background: #1a1a1a; padding: 10px; border-radius: 8px; color: #fff; font-weight: bold; margin: 12px 0; font-size: 14px; }
+    .appeal-box { margin-top: 20px; text-align: left; }
+    label { font-size: 12px; color: #888; display: block; margin-bottom: 6px; }
+    input, textarea { width: 100%; padding: 12px; background: #000; border: 1px solid #333; border-radius: 8px; color: #fff; outline: none; font-size: 14px; margin-bottom: 12px; }
+    button { width: 100%; padding: 14px; background: #0095f6; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button:disabled { background: #333; color: #666; cursor: not-allowed; }
+    .success { color: #00ff00; font-weight: bold; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Account Suspended</h1>
+    <p>Your CHMAT account has been suspended by the administration for violating our community guidelines.</p>
+    
+    <div class="reason" id="reasonBox">Reason: Loading...</div>
+    
+    <p id="bannedByText" style="font-size: 12px;"></p>
+
+    <div class="appeal-box" id="appealBox">
+      <h3 style="font-size: 15px; margin-bottom: 12px; color: #fff;">Submit an Appeal</h3>
+      <p style="font-size: 12px; color: #888; margin-bottom: 12px;">If you believe this was a mistake, please explain why your account should be restored.</p>
+      
+      <label>Your Appeal Message (English)</label>
+      <textarea id="appealMessage" rows="4" placeholder="Please explain your situation professionally..."></textarea>
+      
+      <button id="submitAppealBtn">Submit Appeal</button>
+      <p class="success" id="successMsg">✅ Appeal submitted successfully. Owner will review it.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    let currentUser = null;
+    let currentUserData = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+      
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        currentUserData = docSnap.data();
+        
+        // Agar user banned nahi hai, toh wapas bhej dein
+        if (!currentUserData.isBanned) { window.location.href = 'app.html'; return; }
+
+        document.getElementById('reasonBox').innerText = "Reason: " + (currentUserData.banReason || "Violation of Terms");
+        document.getElementById('bannedByText').innerText = "Banned by: @" + (currentUserData.bannedBy || "Admin");
+      }
+    });
+
+    document.getElementById('submitAppealBtn').addEventListener('click', async () => {
+      const msg = document.getElementById('appealMessage').value.trim();
+      if (!msg) { alert("Please write your appeal message."); return; }
+
+      const btn = document.getElementById('submitAppealBtn');
+      btn.innerText = "Submitting...";
+      btn.disabled = true;
+
+      try {
+        await addDoc(collection(db, "appeals"), {
+          uid: currentUser.uid,
+          username: currentUserData.username,
+          message: msg,
+          status: "pending",
+          createdAt: serverTimestamp()
+        });
+        document.getElementById('successMsg').style.display = 'block';
+        document.getElementById('appealBox').style.opacity = '0.5';
+      } catch (e) {
+        alert("Error: " + e.message);
+        btn.innerText = "Submit Appeal";
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
