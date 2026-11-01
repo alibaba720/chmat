@@ -118,26 +118,43 @@ function createPostHTML(post, docId) {
 
 async function loadFeed() {
     const feedContainer = document.getElementById('feedContainer');
-    const q = query(collection(db, "posts")); // No orderBy to avoid index error
-    onSnapshot(q, async (snapshot) => {
-        globalPosts = []; let uidsToFetch = new Set();
-        snapshot.forEach((doc) => { const post = doc.data(); globalPosts.push({ id: doc.id, ...post }); uidsToFetch.add(post.uid); });
-        for (let uid of uidsToFetch) { await getUserProfile(uid); }
-        
-        // Sort in JS
-        globalPosts.sort((a,b) => { return (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0); });
-        
-        let html = '';
-        globalPosts.forEach((post) => {
-            let canSee = false;
-            if (post.privacy === "Public") canSee = true;
-            else if (post.uid === currentUser.uid) canSee = true;
-            else if (post.privacy === "Friends" && myFriendsList.includes(post.uid)) canSee = true;
-            if (canSee) { html += createPostHTML(post, post.id); }
+    try {
+        const q = query(collection(db, "posts")); // Bina orderBy (Index error se bachne ke liye)
+        onSnapshot(q, async (snapshot) => {
+            globalPosts = []; let uidsToFetch = new Set();
+            snapshot.forEach((doc) => { 
+                const post = doc.data(); 
+                globalPosts.push({ id: doc.id, ...post }); 
+                uidsToFetch.add(post.uid); 
+            });
+            
+            for (let uid of uidsToFetch) { await getUserProfile(uid); }
+            
+            // JavaScript mein sorting (Newest first)
+            globalPosts.sort((a,b) => {
+                const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                return timeB - timeA;
+            });
+            
+            let html = '';
+            globalPosts.forEach((post) => {
+                let canSee = false;
+                if (post.privacy === "Public") canSee = true;
+                else if (post.uid === currentUser.uid) canSee = true;
+                else if (post.privacy === "Friends" && myFriendsList.includes(post.uid)) canSee = true;
+                if (canSee) { html += createPostHTML(post, post.id); }
+            });
+            
+            feedContainer.innerHTML = html !== '' ? html : '<div class="empty-feed">No posts to show.</div>';
+            loadMyPosts();
+            
+        }, (error) => {
+            feedContainer.innerHTML = `<p style="color: red; text-align: center; margin-top: 20px;">Feed Error: ${error.message}</p>`;
         });
-        feedContainer.innerHTML = html !== '' ? html : '<div class="empty-feed">No posts to show.</div>';
-        loadMyPosts();
-    });
+    } catch (error) {
+        feedContainer.innerHTML = `<p style="color: red; text-align: center; margin-top: 20px;">Error: ${error.message}</p>`;
+    }
 }
 
 function loadMyPosts() {
@@ -240,64 +257,70 @@ if(sendCommentBtn) {
 const commentInput = document.getElementById('commentInput');
 if(commentInput) { commentInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('sendCommentBtn').click(); }); }
 
-authReady.then(() => { onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    const docSnap = await getDoc(doc(db, "users", user.uid));
-    if (docSnap.exists()) {
-      currentUserData = docSnap.data();
-      myFriendsList = currentUserData.friends || [];
-      userCache[currentUser.uid] = currentUserData;
-      const displayName = currentUserData.displayName || currentUserData.username || "User";
-      const bio = currentUserData.bio || "No bio yet.";
-      const initial = displayName.charAt(0).toUpperCase();
+authReady.then(() => {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      try {
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        if (docSnap.exists()) {
+          currentUserData = docSnap.data();
+          myFriendsList = currentUserData.friends || [];
+          userCache[currentUser.uid] = currentUserData;
+          const displayName = currentUserData.displayName || currentUserData.username || "User";
+          const bio = currentUserData.bio || "No bio yet.";
+          const initial = displayName.charAt(0).toUpperCase();
 
-      let cleanDbMobile = currentUserData.mobile ? String(currentUserData.mobile).replace(/^\+?92/, '0').replace(/[^0-9]/g, '') : "";
-      if (cleanDbMobile === OWNER_MOBILE) { document.getElementById('adminPanelBtn').classList.remove('hidden'); }
+          let cleanDbMobile = currentUserData.mobile ? String(currentUserData.mobile).replace(/^\+?92/, '0').replace(/[^0-9]/g, '') : "";
+          if (cleanDbMobile === OWNER_MOBILE) { document.getElementById('adminPanelBtn').classList.remove('hidden'); }
 
-      const myPostsQ = query(collection(db, "posts"), where("uid", "==", user.uid));
-      const myPostsSnap = await getDocs(myPostsQ);
-      const myPostsCount = myPostsSnap.size;
+          const myPostsQ = query(collection(db, "posts"), where("uid", "==", user.uid));
+          const myPostsSnap = await getDocs(myPostsQ);
+          const myPostsCount = myPostsSnap.size;
 
-      const avatarHtml = getAvatarHtml(currentUserData.profilePicUrl, initial);
-      const profileInfo = document.getElementById('profileInfoContainer');
-      
-      if(profileInfo) {
-          profileInfo.innerHTML = `
-            <div class="profile-container" style="padding-bottom:0;">
-              <div class="profile-header">
-                <div class="profile-avatar">${avatarHtml}</div>
-                <div class="profile-stats">
-                  <div class="stat-item"><span>${myPostsCount}</span>Posts</div>
-                  <div class="stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span>${myFriendsList.length}</span>Friends</div>
+          const avatarHtml = getAvatarHtml(currentUserData.profilePicUrl, initial);
+          const profileInfo = document.getElementById('profileInfoContainer');
+          
+          if(profileInfo) {
+              profileInfo.innerHTML = `
+                <div class="profile-container" style="padding-bottom:0;">
+                  <div class="profile-header">
+                    <div class="profile-avatar">${avatarHtml}</div>
+                    <div class="profile-stats">
+                      <div class="stat-item"><span>${myPostsCount}</span>Posts</div>
+                      <div class="stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span>${myFriendsList.length}</span>Friends</div>
+                    </div>
+                    <div class="profile-menu-btn" id="menuBtn">⋮</div>
+                  </div>
+                  <div class="profile-info">
+                    <h2 class="display-name">${displayName}</h2>
+                    <p class="username">@${currentUserData.username || "unknown"}</p>
+                    <p class="bio">${bio}</p>
+                  </div>
+                  <div class="profile-actions">
+                    <button class="edit-profile-btn" id="editProfileBtn">Edit Profile</button>
+                  </div>
                 </div>
-                <div class="profile-menu-btn" id="menuBtn">⋮</div>
-              </div>
-              <div class="profile-info">
-                <h2 class="display-name">${displayName}</h2>
-                <p class="username">@${currentUserData.username || "unknown"}</p>
-                <p class="bio">${bio}</p>
-              </div>
-              <div class="profile-actions">
-                <button class="edit-profile-btn" id="editProfileBtn">Edit Profile</button>
-              </div>
-            </div>
-          `;
-          document.getElementById('editProfileBtn').addEventListener('click', () => window.location.href = 'edit-profile.html');
-          const menuBtn = document.getElementById('menuBtn');
-          if (menuBtn) { 
-              menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); }); 
-              const settingsBtn = document.getElementById('settingsBtn'); 
-              if(settingsBtn) settingsBtn.onclick = () => window.location.href = 'settings.html'; 
-              document.addEventListener('click', (e) => { if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.add('hidden'); }); 
+              `;
+              document.getElementById('editProfileBtn').addEventListener('click', () => window.location.href = 'edit-profile.html');
+              const menuBtn = document.getElementById('menuBtn');
+              if (menuBtn) { 
+                  menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); }); 
+                  const settingsBtn = document.getElementById('settingsBtn'); 
+                  if(settingsBtn) settingsBtn.onclick = () => window.location.href = 'settings.html'; 
+                  document.addEventListener('click', (e) => { if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.add('hidden'); }); 
+              }
           }
+          
+          loadMySentRequests(); 
+          loadFeed(); 
+          loadNotifications();
+        }
+      } catch(e) {
+        document.getElementById('feedContainer').innerHTML = `<p style="color:red; text-align:center;">Auth Error: ${e.message}</p>`;
       }
-      
-      loadMySentRequests(); 
-      loadFeed(); 
-      loadNotifications();
-    }
-  } else { window.location.href = 'login.html'; }
+    } else { window.location.href = 'login.html'; }
+  });
 });
 
 window.openFriendsModal = async function() {
@@ -387,6 +410,8 @@ function loadMySentRequests() {
 }
 
 let allNotifications = [];
+let deleteTimeouts = {}; 
+
 function loadNotifications() {
   const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid));
   onSnapshot(qReq, (snapReq) => {
@@ -546,4 +571,3 @@ window.cancelFriendRequest = async function(requestId, btnElement) {
 }
 const adminPanelBtn = document.getElementById('adminPanelBtn'); if (adminPanelBtn) { adminPanelBtn.addEventListener('click', () => window.location.href = 'admin.html'); }
 const logoutBtn = document.getElementById('logoutBtn'); if (logoutBtn) { logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html')); }
-});
