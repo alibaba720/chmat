@@ -119,7 +119,7 @@ function createPostHTML(post, docId) {
 async function loadFeed() {
     const feedContainer = document.getElementById('feedContainer');
     // Ye limit(20) add karne se feed fast load hoga
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
+    const q = query(collection(db, "posts"), );
     onSnapshot(q, async (snapshot) => {
         globalPosts = []; let uidsToFetch = new Set();
         snapshot.forEach((doc) => { const post = doc.data(); globalPosts.push({ id: doc.id, ...post }); uidsToFetch.add(post.uid); });

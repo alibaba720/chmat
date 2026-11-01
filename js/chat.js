@@ -34,12 +34,12 @@ onAuthStateChanged(auth, async (user) => {
 
 function loadMessages() {
     const messagesRef = collection(db, "messages");
-    const q = query(messagesRef, where("chatId", "==", chatId), orderBy("createdAt", "desc"), limit(50));
+    const q = query(messagesRef, where("chatId", "==", chatId), );
 
     onSnapshot(q, (snapshot) => {
         let msgs = [];
         snapshot.forEach((doc) => { msgs.push({ id: doc.id, ...doc.data() }); });
-        msgs.reverse(); // Oldest pehle, latest baad mein
+        msgs.sort((a,b) => (a.createdAt ? a.createdAt.toMillis() : 0) - (b.createdAt ? b.createdAt.toMillis() : 0));
 
         messagesContainer.innerHTML = ''; 
         msgs.forEach((msg) => {
