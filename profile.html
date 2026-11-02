@@ -5,20 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Profile - CHMAT</title>
   <link rel="stylesheet" href="css/app.css">
+  <style>
+    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+    .app-container { max-width: 600px; margin: 0 auto; padding-bottom: 60px; }
+    
+    /* Top Header */
+    .ig-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #262626; }
+    .ig-username { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+    .ig-menu-icon { font-size: 24px; cursor: pointer; }
+
+    /* Profile Header */
+    .ig-profile-header { display: flex; align-items: center; padding: 16px; gap: 20px; }
+    .ig-dp-container { position: relative; }
+    .ig-dp-img { width: 86px; height: 86px; border-radius: 50%; object-fit: cover; border: 2px solid #333; padding: 2px; }
+    .ig-dp-add { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; font-size: 18px; border: 2px solid #000; font-weight: bold; cursor: pointer; }
+    
+    /* Stats */
+    .ig-stats { display: flex; flex: 1; justify-content: space-around; text-align: center; }
+    .ig-stat-item { display: flex; flex-direction: column; font-size: 14px; }
+    .ig-stat-num { font-weight: bold; font-size: 16px; }
+
+    /* Bio Section */
+    .ig-bio-section { padding: 0 16px 16px 16px; font-size: 14px; }
+    .ig-name { font-weight: bold; font-size: 15px; margin-bottom: 2px; }
+    .ig-text { color: #d3d3d3; white-space: pre-wrap; line-height: 1.4; }
+
+    /* Action Buttons */
+    .ig-action-btns { display: flex; gap: 8px; padding: 0 16px 16px 16px; }
+    .ig-btn { flex: 1; background: #262626; color: #fff; border: none; border-radius: 8px; padding: 8px 0; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .ig-btn-blue { background: #0095f6; color: #fff; }
+
+    /* Highlights / Stories */
+    .ig-highlights { display: flex; gap: 16px; padding: 0 16px 16px 16px; overflow-x: auto; scrollbar-width: none; }
+    .ig-highlight-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .ig-highlight-circle { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #333; display: flex; justify-content: center; align-items: center; font-size: 28px; color: #fff; background: #111; cursor: pointer; }
+    .ig-highlight-text { font-size: 12px; color: #d3d3d3; }
+
+    /* Tabs */
+    .ig-tabs { display: flex; border-top: 1px solid #262626; }
+    .ig-tab { flex: 1; text-align: center; padding: 12px 0; font-size: 24px; color: #737373; cursor: pointer; }
+    .ig-tab.active { color: #fff; border-bottom: 1px solid #fff; }
+
+    /* Grid Posts */
+    .ig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .ig-grid-item { aspect-ratio: 1/1; background: #1a1a1a; overflow: hidden; display: flex; justify-content: center; align-items: center; font-size: 12px; padding: 8px; text-align: center; }
+    .ig-grid-item img { width: 100%; height: 100%; object-fit: cover; }
+  </style>
 </head>
-<body style="background: #000; color: #fff;">
+<body>
   <div class="app-container">
-    <header class="app-header">
-      <button class="back-btn" onclick="window.location.href='app.html'" style="background:none; border:none; color:#fff; font-size:24px; margin-right:15px; cursor:pointer;">←</button>
-      <div class="logo">Profile</div>
-    </header>
-    <main class="app-content" id="viewProfileContent" style="padding: 16px;">
-      <h2>Loading Profile...</h2>
+    <main id="viewProfileContent">
+      <div style="text-align: center; padding: 50px; color: #888;">Loading Profile...</div>
     </main>
   </div>
 
   <script type="module">
-    import { auth, db, authReady } from './js/firebase-config.js'; 
+    import { auth, db, authReady } from './js/firebase-config.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { doc, getDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
@@ -46,46 +88,85 @@
           const data = docSnap.data();
           const displayName = data.displayName || data.username;
           const initial = displayName.charAt(0).toUpperCase();
-          const avatar = data.profilePicUrl ? `<img src="${data.profilePicUrl}" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">` : `<div class="profile-avatar">${initial}</div>`;
-          
+          const avatar = data.profilePicUrl ? `<img src="${data.profilePicUrl}" class="ig-dp-img">` : `<div class="ig-dp-img" style="display:flex; justify-content:center; align-items:center; background:#333; font-size:32px;">${initial}</div>`;
+
           const myDoc = await getDoc(doc(db, "users", currentUser.uid));
           const myData = myDoc.data() || {};
           const isFriend = myData.friends && myData.friends.includes(targetUid);
 
           let btnHtml = '';
           if(currentUser.uid === targetUid) {
-             btnHtml = `<button onclick="window.location.href='edit-profile.html'" style="flex:1; background:#262626; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Edit Profile</button>`;
+             btnHtml = `<button class="ig-btn" onclick="window.location.href='edit-profile.html'">Edit profile</button>
+                        <button class="ig-btn">Share profile</button>`;
           } else if(isFriend) {
-              btnHtml = `<button onclick="window.location.href='chat.html?uid=${targetUid}&name=${data.username}'" style="flex:1; background:#0095f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Message</button>`;
+              btnHtml = `<button class="ig-btn ig-btn-blue" onclick="window.location.href='chat.html?uid=${targetUid}&name=${data.username}'">Message</button>`;
           } else {
-              btnHtml = `<button onclick="sendReq(this)" style="flex:1; background:#0095f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Add Friend</button>`;
+              btnHtml = `<button class="ig-btn ig-btn-blue" onclick="sendReq(this)">Add Friend</button>`;
           }
 
           content.innerHTML = `
-            <div class="profile-container" style="padding: 0;">
-              <div class="profile-header">
+            <!-- Top Bar -->
+            <div class="ig-top-bar">
+              <div class="ig-username">${data.username} <span style="font-size:12px;">▼</span></div>
+              <div class="ig-menu-icon">☰</div>
+            </div>
+
+            <!-- Profile Header (DP + Stats) -->
+            <div class="ig-profile-header">
+              <div class="ig-dp-container">
                 ${avatar}
-                <div class="profile-stats">
-                  <div class="stat-item"><span>${data.friends ? data.friends.length : 0}</span>Friends</div>
-                </div>
+                ${currentUser.uid === targetUid ? '<div class="ig-dp-add" onclick="window.location.href=\'edit-profile.html\'">+</div>' : ''}
               </div>
-              <div class="profile-info">
-                <h2 class="display-name">${displayName}</h2>
-                <p class="username">@${data.username}</p>
-                <p class="bio">${data.bio || "No bio yet."}</p>
-              </div>
-              <div style="display:flex; gap:10px; margin-top:15px;">
-                ${btnHtml}
+              <div class="ig-stats">
+                <div class="ig-stat-item"><span class="ig-stat-num" id="postCount">0</span>posts</div>
+                <div class="ig-stat-item"><span class="ig-stat-num">${data.friends ? data.friends.length : 0}</span>friends</div>
+                <div class="ig-stat-item"><span class="ig-stat-num">0</span>following</div>
               </div>
             </div>
-            <h3 style="margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">Posts</h3>
-            <div id="userPosts"></div>
+
+            <!-- Bio Section -->
+            <div class="ig-bio-section">
+              <div class="ig-name">${displayName}</div>
+              <div class="ig-text">${data.bio || "No bio yet."}</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="ig-action-btns">
+              ${btnHtml}
+            </div>
+
+            <!-- Highlights/Story Rings -->
+            <div class="ig-highlights">
+              <div class="ig-highlight-item" onclick="alert('Gallery open feature coming soon!')">
+                <div class="ig-highlight-circle">+</div>
+                <div class="ig-highlight-text">New</div>
+              </div>
+              <!-- Dummy Highlights for UI -->
+              <div class="ig-highlight-item">
+                <div class="ig-highlight-circle" style="background:#222;">😎</div>
+                <div class="ig-highlight-text">Memories</div>
+              </div>
+              <div class="ig-highlight-item">
+                <div class="ig-highlight-circle" style="background:#222;">🔥</div>
+                <div class="ig-highlight-text">Vibes</div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="ig-tabs">
+              <div class="ig-tab active">▦</div>
+              <div class="ig-tab">▶</div>
+              <div class="ig-tab">👤</div>
+            </div>
+
+            <!-- Posts Grid -->
+            <div class="ig-grid" id="userPosts"></div>
           `;
           loadUserPosts();
         } else {
-          content.innerHTML = `<p style="color:red; text-align:center;">User not found!</p>`;
+          content.innerHTML = `<p style="color:red; text-align:center; padding:20px;">User not found!</p>`;
         }
-      } catch(e) { content.innerHTML = `<p style="color:red; text-align:center;">Error: ${e.message}</p>`; }
+      } catch(e) { content.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error: ${e.message}</p>`; }
     }
 
     window.sendReq = async function(btn) {
@@ -98,17 +179,25 @@
 
     function loadUserPosts() {
       const postsDiv = document.getElementById('userPosts');
-      const q = query(collection(db, "posts"), where("uid", "==", targetUid)); 
+      const postCountSpan = document.getElementById('postCount');
+      const q = query(collection(db, "posts"), where("uid", "==", targetUid));
       onSnapshot(q, (snapshot) => {
         let posts = []; snapshot.forEach((doc) => { posts.push(doc.data()); });
         posts.sort((a,b) => { return (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0); });
+        
+        if(postCountSpan) postCountSpan.innerText = posts.length;
+
         let html = '';
         posts.forEach((post) => {
-          if(post.privacy === "Public" || post.uid === currentUser.uid) { 
-             html += `<div class="post-card" style="margin-bottom:10px;"><div class="post-text">${post.text || ''}</div>${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : ''}</div>`;
+          if(post.privacy === "Public" || post.uid === currentUser.uid) {
+             if(post.imageUrl) {
+                 html += `<div class="ig-grid-item"><img src="${post.imageUrl}"></div>`;
+             } else if(post.text) {
+                 html += `<div class="ig-grid-item"><span style="color:#fff;">${post.text}</span></div>`;
+             }
           }
         });
-        postsDiv.innerHTML = html !== '' ? html : '<p style="color:#888;">No posts to show.</p>';
+        postsDiv.innerHTML = html !== '' ? html : '<p style="color:#888; grid-column: 1 / -1; text-align:center; padding:20px;">No posts yet.</p>';
       });
     }
   </script>
