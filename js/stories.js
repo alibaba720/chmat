@@ -35,19 +35,12 @@ function attachStoryUploadListener() {
                         throw new Error("Video too long");
                     }
                     
-                    // Video Upload via Puter.js
                     const puterFileName = "story_" + Date.now() + ".mp4";
                     const puterFile = new File([file], puterFileName, { type: 'video/mp4' });
-                    
-                    // Puter upload (timeout lagaya hai taake hang na ho)
-                    const uploadPromise = puter.fs.write(puterFileName, puterFile);
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Network timeout")), 45000));
-                    
-                    const uploadedFile = await Promise.race([uploadPromise, timeoutPromise]);
+                    const uploadedFile = await puter.fs.write(puterFileName, puterFile);
                     mediaUrl = await puter.fs.get_url(uploadedFile.path);
 
                 } else {
-                    // Image Upload via ImgBB
                     const formData = new FormData();
                     formData.append("image", file);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
@@ -62,14 +55,14 @@ function attachStoryUploadListener() {
                         profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: mediaUrl,
                         type: type, duration: Math.ceil(duration), viewers: [], createdAt: serverTimestamp()
                     });
-                    alert("Story uploaded successfully!");
+                    // Force UI Refresh so the ring highlights immediately
+                    setTimeout(() => { loadStories(); }, 1000);
                 }
 
             } catch(err) { 
                 console.error(err); 
                 alert("Upload Error: " + err.message); 
             } finally {
-                // CHAHE UPLOAD FAIL HO YA PASS, LOADING SCREEN BAND HO GI
                 uploadInput.value = ''; 
                 if(progress) progress.classList.add('hidden');
             }
@@ -117,12 +110,20 @@ function renderStoriesRow(stories) {
     const pic = currentUserData ? currentUserData.profilePicUrl : null;
     const myAvatar = pic ? `<img src="${pic}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${myInitial}</div>`;
 
+    // Check if MY OWN story exists to highlight my ring
+    const myStoryGroup = stories.find(s => s.user.uid === currentUser.uid);
+    let myRingClass = 'story-ring';
+    if(myStoryGroup) {
+        myRingClass = 'story-ring'; // Keep gradient if my story exists
+    }
+
     html += `<div class="story-item" onclick="document.getElementById('storyUploadInput').click()">
-        <div class="story-ring">${myAvatar}<div class="story-add-btn">+</div></div>
+        <div class="${myRingClass}">${myAvatar}<div class="story-add-btn">+</div></div>
         <span>Your Story</span>
     </div>`;
 
     stories.forEach(group => {
+        if(group.user.uid === currentUser.uid) return; // Skip self, already added above
         const u = group.user;
         const initial = (u.username || "U").charAt(0).toUpperCase();
         const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${initial}</div>`;
