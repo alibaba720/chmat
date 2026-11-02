@@ -8,10 +8,10 @@ let currentStoryIndex = 0;
 let storyTimer = null;
 
 export function initStories(user, userData, friends) {
-    currentUser = user; currentUserData = userData; myFriendsList = friends;
+    currentUser = user; currentUserData = userData; myFriendsList = friends || [];
     attachStoryUploadListener();
+    renderStoriesRow([]); // Foran "Your Story" button render karein
     loadStories();
-    renderStoriesRow([]); // Foran "Your Story" button dikhaye
 }
 
 function attachStoryUploadListener() {
@@ -25,7 +25,7 @@ function attachStoryUploadListener() {
             if(progress) progress.classList.remove('hidden');
             
             try {
-                let duration = 5; // Image = 5 sec
+                let duration = 5; 
                 if (file.type.startsWith('video/')) {
                     duration = await getVideoDuration(file);
                     if(duration > 60) {
@@ -91,8 +91,11 @@ function renderStoriesRow(stories) {
     if(!container) return;
     
     let html = '';
-    const myInitial = (currentUserData.displayName || currentUserData.username).charAt(0).toUpperCase();
-    const myAvatar = currentUserData.profilePicUrl ? `<img src="${currentUserData.profilePicUrl}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${myInitial}</div>`;
+    // Safety check for userData
+    const name = currentUserData && (currentUserData.displayName || currentUserData.username) ? (currentUserData.displayName || currentUserData.username) : "User";
+    const myInitial = name.charAt(0).toUpperCase();
+    const pic = currentUserData ? currentUserData.profilePicUrl : null;
+    const myAvatar = pic ? `<img src="${pic}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${myInitial}</div>`;
 
     html += `<div class="story-item" onclick="document.getElementById('storyUploadInput').click()">
         <div class="story-ring">${myAvatar}<div class="story-add-btn">+</div></div>
@@ -101,7 +104,7 @@ function renderStoriesRow(stories) {
 
     stories.forEach(group => {
         const u = group.user;
-        const initial = (u.username).charAt(0).toUpperCase();
+        const initial = (u.username || "U").charAt(0).toUpperCase();
         const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${initial}</div>`;
         const hasViewed = group.stories.every(s => s.viewers && s.viewers.includes(currentUser.uid));
         const ringClass = hasViewed ? 'story-ring viewed' : 'story-ring';
@@ -156,17 +159,6 @@ function showStory() {
     }
 }
 
-window.nextStory = function() {
-    if (storyTimer) clearInterval(storyTimer);
-    currentStoryIndex++;
-    if (currentStoryIndex < currentStoryGroup.length) { showStory(); } else { closeStoryViewer(); }
-};
-window.prevStory = function() {
-    if (storyTimer) clearInterval(storyTimer);
-    if (currentStoryIndex > 0) { currentStoryIndex--; showStory(); }
-};
-window.closeStoryViewer = function() {
-    if (storyTimer) clearInterval(storyTimer);
-    document.getElementById('storyViewerMedia').innerHTML = ''; 
-    document.getElementById('storyViewerModal').classList.add('hidden');
-};
+window.nextStory = function() { if (storyTimer) clearInterval(storyTimer); currentStoryIndex++; if (currentStoryIndex < currentStoryGroup.length) { showStory(); } else { closeStoryViewer(); } };
+window.prevStory = function() { if (storyTimer) clearInterval(storyTimer); if (currentStoryIndex > 0) { currentStoryIndex--; showStory(); } };
+window.closeStoryViewer = function() { if (storyTimer) clearInterval(storyTimer); document.getElementById('storyViewerMedia').innerHTML = ''; document.getElementById('storyViewerModal').classList.add('hidden'); };
