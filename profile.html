@@ -12,7 +12,7 @@
     /* Top Header */
     .ig-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #262626; }
     .ig-username { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-    .ig-menu-icon { font-size: 24px; cursor: pointer; }
+    .ig-menu-icon { font-size: 24px; cursor: pointer; padding: 5px; }
 
     /* Profile Header */
     .ig-profile-header { display: flex; align-items: center; padding: 16px; gap: 20px; }
@@ -108,7 +108,7 @@
             <!-- Top Bar -->
             <div class="ig-top-bar">
               <div class="ig-username">${data.username} <span style="font-size:12px;">▼</span></div>
-              <div class="ig-menu-icon">☰</div>
+              <div class="ig-menu-icon" onclick="window.location.href='settings.html'">☰</div>
             </div>
 
             <!-- Profile Header (DP + Stats) -->
@@ -141,7 +141,6 @@
                 <div class="ig-highlight-circle">+</div>
                 <div class="ig-highlight-text">New</div>
               </div>
-              <!-- Dummy Highlights for UI -->
               <div class="ig-highlight-item">
                 <div class="ig-highlight-circle" style="background:#222;">😎</div>
                 <div class="ig-highlight-text">Memories</div>
