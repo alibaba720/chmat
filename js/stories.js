@@ -12,11 +12,9 @@ export function initStories(user, userData, friends) {
     loadStories();
 }
 
-// Open options modal instead of direct upload
 window.openStoryChoiceModal = function() { document.getElementById('storyChoiceModal').classList.remove('hidden'); }
 window.closeStoryChoiceModal = function() { document.getElementById('storyChoiceModal').classList.add('hidden'); }
 
-// Text Status Logic
 window.openTextStatusModal = function() {
     closeStoryChoiceModal();
     document.getElementById('textStatusModal').classList.remove('hidden');
@@ -33,22 +31,16 @@ document.getElementById('textStatusInput')?.addEventListener('input', (e) => {
 window.postTextStatus = async function() {
     const text = document.getElementById('textStatusInput').value.trim();
     if(!text) return;
-    
     const progress = document.getElementById('storyUploadProgress');
     if(progress) progress.classList.remove('hidden');
-
     try {
-        const colors = ['linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d)', 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)', 'linear-gradient(120deg, #f093fb 0%, #f5576c 100%)', 'linear-gradient(to right, #43e97b 0%, #38f9d7 100%)'];
+        const colors = ['linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d)', 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)'];
         const bg = colors[Math.floor(Math.random() * colors.length)];
-
         await addDoc(collection(db, "stories"), {
-            uid: currentUser.uid, username: currentUserData.username,
-            profilePicUrl: currentUserData.profilePicUrl || "", 
+            uid: currentUser.uid, username: currentUserData.username, profilePicUrl: currentUserData.profilePicUrl || "", 
             mediaUrl: text, bgColor: bg, type: 'text', duration: 10, viewers: [], createdAt: serverTimestamp()
         });
-        alert("Status uploaded successfully!");
-        closeTextStatusModal();
-        loadStories();
+        alert("Status uploaded successfully!"); closeTextStatusModal(); loadStories();
     } catch(e) { alert("Error: " + e.message); }
     finally { if(progress) progress.classList.add('hidden'); }
 }
@@ -59,26 +51,19 @@ function attachStoryUploadListener() {
         uploadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if(!file) return;
-            
             const progress = document.getElementById('storyUploadProgress');
             if(progress) progress.classList.remove('hidden');
-            
             try {
                 let mediaUrl = "";
-                const formData = new FormData();
-                formData.append("image", file);
+                const formData = new FormData(); formData.append("image", file);
                 const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
                 const data = await res.json();
-                if(data.success) mediaUrl = data.data.url;
-                else throw new Error("Image upload failed");
-
+                if(data.success) mediaUrl = data.data.url; else throw new Error("Image upload failed");
                 await addDoc(collection(db, "stories"), {
-                    uid: currentUser.uid, username: currentUserData.username,
-                    profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: mediaUrl,
+                    uid: currentUser.uid, username: currentUserData.username, profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: mediaUrl,
                     type: 'image', duration: 10, viewers: [], createdAt: serverTimestamp()
                 });
-                alert("Story uploaded successfully!");
-                loadStories();
+                alert("Story uploaded successfully!"); loadStories();
             } catch(err) { alert("Upload Error: " + err.message); } 
             finally { uploadInput.value = ''; if(progress) progress.classList.add('hidden'); }
         });
@@ -88,8 +73,7 @@ function attachStoryUploadListener() {
 function loadStories() {
     const q = query(collection(db, "stories"));
     onSnapshot(q, async (snapshot) => {
-        let allStories = [];
-        const now = Date.now();
+        let allStories = []; const now = Date.now();
         for (const doc of snapshot.docs) {
             const story = doc.data();
             const storyTime = story.createdAt ? story.createdAt.toMillis() : 0;
@@ -109,13 +93,11 @@ function loadStories() {
 function renderStoriesRow(stories) {
     const container = document.getElementById('storiesContainer');
     if(!container) return;
-    
     let html = '';
     const name = currentUserData && (currentUserData.displayName || currentUserData.username) ? (currentUserData.displayName || currentUserData.username) : "User";
     const myInitial = name.charAt(0).toUpperCase();
     const pic = currentUserData ? currentUserData.profilePicUrl : null;
     
-    // FIX FOR DP NOT SHOWING
     let myAvatar = "";
     if (pic && pic.trim() !== "") {
         myAvatar = `<img src="${pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
@@ -142,7 +124,6 @@ function renderStoriesRow(stories) {
         </div>`;
     });
 
-    // ADD "SEE ALL" BUTTON AT THE VERY END
     html += `<div class="story-item" onclick="openAllSuggestions()">
         <div class="story-arrow-btn">›</div>
         <span>See All</span>
@@ -151,7 +132,6 @@ function renderStoriesRow(stories) {
     container.innerHTML = html;
 }
 
-// Rest of the functions (openStoryViewer, showStory, nextStory, etc.)
 window.openStoryViewer = function(uid) {
     const group = globalStories.find(g => g.user.uid === uid);
     if (!group) return;

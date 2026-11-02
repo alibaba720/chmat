@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CHMAT</title>
-  <link rel="stylesheet" href="css/app.css?v=400">
+  <link rel="stylesheet" href="css/app.css?v=500">
 </head>
 <body>
   <div class="app-container">
@@ -67,7 +67,27 @@
     <div class="dropdown-item" id="logoutBtn" style="color: #ff3b30;">🚪 Logout</div>
   </div>
 
-  <!-- Full Suggestions Modal (FB Style) -->
+  <!-- Story Choice Modal -->
+  <div id="storyChoiceModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3>Add to Your Story</h3>
+      <button onclick="document.getElementById('storyUploadInput').click(); closeStoryChoiceModal()">📸 Upload Photo</button>
+      <button onclick="openTextStatusModal()">✍️ Add Text Status</button>
+      <button class="cancel-btn" onclick="closeStoryChoiceModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Text Status Modal -->
+  <div id="textStatusModal" class="modal-overlay hidden">
+    <div class="modal-content" style="height: 80vh; justify-content: center; align-items: center; position: relative;">
+      <button onclick="closeTextStatusModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #fff; font-size: 24px;">✕</button>
+      <div id="textStatusPreview" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 28px; color: #fff; text-align: center; padding: 20px; word-break: break-word;"></div>
+      <input type="text" id="textStatusInput" placeholder="Type a status..." style="position: absolute; bottom: 20px; width: 90%; background: rgba(0,0,0,0.5); border: none; color: #fff; padding: 15px; border-radius: 10px; font-size: 16px; outline: none;">
+      <button onclick="postTextStatus()" style="position: absolute; bottom: 80px; right: 10%; background: #0095f6; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Post Status</button>
+    </div>
+  </div>
+
+  <!-- All Suggestions Modal -->
   <div id="allSuggestionsModal" class="modal-overlay hidden">
     <div class="modal-content" style="height: 85vh; padding: 0;">
       <div style="padding: 16px; display: flex; align-items: center; border-bottom: 1px solid #333;">
@@ -81,12 +101,7 @@
   <input type="file" id="storyUploadInput" accept="image/*" style="display:none;">
   <div id="storyUploadProgress" class="hidden" style="position:fixed; top:70px; left:50%; transform:translateX(-50%); background:#1a1a1a; padding:12px 20px; border-radius:30px; z-index:99999; display:flex; align-items:center; gap:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); border:1px solid #333;"><div class="spinner" style="width:20px; height:20px; border-width:2px;"></div><span style="color:#fff; font-size:14px; font-weight:600;">Uploading Story...</span></div>
 
-  <!-- Story Choice & Text Modals (Same as before) -->
-  <div id="storyChoiceModal" class="modal-overlay hidden"><div class="modal-content"><h3>Add to Your Story</h3><button onclick="document.getElementById('storyUploadInput').click(); closeStoryChoiceModal()">📸 Upload Photo</button><button onclick="openTextStatusModal()">✍️ Add Text Status</button><button class="cancel-btn" onclick="closeStoryChoiceModal()">Cancel</button></div></div>
-  
-  <div id="textStatusModal" class="modal-overlay hidden"><div class="modal-content" style="height: 80vh; justify-content: center; align-items: center; position: relative;"><button onclick="closeTextStatusModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #fff; font-size: 24px;">✕</button><div id="textStatusPreview" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 28px; color: #fff; text-align: center; padding: 20px; word-break: break-word;"></div><input type="text" id="textStatusInput" placeholder="Type a status..." style="position: absolute; bottom: 20px; width: 90%; background: rgba(0,0,0,0.5); border: none; color: #fff; padding: 15px; border-radius: 10px; font-size: 16px; outline: none;"><button onclick="postTextStatus()" style="position: absolute; bottom: 80px; right: 10%; background: #0095f6; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Post Status</button></div></div>
-
-  <!-- Story Viewer -->
+  <!-- Story Viewer Modal -->
   <div id="storyViewerModal" class="story-viewer-modal hidden">
     <div class="story-progress-bar"><div id="storyProgress" class="story-progress-fill"></div></div>
     <div class="story-header">
@@ -100,11 +115,12 @@
     <div class="story-nav-areas"><div class="story-nav-left" onclick="prevStory()"></div><div class="story-nav-right" onclick="nextStory()"></div></div>
   </div>
 
-  <!-- Other Modals -->
+  <!-- Comment Modal -->
   <div id="commentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: rgba(0,0,0,0.8); align-items: flex-end;"><div class="comment-overlay" onclick="closeCommentModal()" style="position: absolute; width: 100%; height: 100%;"></div><div class="comment-sheet" style="background: #111; width: 100%; height: 70vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; position: relative;"><div class="comment-header" style="display:flex; justify-content:space-between; padding:16px; border-bottom:1px solid #222;"><h3 style="color:#fff; font-size:16px;">Comments</h3><button onclick="closeCommentModal()" style="background:none; border:none; color:#fff; font-size:20px;">✕</button></div><div class="comment-list" id="commentList" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;"></div><div id="replyIndicator" style="display: none; padding: 8px 16px; background: #1a1a1a; font-size: 13px; color: #aaa;">Replying to <b id="replyUsernameText" style="color: #0095f6;"></b><button onclick="cancelReply()" style="background: none; border: none; color: #ff3b30; margin-left:10px; cursor:pointer;">✕ Cancel</button></div><div class="comment-input-area" style="display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid #222; background: #000;"><input type="text" id="commentInput" placeholder="Add a comment..." style="flex: 1; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 10px 16px; color: #fff; outline: none;"><button id="sendCommentBtn" style="background: none; border: none; color: #0095f6; font-weight: 600; font-size: 14px; cursor: pointer;">Post</button></div></div></div>
-  
+
+  <!-- Post Options Modal -->
   <div id="postOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: rgba(0,0,0,0.7); align-items: flex-end;"><div onclick="closePostOptions()" style="position: absolute; width: 100%; height: 100%;"></div><div style="background: #1c1c1e; width: 100%; border-radius: 20px 20px 0 0; padding: 20px 0; position: relative; display: flex; flex-direction: column;"><div style="text-align:center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 10px; color: #888; font-size: 13px; font-weight: bold;">Post Options</div><div onclick="changePrivacyAction('Public')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🌍</span> Public</div><div onclick="changePrivacyAction('Friends')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">👥</span> Friends</div><div onclick="changePrivacyAction('Only Me')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🔒</span> Only Me</div><div style="height: 8px; background: #000; margin: 10px 0;"></div><div onclick="deletePostAction()" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #ff3b30; font-size: 15px; font-weight: bold;"><span style="font-size:20px;">🗑️</span> Delete Post</div><div onclick="closePostOptions()" style="padding: 16px 20px; text-align: center; color: #aaa; cursor: pointer; border-top: 1px solid #333; margin-top: 10px;">Cancel</div></div></div>
 
-  <script type="module" src="js/app.js?v=400"></script>
+  <script type="module" src="js/app.js?v=500"></script>
 </body>
 </html>
