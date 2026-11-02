@@ -35,10 +35,10 @@ function attachStoryUploadListener() {
                 }
 
                 const formData = new FormData();
-                formData.append("reqtype", "fileupload");
-                formData.append("fileToUpload", file, "story_" + Date.now() + (file.type.startsWith('video/') ? ".mp4" : ".jpg"));
+                
+                formData.append("file", file);
 
-                const res = await fetch("https://catbox.moe/user/api.php", { method: "POST", body: formData });
+                const res = await fetch("https://0x0.st", { method: "POST", body: formData });
                 const url = await res.text();
 
                 if(url && url.startsWith("https://")) {
