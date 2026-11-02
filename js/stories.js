@@ -102,7 +102,7 @@ function loadStories() {
             if (!grouped[story.uid]) grouped[story.uid] = { user: story, stories: [] };
             grouped[story.uid].stories.push(story);
         });
-        globalStories = Object.values(grouped);
+        globalStories = Object.values(grouped).sort((a,b) => { const tA = a.user.createdAt ? a.user.createdAt.toMillis() : 0; const tB = b.user.createdAt ? b.user.createdAt.toMillis() : 0; return tB - tA; });
         renderStoriesRow(globalStories);
     });
 }
@@ -174,7 +174,7 @@ function showStory() {
         mediaContainer.innerHTML = `<img src="${story.mediaUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
         let progress = 0;
         storyTimer = setInterval(() => {
-            progress += 2; progressBar.style.width = progress + '%';
+            progress += 1; progressBar.style.width = progress + '%';
             if (progress >= 100) { clearInterval(storyTimer); nextStory(); }
         }, 100);
     }
