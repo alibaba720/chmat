@@ -30,23 +30,31 @@ function attachStoryUploadListener() {
                 if (file.type.startsWith('video/')) {
                     type = 'video';
                     duration = await getVideoDuration(file);
-                    if(duration > 60) {
-                        alert("Video must be 60 seconds or less.");
-                        throw new Error("Video too long");
-                    }
+                    if(duration > 60) throw new Error("Video must be 60 seconds or less.");
                     
-                    const puterFileName = "story_" + Date.now() + ".mp4";
-                    const puterFile = new File([file], puterFileName, { type: 'video/mp4' });
-                    const uploadedFile = await puter.fs.write(puterFileName, puterFile);
-                    mediaUrl = await puter.fs.get_url(uploadedFile.path);
+                    // VIDEO UPLOAD VIA LITTERBOX (No Login Required)
+                    const formData = new FormData();
+                    formData.append("reqtype", "fileupload");
+                    formData.append("time", "72h"); // 72 hours expiry
+                    formData.append("fileToUpload", file);
+
+                    const res = await fetch("https://litterbox.catbox.moe/resources/internals/api.php", { method: "POST", body: formData });
+                    const url = await res.text();
+                    
+                    if(url && url.startsWith("https://")) {
+                        mediaUrl = url.trim();
+                    } else {
+                        throw new Error("Video upload failed. Server returned invalid URL.");
+                    }
 
                 } else {
+                    // IMAGE UPLOAD VIA IMGBB
                     const formData = new FormData();
                     formData.append("image", file);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
                     const data = await res.json();
                     if(data.success) mediaUrl = data.data.url;
-                    else throw new Error("ImgBB upload failed");
+                    else throw new Error("Image upload failed");
                 }
 
                 if(mediaUrl) {
@@ -55,8 +63,7 @@ function attachStoryUploadListener() {
                         profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: mediaUrl,
                         type: type, duration: Math.ceil(duration), viewers: [], createdAt: serverTimestamp()
                     });
-                    // Force UI Refresh so the ring highlights immediately
-                    setTimeout(() => { loadStories(); }, 1000);
+                    alert("Story uploaded successfully!");
                 }
 
             } catch(err) { 
@@ -110,12 +117,9 @@ function renderStoriesRow(stories) {
     const pic = currentUserData ? currentUserData.profilePicUrl : null;
     const myAvatar = pic ? `<img src="${pic}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${myInitial}</div>`;
 
-    // Check if MY OWN story exists to highlight my ring
     const myStoryGroup = stories.find(s => s.user.uid === currentUser.uid);
     let myRingClass = 'story-ring';
-    if(myStoryGroup) {
-        myRingClass = 'story-ring'; // Keep gradient if my story exists
-    }
+    if(myStoryGroup) myRingClass = 'story-ring'; 
 
     html += `<div class="story-item" onclick="document.getElementById('storyUploadInput').click()">
         <div class="${myRingClass}">${myAvatar}<div class="story-add-btn">+</div></div>
@@ -123,7 +127,7 @@ function renderStoriesRow(stories) {
     </div>`;
 
     stories.forEach(group => {
-        if(group.user.uid === currentUser.uid) return; // Skip self, already added above
+        if(group.user.uid === currentUser.uid) return; 
         const u = group.user;
         const initial = (u.username || "U").charAt(0).toUpperCase();
         const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${initial}</div>`;
