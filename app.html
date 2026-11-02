@@ -5,34 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CHMAT</title>
   <link rel="stylesheet" href="css/app.css?v=500">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; padding-bottom: 50px; }
+    
+    /* Top Header */
+    .app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #262626; position: sticky; top: 0; background: #000; z-index: 100; }
+    .logo { font-family: 'Instagram Sans', cursive, sans-serif; font-size: 24px; font-weight: bold; letter-spacing: 1px; }
+    .header-icons { display: flex; gap: 20px; align-items: center; }
+    .noti-icon-wrapper { position: relative; cursor: pointer; display: flex; align-items: center; }
+    
+    /* Bottom Nav */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 600px; left: 50%; transform: translateX(-50%); background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+    .nav-item { cursor: pointer; padding: 8px; display: flex; justify-content: center; align-items: center; }
+    .nav-item svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s; }
+    .nav-item.active svg { stroke-width: 2.5; fill: #fff; }
+    
+    /* Dropdown */
+    .dropdown-menu { position: fixed; top: 50px; right: 16px; background: #1c1c1e; border: 1px solid #333; border-radius: 12px; width: 200px; z-index: 200; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .dropdown-item { padding: 14px 16px; font-size: 15px; cursor: pointer; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:active { background: #2c2c2e; }
+    
+    /* Modals background */
+    .modal-overlay { background: rgba(0,0,0,0.85); }
+    
+    /* Hide original emojis if any left */
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
-  <div class="app-container">
+  <div class="app-container" style="max-width: 600px; margin: 0 auto;">
+    
     <header class="app-header">
       <div class="logo">CHMAT</div>
       <div class="header-icons">
         <div class="noti-icon-wrapper" id="notiBtn">
-          <span class="icon">🤍</span>
-          <span class="noti-dot hidden" id="notiDot"></span>
-          <span class="noti-count hidden" id="notiCount">0</span>
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <span class="noti-dot hidden" id="notiDot" style="position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:red; border-radius:50%;"></span>
+          <span class="noti-count hidden" id="notiCount" style="position:absolute; top:-5px; right:-8px; background:red; color:white; font-size:10px; padding:2px 5px; border-radius:10px;">0</span>
         </div>
       </div>
     </header>
 
-    <main class="app-content" id="mainContent">
+    <main class="app-content" id="mainContent" style="padding-bottom: 60px;">
       <div id="homeTab" class="tab-content">
-        <div class="stories-container" id="storiesContainer"></div>
+        <div class="stories-container" id="storiesContainer" style="padding: 10px 0; border-bottom: 1px solid #262626;"></div>
         <div id="feedContainer"></div>
       </div>
 
       <div id="searchTab" class="tab-content hidden">
-        <div class="search-container"><input type="text" id="searchInput" placeholder="Search by username..." autocomplete="off"></div>
+        <div class="search-container" style="padding: 16px;"><input type="text" id="searchInput" placeholder="Search" autocomplete="off" style="width:100%; background:#262626; border:none; padding:12px 16px; border-radius:8px; color:#fff; outline:none;"></div>
         <div id="searchResults" class="search-results"></div>
       </div>
 
       <div id="chatTab" class="tab-content hidden">
-        <div style="padding: 16px; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 18px; font-weight: 600;">Messages</h2>
+        <div style="padding: 16px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="font-size: 18px; font-weight: 600; margin:0;">Messages</h2>
           <button onclick="window.location.href='group.html'" style="background:none; border:none; color:#0095f6; font-weight:bold; font-size:14px; cursor:pointer;">+ New Group</button>
         </div>
         <div id="chatList" class="search-results" style="padding-top: 10px;"></div>
@@ -40,24 +69,34 @@
 
       <div id="profileTab" class="tab-content hidden">
         <div id="profileInfoContainer"></div>
-        <div id="myPostsContainer" style="margin-top: 20px; border-top: 1px solid #1a1a1a;"></div>
+        <div id="myPostsContainer" style="margin-top: 20px; border-top: 1px solid #262626;"></div>
       </div>
 
       <div id="notiTab" class="tab-content hidden">
-        <div style="padding: 16px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center;">
+        <div style="padding: 16px; border-bottom: 1px solid #262626; display: flex; align-items: center;">
           <button class="back-btn" id="backFromNoti" style="background:none; border:none; color:#fff; font-size:20px; margin-right:10px; cursor:pointer;">←</button>
-          <h2 style="font-size: 18px; font-weight: 600;">Notifications</h2>
+          <h2 style="font-size: 18px; font-weight: 600; margin:0;">Notifications</h2>
         </div>
         <div id="notiList" class="search-results" style="padding-top: 10px;"></div>
       </div>
     </main>
 
     <nav class="bottom-nav">
-      <div class="nav-item active" data-tab="homeTab">🏠</div>
-      <div class="nav-item" data-tab="searchTab">🔍</div>
-      <div class="nav-item" data-tab="post">➕</div>
-      <div class="nav-item" data-tab="chatTab">💬</div>
-      <div class="nav-item" data-tab="profileTab">👤</div>
+      <div class="nav-item active" data-tab="homeTab">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </div>
+      <div class="nav-item" data-tab="searchTab">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+      <div class="nav-item" data-tab="post">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+      </div>
+      <div class="nav-item" data-tab="chatTab">
+        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+      </div>
+      <div class="nav-item" data-tab="profileTab">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </div>
     </nav>
   </div>
 
