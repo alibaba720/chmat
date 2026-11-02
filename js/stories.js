@@ -1,6 +1,7 @@
 import { db } from "./firebase-config.js";
 import { doc, deleteDoc, collection, query, onSnapshot, addDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
+const IMGBB_API_KEY = "432c4e1e55a011e0a4618ee53954a901"; 
 let currentUser, currentUserData, myFriendsList;
 let globalStories = [];
 let currentStoryGroup = [];
@@ -10,7 +11,7 @@ let storyTimer = null;
 export function initStories(user, userData, friends) {
     currentUser = user; currentUserData = userData; myFriendsList = friends || [];
     attachStoryUploadListener();
-    renderStoriesRow([]); // Foran "Your Story" button render karein
+    renderStoriesRow([]);
     loadStories();
 }
 
@@ -25,33 +26,52 @@ function attachStoryUploadListener() {
             if(progress) progress.classList.remove('hidden');
             
             try {
+                let mediaUrl = "";
                 let duration = 5; 
+                let type = 'image';
+
                 if (file.type.startsWith('video/')) {
+                    type = 'video';
                     duration = await getVideoDuration(file);
                     if(duration > 60) {
                         alert("Video must be 60 seconds or less.");
                         uploadInput.value = ''; if(progress) progress.classList.add('hidden'); return;
                     }
+                    
+                    // Video Upload via Puter.js (No CORS)
+                    const puterFileName = "story_" + Date.now() + ".mp4";
+                    const puterFile = new File([file], puterFileName, { type: 'video/mp4' });
+                    const uploadedFile = await puter.fs.write(puterFileName, puterFile);
+                    mediaUrl = await puter.fs.get_url(uploadedFile.path);
+
+                } else {
+                    // Image Upload via ImgBB
+                    const formData = new FormData();
+                    formData.append("image", file);
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+                    const data = await res.json();
+                    if(data.success) {
+                        mediaUrl = data.data.url;
+                    } else {
+                        throw new Error("ImgBB upload failed");
+                    }
                 }
 
-                const formData = new FormData();
-                
-                formData.append("file", file);
-
-                const res = await fetch("https://0x0.st", { method: "POST", body: formData });
-                const url = await res.text();
-
-                if(url && url.startsWith("https://")) {
+                if(mediaUrl) {
                     await addDoc(collection(db, "stories"), {
                         uid: currentUser.uid, username: currentUserData.username,
-                        profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: url.trim(),
-                        type: file.type.startsWith('video/') ? 'video' : 'image',
-                        duration: Math.ceil(duration), viewers: [], createdAt: serverTimestamp()
+                        profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: mediaUrl,
+                        type: type, duration: Math.ceil(duration), viewers: [], createdAt: serverTimestamp()
                     });
                     alert("Story uploaded successfully!");
-                } else { alert("Upload failed. Try again."); }
-            } catch(err) { console.error(err); alert("Error uploading story."); }
-            uploadInput.value = ''; if(progress) progress.classList.add('hidden');
+                }
+
+            } catch(err) { 
+                console.error(err); 
+                alert("Error uploading story: " + err.message); 
+            }
+            uploadInput.value = ''; 
+            if(progress) progress.classList.add('hidden');
         });
     }
 }
@@ -91,7 +111,6 @@ function renderStoriesRow(stories) {
     if(!container) return;
     
     let html = '';
-    // Safety check for userData
     const name = currentUserData && (currentUserData.displayName || currentUserData.username) ? (currentUserData.displayName || currentUserData.username) : "User";
     const myInitial = name.charAt(0).toUpperCase();
     const pic = currentUserData ? currentUserData.profilePicUrl : null;
