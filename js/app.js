@@ -223,7 +223,7 @@ authReady.then(() => {
               const menuBtn = document.getElementById('menuBtn');
               if (menuBtn) { menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); }); const settingsBtn = document.getElementById('settingsBtn'); if(settingsBtn) settingsBtn.onclick = () => window.location.href = 'settings.html'; document.addEventListener('click', (e) => { if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.add('hidden'); }); }
           }
-          loadMySentRequests(); loadFeed(); initStories(currentUser, currentUserData, myFriendsList); loadSuggestions(); loadNotifications();
+          loadMySentRequests(); loadFeed(); initStories(currentUser, currentUserData, myFriendsList); loadSuggestions(); loadSuggestions(); loadNotifications();
         }
       } catch(e) { document.getElementById('feedContainer').innerHTML = `<p style="color:red; text-align:center;">Auth Error: ${e.message}</p>`; }
     } else { window.location.href = 'login.html'; }
@@ -387,10 +387,14 @@ const adminPanelBtn = document.getElementById('adminPanelBtn'); if (adminPanelBt
 const logoutBtn = document.getElementById('logoutBtn'); if (logoutBtn) { logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html')); }
 
 // --- SUGGESTIONS LOGIC (Updated) ---
+
+window.openAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.remove('hidden'); }
+window.closeAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.add('hidden'); }
+
+// --- SUGGESTIONS LOGIC (Full Page only) ---
 async function loadSuggestions() {
-    const rowContainer = document.getElementById('suggestionsRow');
     const fullContainer = document.getElementById('allSuggestionsList');
-    if(!rowContainer || !fullContainer) return;
+    if(!fullContainer) return;
 
     try {
         const usersRef = collection(db, "users");
@@ -404,31 +408,15 @@ async function loadSuggestions() {
             }
         });
 
-        suggestions.sort(() => 0.5 - Math.random()); // Shuffle
-
-        let rowHtml = '';
         let fullHtml = '';
-
-        suggestions.forEach((user, index) => {
+        suggestions.forEach((user) => {
             const initial = (user.displayName || user.username).charAt(0).toUpperCase();
-            const avatar = user.profilePicUrl ? `<img src="${user.profilePicUrl}">` : `<div class="sug-avatar">${initial}</div>`;
+            const avatar = user.profilePicUrl ? `<img src="${user.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;">${initial}</div>`;
             
-            // Row mein sirf 5 dikhayen
-            if (index < 5) {
-                rowHtml += `
-                    <div class="suggestion-card" onclick="window.location.href='profile.html?uid=${user.uid}'">
-                        ${avatar}
-                        <h4>${user.username}</h4>
-                        <button onclick="event.stopPropagation(); sendRequest('${user.uid}', '${user.username}', this)">Follow</button>
-                    </div>
-                `;
-            }
-
-            // Full page list mein sab dikhayen
             fullHtml += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid #222;">
                     <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.location.href='profile.html?uid=${user.uid}'">
-                        <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; background:#333; display:flex; align-items:center; justify-content:center; font-weight:bold;">${user.profilePicUrl ? `<img src="${user.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : initial}</div>
+                        <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; background:#333;">${avatar}</div>
                         <div>
                             <h4 style="margin:0; font-size:15px; color:#fff;">${user.displayName || user.username}</h4>
                             <p style="margin:0; font-size:13px; color:#888;">@${user.username}</p>
@@ -439,15 +427,7 @@ async function loadSuggestions() {
             `;
         });
 
-        // Add "See All" arrow to the row
-        rowHtml += `
-            <div class="story-item" onclick="openAllSuggestions()">
-                <div class="story-arrow-btn">›</div>
-                <span>See All</span>
-            </div>
-        `;
-
-        rowContainer.innerHTML = rowHtml;
+        if(fullHtml === '') fullHtml = '<p style="color:#888; text-align:center;">No suggestions available.</p>';
         fullContainer.innerHTML = fullHtml;
 
     } catch (error) {

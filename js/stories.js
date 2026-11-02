@@ -12,6 +12,47 @@ export function initStories(user, userData, friends) {
     loadStories();
 }
 
+// Open options modal instead of direct upload
+window.openStoryChoiceModal = function() { document.getElementById('storyChoiceModal').classList.remove('hidden'); }
+window.closeStoryChoiceModal = function() { document.getElementById('storyChoiceModal').classList.add('hidden'); }
+
+// Text Status Logic
+window.openTextStatusModal = function() {
+    closeStoryChoiceModal();
+    document.getElementById('textStatusModal').classList.remove('hidden');
+    document.getElementById('textStatusInput').value = '';
+    document.getElementById('textStatusPreview').innerText = '';
+    document.getElementById('textStatusInput').focus();
+}
+window.closeTextStatusModal = function() { document.getElementById('textStatusModal').classList.add('hidden'); }
+
+document.getElementById('textStatusInput')?.addEventListener('input', (e) => {
+    document.getElementById('textStatusPreview').innerText = e.target.value;
+});
+
+window.postTextStatus = async function() {
+    const text = document.getElementById('textStatusInput').value.trim();
+    if(!text) return;
+    
+    const progress = document.getElementById('storyUploadProgress');
+    if(progress) progress.classList.remove('hidden');
+
+    try {
+        const colors = ['linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d)', 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)', 'linear-gradient(120deg, #f093fb 0%, #f5576c 100%)', 'linear-gradient(to right, #43e97b 0%, #38f9d7 100%)'];
+        const bg = colors[Math.floor(Math.random() * colors.length)];
+
+        await addDoc(collection(db, "stories"), {
+            uid: currentUser.uid, username: currentUserData.username,
+            profilePicUrl: currentUserData.profilePicUrl || "", 
+            mediaUrl: text, bgColor: bg, type: 'text', duration: 10, viewers: [], createdAt: serverTimestamp()
+        });
+        alert("Status uploaded successfully!");
+        closeTextStatusModal();
+        loadStories();
+    } catch(e) { alert("Error: " + e.message); }
+    finally { if(progress) progress.classList.add('hidden'); }
+}
+
 function attachStoryUploadListener() {
     const uploadInput = document.getElementById('storyUploadInput');
     if(uploadInput) {
@@ -24,66 +65,24 @@ function attachStoryUploadListener() {
             
             try {
                 let mediaUrl = "";
-                let duration = 5; 
-                let type = 'image';
+                const formData = new FormData();
+                formData.append("image", file);
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+                const data = await res.json();
+                if(data.success) mediaUrl = data.data.url;
+                else throw new Error("Image upload failed");
 
-                if (file.type.startsWith('video/')) {
-                    type = 'video';
-                    duration = await getVideoDuration(file);
-                    if(duration > 60) throw new Error("Video must be 60 seconds or less.");
-                    
-                    // VIDEO UPLOAD VIA LITTERBOX (No Login Required)
-                    const formData = new FormData();
-                    formData.append("reqtype", "fileupload");
-                    formData.append("time", "72h"); // 72 hours expiry
-                    formData.append("fileToUpload", file);
-
-                    const res = await fetch("https://litterbox.catbox.moe/resources/internals/api.php", { method: "POST", body: formData });
-                    const url = await res.text();
-                    
-                    if(url && url.startsWith("https://")) {
-                        mediaUrl = url.trim();
-                    } else {
-                        throw new Error("Video upload failed. Server returned invalid URL.");
-                    }
-
-                } else {
-                    // IMAGE UPLOAD VIA IMGBB
-                    const formData = new FormData();
-                    formData.append("image", file);
-                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
-                    const data = await res.json();
-                    if(data.success) mediaUrl = data.data.url;
-                    else throw new Error("Image upload failed");
-                }
-
-                if(mediaUrl) {
-                    await addDoc(collection(db, "stories"), {
-                        uid: currentUser.uid, username: currentUserData.username,
-                        profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: mediaUrl,
-                        type: type, duration: Math.ceil(duration), viewers: [], createdAt: serverTimestamp()
-                    });
-                    alert("Story uploaded successfully!");
-                }
-
-            } catch(err) { 
-                console.error(err); 
-                alert("Upload Error: " + err.message); 
-            } finally {
-                uploadInput.value = ''; 
-                if(progress) progress.classList.add('hidden');
-            }
+                await addDoc(collection(db, "stories"), {
+                    uid: currentUser.uid, username: currentUserData.username,
+                    profilePicUrl: currentUserData.profilePicUrl || "", mediaUrl: mediaUrl,
+                    type: 'image', duration: 10, viewers: [], createdAt: serverTimestamp()
+                });
+                alert("Story uploaded successfully!");
+                loadStories();
+            } catch(err) { alert("Upload Error: " + err.message); } 
+            finally { uploadInput.value = ''; if(progress) progress.classList.add('hidden'); }
         });
     }
-}
-
-function getVideoDuration(file) {
-    return new Promise((resolve) => {
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.onloadedmetadata = () => { window.URL.revokeObjectURL(video.src); resolve(video.duration); };
-        video.src = URL.createObjectURL(file);
-    });
 }
 
 function loadStories() {
@@ -115,14 +114,17 @@ function renderStoriesRow(stories) {
     const name = currentUserData && (currentUserData.displayName || currentUserData.username) ? (currentUserData.displayName || currentUserData.username) : "User";
     const myInitial = name.charAt(0).toUpperCase();
     const pic = currentUserData ? currentUserData.profilePicUrl : null;
-    const myAvatar = pic ? `<img src="${pic}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${myInitial}</div>`;
+    
+    // FIX FOR DP NOT SHOWING
+    let myAvatar = "";
+    if (pic && pic.trim() !== "") {
+        myAvatar = `<img src="${pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    } else {
+        myAvatar = `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;color:#fff;">${myInitial}</div>`;
+    }
 
-    const myStoryGroup = stories.find(s => s.user.uid === currentUser.uid);
-    let myRingClass = 'story-ring';
-    if(myStoryGroup) myRingClass = 'story-ring'; 
-
-    html += `<div class="story-item" onclick="document.getElementById('storyUploadInput').click()">
-        <div class="${myRingClass}">${myAvatar}<div class="story-add-btn">+</div></div>
+    html += `<div class="story-item" onclick="openStoryChoiceModal()">
+        <div class="story-ring">${myAvatar}<div class="story-add-btn">+</div></div>
         <span>Your Story</span>
     </div>`;
 
@@ -130,7 +132,7 @@ function renderStoriesRow(stories) {
         if(group.user.uid === currentUser.uid) return; 
         const u = group.user;
         const initial = (u.username || "U").charAt(0).toUpperCase();
-        const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;">${initial}</div>`;
+        const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : `<div style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-weight:bold;color:#fff;">${initial}</div>`;
         const hasViewed = group.stories.every(s => s.viewers && s.viewers.includes(currentUser.uid));
         const ringClass = hasViewed ? 'story-ring viewed' : 'story-ring';
 
@@ -139,16 +141,24 @@ function renderStoriesRow(stories) {
             <span>${u.username}</span>
         </div>`;
     });
+
+    // ADD "SEE ALL" BUTTON AT THE VERY END
+    html += `<div class="story-item" onclick="openAllSuggestions()">
+        <div class="story-arrow-btn">›</div>
+        <span>See All</span>
+    </div>`;
+
     container.innerHTML = html;
 }
 
+// Rest of the functions (openStoryViewer, showStory, nextStory, etc.)
 window.openStoryViewer = function(uid) {
     const group = globalStories.find(g => g.user.uid === uid);
     if (!group) return;
     currentStoryGroup = group.stories; currentStoryIndex = 0;
     document.getElementById('storyViewerModal').classList.remove('hidden');
     document.getElementById('storyViewerName').innerText = group.user.username;
-    const avatar = group.user.profilePicUrl ? `<img src="${group.user.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; background:#333; font-weight:bold;">${group.user.username.charAt(0).toUpperCase()}</div>`;
+    const avatar = group.user.profilePicUrl ? `<img src="${group.user.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; background:#333; font-weight:bold; color:#fff;">${group.user.username.charAt(0).toUpperCase()}</div>`;
     document.getElementById('storyViewerAvatar').innerHTML = avatar;
     showStory();
 };
@@ -162,14 +172,13 @@ function showStory() {
     progressBar.style.width = '0%';
     if (storyTimer) clearInterval(storyTimer);
 
-    if (story.type === 'video') {
-        mediaContainer.innerHTML = `<video src="${story.mediaUrl}" autoplay playsinline style="max-width:100%; max-height:100%;"></video>`;
-        const video = mediaContainer.querySelector('video');
-        video.onended = nextStory;
+    if (story.type === 'text') {
+        mediaContainer.innerHTML = `<div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:${story.bgColor}; padding:20px; text-align:center; font-size:30px; font-weight:bold; color:white; word-break:break-word;">${story.mediaUrl}</div>`;
         let progress = 0;
         storyTimer = setInterval(() => {
-            if(video.duration) { progress = (video.currentTime / video.duration) * 100; progressBar.style.width = progress + '%'; }
-        }, 50);
+            progress += 1; progressBar.style.width = progress + '%';
+            if (progress >= 100) { clearInterval(storyTimer); nextStory(); }
+        }, 100);
     } else {
         mediaContainer.innerHTML = `<img src="${story.mediaUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
         let progress = 0;
