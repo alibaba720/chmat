@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CHMAT</title>
-  <link rel="stylesheet" href="css/app.css?v=200">
+  <link rel="stylesheet" href="css/app.css?v=300">
 </head>
 <body>
   <div class="app-container">
@@ -68,7 +68,13 @@
   </div>
 
   <input type="file" id="storyUploadInput" accept="video/*,image/*" style="display:none;">
-  <div id="storyUploadProgress" class="hidden" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#333; padding:10px 20px; border-radius:20px; z-index:99999; color:#fff;">Uploading Story...</div>
+  
+  <!-- New Professional Loading Overlay -->
+  <div id="storyUploadProgress" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+    <div class="spinner"></div>
+    <h2 style="color:#fff; margin-top:20px; font-size:18px;">Uploading Story...</h2>
+    <p style="color:#aaa; font-size:14px; margin-top:8px;">Please wait, do not close the app.</p>
+  </div>
 
   <div id="storyViewerModal" class="story-viewer-modal hidden">
     <div class="story-progress-bar"><div id="storyProgress" class="story-progress-fill"></div></div>
@@ -111,6 +117,6 @@
   </div>
 
   <script src="https://js.puter.com/v2/"></script>
-  <script type="module" src="js/app.js?v=200"></script>
+  <script type="module" src="js/app.js?v=300"></script>
 </body>
 </html>

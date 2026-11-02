@@ -3,15 +3,12 @@ import { doc, deleteDoc, collection, query, onSnapshot, addDoc, updateDoc, array
 
 const IMGBB_API_KEY = "432c4e1e55a011e0a4618ee53954a901"; 
 let currentUser, currentUserData, myFriendsList;
-let globalStories = [];
-let currentStoryGroup = [];
-let currentStoryIndex = 0;
-let storyTimer = null;
+let globalStories = [], currentStoryGroup = [], currentStoryIndex = 0, storyTimer = null;
 
 export function initStories(user, userData, friends) {
     currentUser = user; currentUserData = userData; myFriendsList = friends || [];
     attachStoryUploadListener();
-    renderStoriesRow([]);
+    renderStoriesRow([]); 
     loadStories();
 }
 
@@ -35,13 +32,18 @@ function attachStoryUploadListener() {
                     duration = await getVideoDuration(file);
                     if(duration > 60) {
                         alert("Video must be 60 seconds or less.");
-                        uploadInput.value = ''; if(progress) progress.classList.add('hidden'); return;
+                        throw new Error("Video too long");
                     }
                     
-                    // Video Upload via Puter.js (No CORS)
+                    // Video Upload via Puter.js
                     const puterFileName = "story_" + Date.now() + ".mp4";
                     const puterFile = new File([file], puterFileName, { type: 'video/mp4' });
-                    const uploadedFile = await puter.fs.write(puterFileName, puterFile);
+                    
+                    // Puter upload (timeout lagaya hai taake hang na ho)
+                    const uploadPromise = puter.fs.write(puterFileName, puterFile);
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Network timeout")), 45000));
+                    
+                    const uploadedFile = await Promise.race([uploadPromise, timeoutPromise]);
                     mediaUrl = await puter.fs.get_url(uploadedFile.path);
 
                 } else {
@@ -50,11 +52,8 @@ function attachStoryUploadListener() {
                     formData.append("image", file);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
                     const data = await res.json();
-                    if(data.success) {
-                        mediaUrl = data.data.url;
-                    } else {
-                        throw new Error("ImgBB upload failed");
-                    }
+                    if(data.success) mediaUrl = data.data.url;
+                    else throw new Error("ImgBB upload failed");
                 }
 
                 if(mediaUrl) {
@@ -68,10 +67,12 @@ function attachStoryUploadListener() {
 
             } catch(err) { 
                 console.error(err); 
-                alert("Error uploading story: " + err.message); 
+                alert("Upload Error: " + err.message); 
+            } finally {
+                // CHAHE UPLOAD FAIL HO YA PASS, LOADING SCREEN BAND HO GI
+                uploadInput.value = ''; 
+                if(progress) progress.classList.add('hidden');
             }
-            uploadInput.value = ''; 
-            if(progress) progress.classList.add('hidden');
         });
     }
 }
