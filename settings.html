@@ -45,15 +45,15 @@
     <!-- MAIN MENU -->
     <div id="mainMenu" class="settings-content">
       <div class="settings-group">
-        <div class="settings-item" onclick="openSection('account')">
+        <div class="settings-item" id="menuAccount">
           <span>Account</span>
           <span class="chevron">›</span>
         </div>
-        <div class="settings-item" onclick="openSection('security')">
+        <div class="settings-item" id="menuSecurity">
           <span>Security</span>
           <span class="chevron">›</span>
         </div>
-        <div class="settings-item" style="color: #ff3b30; border-bottom: none;" onclick="logout()">
+        <div class="settings-item" id="menuLogout" style="color: #ff3b30; border-bottom: none;">
           <span>Logout</span>
         </div>
       </div>
@@ -98,6 +98,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/settings.js?v=2"></script>
+  <script type="module" src="js/settings.js?v=3"></script>
 </body>
 </html>

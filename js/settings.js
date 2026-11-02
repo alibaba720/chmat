@@ -4,23 +4,29 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.
 
 let currentUser = null;
 
+// Get Elements
 const backBtn = document.getElementById('backBtn');
 const pageTitle = document.getElementById('pageTitle');
 const mainMenu = document.getElementById('mainMenu');
 const accountSection = document.getElementById('accountSection');
 const securitySection = document.getElementById('securitySection');
 
-// Navigation Logic
-window.openSection = function(section) {
+// Navigation Functions
+document.getElementById('menuAccount').addEventListener('click', () => {
     mainMenu.classList.add('hidden');
-    if(section === 'account') {
-        accountSection.classList.remove('hidden');
-        pageTitle.innerText = "Account";
-    } else if (section === 'security') {
-        securitySection.classList.remove('hidden');
-        pageTitle.innerText = "Security";
-    }
-}
+    accountSection.classList.remove('hidden');
+    pageTitle.innerText = "Account";
+});
+
+document.getElementById('menuSecurity').addEventListener('click', () => {
+    mainMenu.classList.add('hidden');
+    securitySection.classList.remove('hidden');
+    pageTitle.innerText = "Security";
+});
+
+document.getElementById('menuLogout').addEventListener('click', () => {
+    signOut(auth).then(() => window.location.href = 'login.html');
+});
 
 backBtn.addEventListener('click', () => {
     if (!accountSection.classList.contains('hidden') || !securitySection.classList.contains('hidden')) {
@@ -33,11 +39,7 @@ backBtn.addEventListener('click', () => {
     }
 });
 
-window.logout = function() {
-    signOut(auth).then(() => window.location.href = 'login.html');
-}
-
-// Load Data
+// Load Data on Auth State Change
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
@@ -50,7 +52,9 @@ onAuthStateChanged(auth, async (user) => {
       document.getElementById('setEmail1').value = data.email || "";
       document.getElementById('setEmail2').value = data.email2 || "";
     }
-  } else { window.location.href = 'login.html'; }
+  } else { 
+      window.location.href = 'login.html'; 
+  }
 });
 
 // Save Details
