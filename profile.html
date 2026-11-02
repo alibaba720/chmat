@@ -20,7 +20,7 @@
   <script type="module">
     import { auth, db, authReady } from './js/firebase-config.js'; 
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-    import { doc, getDoc, collection, query, where, onSnapshot, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import { doc, getDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetUid = urlParams.get('uid');
@@ -31,7 +31,7 @@
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
-          if(!targetUid || targetUid === currentUser.uid) { window.location.href = 'app.html'; return; }
+          if(!targetUid) { window.location.href = 'app.html'; return; }
           loadUserProfile();
         } else {
           window.location.href = 'login.html';
@@ -53,7 +53,9 @@
           const isFriend = myData.friends && myData.friends.includes(targetUid);
 
           let btnHtml = '';
-          if(isFriend) {
+          if(currentUser.uid === targetUid) {
+             btnHtml = `<button onclick="window.location.href='edit-profile.html'" style="flex:1; background:#262626; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Edit Profile</button>`;
+          } else if(isFriend) {
               btnHtml = `<button onclick="window.location.href='chat.html?uid=${targetUid}&name=${data.username}'" style="flex:1; background:#0095f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Message</button>`;
           } else {
               btnHtml = `<button onclick="sendReq(this)" style="flex:1; background:#0095f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">Add Friend</button>`;
@@ -102,11 +104,11 @@
         posts.sort((a,b) => { return (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0); });
         let html = '';
         posts.forEach((post) => {
-          if(post.privacy === "Public") { 
+          if(post.privacy === "Public" || post.uid === currentUser.uid) { 
              html += `<div class="post-card" style="margin-bottom:10px;"><div class="post-text">${post.text || ''}</div>${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : ''}</div>`;
           }
         });
-        postsDiv.innerHTML = html !== '' ? html : '<p style="color:#888;">No public posts.</p>';
+        postsDiv.innerHTML = html !== '' ? html : '<p style="color:#888;">No posts to show.</p>';
       });
     }
   </script>
