@@ -133,19 +133,25 @@ async function loadFeed() {
 }
 
 function loadMyPosts() {
-  const myPostsContainer = document.getElementById('myPostsContainer'); 
-  if (!myPostsContainer) return;
-  let html = '';
+  const photosContainer = document.getElementById('myPhotosContainer');
+  const statusContainer = document.getElementById('myStatusContainer');
+  if (!photosContainer || !statusContainer) return;
+
+  let photosHtml = '';
+  let statusHtml = '';
+
   globalPosts.forEach(post => { 
       if (post.uid === currentUser.uid) {
-          if(post.imageUrl) {
-              html += `<div class="ig-grid-item"><img src="${post.imageUrl}"></div>`;
-          } else if(post.text) {
-              html += `<div class="ig-grid-item"><span style="color:#fff; font-size:12px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;">${post.text}</span></div>`;
+          if (post.imageUrl) {
+              photosHtml += `<div class="ig-grid-item" onclick="openViewPost('${post.id}')"><img src="${post.imageUrl}"></div>`;
+          } else if (post.text) {
+              statusHtml += `<div style="background: #1a1a1a; padding: 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333;">${post.text}</div>`;
           }
       } 
   });
-  myPostsContainer.innerHTML = html !== '' ? html : '<p style="color:#888; grid-column: 1 / -1; text-align:center; padding:20px;">No posts yet.</p>';
+
+  photosContainer.innerHTML = photosHtml !== '' ? photosHtml : '<p style="color:#888; grid-column: 1 / -1; text-align:center; padding:20px;">No photos yet.</p>';
+  statusContainer.innerHTML = statusHtml !== '' ? statusHtml : '<p style="color:#888; text-align:center; padding:20px;">No text statuses yet.</p>';
 }
 
 window.openPostOptions = function(postId) { activePostIdForOptions = postId; document.getElementById('postOptionsModal').style.display = 'flex'; }
@@ -238,7 +244,7 @@ authReady.then(() => {
           <div class="ig-dp-add" onclick="window.location.href='edit-profile.html'">+</div>
         </div>
         <div class="ig-stats">
-          <div class="ig-stat-item"><span class="ig-stat-num">${myPostsSnap.size}</span>posts</div>
+          <div class="ig-stat-item"><span class="ig-stat-num">${myPostsSnap.size}</span>photos</div>
           <div class="ig-stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span class="ig-stat-num">${myFriendsList.length}</span>friends</div>
           <div class="ig-stat-item"><span class="ig-stat-num">0</span>following</div>
         </div>
@@ -252,11 +258,11 @@ authReady.then(() => {
         <button class="ig-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('Profile link copied!')">Share profile</button>
       </div>
       <div class="ig-tabs">
-        <div class="ig-tab active">▦</div>
-        <div class="ig-tab">▶</div>
-        <div class="ig-tab">👤</div>
-      </div>
-      <div id="myPostsContainer" class="ig-grid"></div>
+          <div class="ig-tab active" id="tabPhotos" onclick="switchProfileTab('photos')">PHOTOS</div>
+          <div class="ig-tab" id="tabStatus" onclick="switchProfileTab('status')">STATUS</div>
+        </div>
+        <div id="myPhotosContainer" class="ig-grid"></div>
+        <div id="myStatusContainer" style="display: none; padding: 16px; color: #fff;"></div>
     `;
               document.getElementById('editProfileBtn').addEventListener('click', () => window.location.href = 'edit-profile.html');
               const menuBtn = document.getElementById('menuBtn');
@@ -476,3 +482,40 @@ async function loadSuggestions() {
 
 window.openAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.remove('hidden'); }
 window.closeAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.add('hidden'); }
+
+window.switchProfileTab = function(tab) {
+    const photosContainer = document.getElementById('myPhotosContainer');
+    const statusContainer = document.getElementById('myStatusContainer');
+    const tabPhotos = document.getElementById('tabPhotos');
+    const tabStatus = document.getElementById('tabStatus');
+
+    if (tab === 'photos') {
+        photosContainer.style.display = 'grid';
+        statusContainer.style.display = 'none';
+        tabPhotos.classList.add('active');
+        tabStatus.classList.remove('active');
+    } else {
+        photosContainer.style.display = 'none';
+        statusContainer.style.display = 'block';
+        tabStatus.classList.add('active');
+        tabPhotos.classList.remove('active');
+    }
+};
+
+window.openViewPost = function(postId) {
+    const post = globalPosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const modal = document.getElementById('viewPostModal');
+    const content = document.getElementById('viewPostContent');
+    
+    content.innerHTML = createPostHTML(post, post.id);
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+};
+
+window.closeViewPost = function() {
+    const modal = document.getElementById('viewPostModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+};
