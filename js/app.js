@@ -133,10 +133,19 @@ async function loadFeed() {
 }
 
 function loadMyPosts() {
-    const myPostsContainer = document.getElementById('myPostsContainer'); if (!myPostsContainer) return;
-    let html = '';
-    globalPosts.forEach(post => { if (post.uid === currentUser.uid) html += createPostHTML(post, post.id); });
-    myPostsContainer.innerHTML = html !== '' ? html : '<p style="text-align:center; color:#888; padding:20px;">No posts yet.</p>';
+  const myPostsContainer = document.getElementById('myPostsContainer'); 
+  if (!myPostsContainer) return;
+  let html = '';
+  globalPosts.forEach(post => { 
+      if (post.uid === currentUser.uid) {
+          if(post.imageUrl) {
+              html += `<div class="ig-grid-item"><img src="${post.imageUrl}"></div>`;
+          } else if(post.text) {
+              html += `<div class="ig-grid-item"><span style="color:#fff; font-size:12px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;">${post.text}</span></div>`;
+          }
+      } 
+  });
+  myPostsContainer.innerHTML = html !== '' ? html : '<p style="color:#888; grid-column: 1 / -1; text-align:center; padding:20px;">No posts yet.</p>';
 }
 
 window.openPostOptions = function(postId) { activePostIdForOptions = postId; document.getElementById('postOptionsModal').style.display = 'flex'; }
@@ -218,7 +227,37 @@ authReady.then(() => {
           const avatarHtml = getAvatarHtml(currentUserData.profilePicUrl, initial);
           const profileInfo = document.getElementById('profileInfoContainer');
           if(profileInfo) {
-              profileInfo.innerHTML = `<div class="profile-container" style="padding-bottom:0;"><div class="profile-header"><div class="profile-avatar">${avatarHtml}</div><div class="profile-stats"><div class="stat-item"><span>${myPostsSnap.size}</span>Posts</div><div class="stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span>${myFriendsList.length}</span>Friends</div></div><div class="profile-menu-btn" id="menuBtn">⋮</div></div><div class="profile-info"><h2 class="display-name">${displayName}</h2><p class="username">@${currentUserData.username || "unknown"}</p><p class="bio">${bio}</p></div><div class="profile-actions"><button class="edit-profile-btn" id="editProfileBtn">Edit Profile</button></div></div>`;
+              profileInfo.innerHTML = `
+      <div class="ig-top-bar">
+        <div class="ig-username">${currentUserData.username || "unknown"} <span style="font-size:12px;">▼</span></div>
+        <div class="ig-menu-icon" id="menuBtn">☰</div>
+      </div>
+      <div class="ig-profile-header">
+        <div class="ig-dp-container">
+          <div class="ig-dp-img" style="display:flex; justify-content:center; align-items:center; background:#333; font-size:32px; overflow:hidden;">${avatarHtml}</div>
+          <div class="ig-dp-add" onclick="window.location.href='edit-profile.html'">+</div>
+        </div>
+        <div class="ig-stats">
+          <div class="ig-stat-item"><span class="ig-stat-num">${myPostsSnap.size}</span>posts</div>
+          <div class="ig-stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span class="ig-stat-num">${myFriendsList.length}</span>friends</div>
+          <div class="ig-stat-item"><span class="ig-stat-num">0</span>following</div>
+        </div>
+      </div>
+      <div class="ig-bio-section">
+        <div class="ig-name">${displayName}</div>
+        <div class="ig-text">${bio}</div>
+      </div>
+      <div class="ig-action-btns">
+        <button class="ig-btn" id="editProfileBtn">Edit profile</button>
+        <button class="ig-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('Profile link copied!')">Share profile</button>
+      </div>
+      <div class="ig-tabs">
+        <div class="ig-tab active">▦</div>
+        <div class="ig-tab">▶</div>
+        <div class="ig-tab">👤</div>
+      </div>
+      <div id="myPostsContainer" class="ig-grid"></div>
+    `;
               document.getElementById('editProfileBtn').addEventListener('click', () => window.location.href = 'edit-profile.html');
               const menuBtn = document.getElementById('menuBtn');
               if (menuBtn) { menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); }); const settingsBtn = document.getElementById('settingsBtn'); if(settingsBtn) settingsBtn.onclick = () => window.location.href = 'settings.html'; document.addEventListener('click', (e) => { if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.add('hidden'); }); }
