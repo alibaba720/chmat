@@ -5,15 +5,15 @@ import { doc, getDoc, deleteDoc, collection, query, where, getDocs, addDoc, upda
 
 const dropdownMenu = document.getElementById('dropdownMenu');
 const navItems = document.querySelectorAll('.nav-item');
-const OWNER_MOBILE = "03016631720";
+const OWNER_MOBILE = "03016631720"; 
 let currentUser = null, currentUserData = null, myFriendsList = [];
 let globalPosts = [], userCache = {}, mySentRequests = [];
-let currentPostIdForComment = null, currentReplyTo = null, activePostIdForOptions = null;
+let currentPostIdForComment = null, currentReplyTo = null, activePostIdForOptions = null; 
 let isFirstLoad = true;
 
 function getAvatarHtml(profilePicUrl, initial) {
     if (profilePicUrl) return `<img src="${profilePicUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-    return `<div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; font-weight:bold; background:#333; border-radius:50%; font-size:20px;">${initial}</div>`;
+    return initial;
 }
 
 async function getUserProfile(uid) {
@@ -38,18 +38,18 @@ navItems.forEach(item => {
 });
 
 const notiBtn = document.getElementById('notiBtn');
-if (notiBtn) { notiBtn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-    navItems.forEach(nav => nav.classList.remove('active'));
-    document.getElementById('notiTab').classList.remove('hidden');
-    markNotificationsRead();
+if (notiBtn) { notiBtn.addEventListener('click', () => { 
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden')); 
+    navItems.forEach(nav => nav.classList.remove('active')); 
+    document.getElementById('notiTab').classList.remove('hidden'); 
+    markNotificationsRead(); 
 }); }
 
 const backFromNoti = document.getElementById('backFromNoti');
-if (backFromNoti) { backFromNoti.addEventListener('click', () => {
-    document.getElementById('notiTab').classList.add('hidden');
-    document.getElementById('homeTab').classList.remove('hidden');
-    document.querySelector('.nav-item[data-tab="homeTab"]').classList.add('active');
+if (backFromNoti) { backFromNoti.addEventListener('click', () => { 
+    document.getElementById('notiTab').classList.add('hidden'); 
+    document.getElementById('homeTab').classList.remove('hidden'); 
+    document.querySelector('.nav-item[data-tab="homeTab"]').classList.add('active'); 
 }); }
 
 function timeAgo(date) {
@@ -109,15 +109,15 @@ async function loadFeed() {
         const q = query(collection(db, "posts"));
         onSnapshot(q, async (snapshot) => {
             globalPosts = []; let uidsToFetch = new Set();
-            snapshot.forEach((doc) => {
-                const post = doc.data();
-                globalPosts.push({ id: doc.id, ...post });
-                uidsToFetch.add(post.uid);
+            snapshot.forEach((doc) => { 
+                const post = doc.data(); 
+                globalPosts.push({ id: doc.id, ...post }); 
+                uidsToFetch.add(post.uid); 
             });
             await Promise.all(Array.from(uidsToFetch).map(uid => getUserProfile(uid)));
-            if (isFirstLoad) { globalPosts.sort(() => Math.random() - 0.5); isFirstLoad = false; }
+            if (isFirstLoad) { globalPosts.sort(() => Math.random() - 0.5); isFirstLoad = false; } 
             else { globalPosts.sort((a,b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0)); }
-
+            
             let html = '';
             globalPosts.forEach((post) => {
                 let canSee = false;
@@ -134,23 +134,9 @@ async function loadFeed() {
 
 function loadMyPosts() {
     const myPostsContainer = document.getElementById('myPostsContainer'); if (!myPostsContainer) return;
-    
-    // Convert container to Insta Grid
-    myPostsContainer.className = 'ig-grid';
-    myPostsContainer.style.borderTop = 'none';
-    myPostsContainer.style.marginTop = '0';
-
     let html = '';
-    globalPosts.forEach(post => { 
-        if (post.uid === currentUser.uid) {
-            if(post.imageUrl) {
-                html += `<div class="ig-grid-item"><img src="${post.imageUrl}" style="width:100%; height:100%; object-fit:cover;"></div>`;
-            } else if(post.text) {
-                html += `<div class="ig-grid-item"><span style="color:#fff; font-size:12px;">${post.text}</span></div>`;
-            }
-        } 
-    });
-    myPostsContainer.innerHTML = html !== '' ? html : '<p style="color:#888; grid-column: 1 / -1; text-align:center; padding:20px;">No posts yet.</p>';
+    globalPosts.forEach(post => { if (post.uid === currentUser.uid) html += createPostHTML(post, post.id); });
+    myPostsContainer.innerHTML = html !== '' ? html : '<p style="text-align:center; color:#888; padding:20px;">No posts yet.</p>';
 }
 
 window.openPostOptions = function(postId) { activePostIdForOptions = postId; document.getElementById('postOptionsModal').style.display = 'flex'; }
@@ -203,13 +189,13 @@ if(sendCommentBtn) {
     sendCommentBtn.addEventListener('click', async () => {
         const input = document.getElementById('commentInput'); const text = input.value.trim();
         if (!text || !currentPostIdForComment) return;
-        input.value = '';
+        input.value = ''; 
         try {
             const commentData = { uid: currentUser.uid, username: currentUserData.username, displayName: currentUserData.displayName || currentUserData.username, profilePicUrl: currentUserData.profilePicUrl || "", text: text, createdAt: serverTimestamp() };
             if (currentReplyTo) { commentData.parentId = currentReplyTo.id; commentData.parentUsername = currentReplyTo.username; }
             await addDoc(collection(db, "posts", currentPostIdForComment, "comments"), commentData);
             await updateDoc(doc(db, "posts", currentPostIdForComment), { commentCount: increment(1) });
-            cancelReply();
+            cancelReply(); 
         } catch (error) { alert("Failed to post comment: " + error.message); }
     });
 }
@@ -230,39 +216,9 @@ authReady.then(() => {
           if (cleanDbMobile === OWNER_MOBILE) { document.getElementById('adminPanelBtn').classList.remove('hidden'); }
           const myPostsSnap = await getDocs(query(collection(db, "posts"), where("uid", "==", user.uid)));
           const avatarHtml = getAvatarHtml(currentUserData.profilePicUrl, initial);
-          
           const profileInfo = document.getElementById('profileInfoContainer');
           if(profileInfo) {
-              profileInfo.innerHTML = `
-                <div class="ig-top-bar">
-                  <div class="ig-username">${currentUserData.username || "unknown"} <span style="font-size:12px;">▼</span></div>
-                  <div class="ig-menu-icon" id="menuBtn">☰</div>
-                </div>
-                <div class="ig-profile-header">
-                  <div class="ig-dp-container">
-                    <div class="ig-dp-img" style="display:flex; justify-content:center; align-items:center; background:#333; font-size:32px; overflow:hidden;">${avatarHtml}</div>
-                    <div class="ig-dp-add" onclick="window.location.href='edit-profile.html'">+</div>
-                  </div>
-                  <div class="ig-stats">
-                    <div class="ig-stat-item"><span class="ig-stat-num">${myPostsSnap.size}</span>posts</div>
-                    <div class="ig-stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span class="ig-stat-num">${myFriendsList.length}</span>friends</div>
-                    <div class="ig-stat-item"><span class="ig-stat-num">0</span>following</div>
-                  </div>
-                </div>
-                <div class="ig-bio-section">
-                  <div class="ig-name">${displayName}</div>
-                  <div class="ig-text">${bio}</div>
-                </div>
-                <div class="ig-action-btns">
-                  <button class="ig-btn" id="editProfileBtn">Edit profile</button>
-                  <button class="ig-btn">Share profile</button>
-                </div>
-                <div class="ig-tabs">
-                  <div class="ig-tab active">▦</div>
-                  <div class="ig-tab">▶</div>
-                  <div class="ig-tab">👤</div>
-                </div>
-              `;
+              profileInfo.innerHTML = `<div class="profile-container" style="padding-bottom:0;"><div class="profile-header"><div class="profile-avatar">${avatarHtml}</div><div class="profile-stats"><div class="stat-item"><span>${myPostsSnap.size}</span>Posts</div><div class="stat-item" onclick="window.openFriendsModal()" style="cursor:pointer;"><span>${myFriendsList.length}</span>Friends</div></div><div class="profile-menu-btn" id="menuBtn">⋮</div></div><div class="profile-info"><h2 class="display-name">${displayName}</h2><p class="username">@${currentUserData.username || "unknown"}</p><p class="bio">${bio}</p></div><div class="profile-actions"><button class="edit-profile-btn" id="editProfileBtn">Edit Profile</button></div></div>`;
               document.getElementById('editProfileBtn').addEventListener('click', () => window.location.href = 'edit-profile.html');
               const menuBtn = document.getElementById('menuBtn');
               if (menuBtn) { menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); }); const settingsBtn = document.getElementById('settingsBtn'); if(settingsBtn) settingsBtn.onclick = () => window.location.href = 'settings.html'; document.addEventListener('click', (e) => { if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.add('hidden'); }); }
@@ -299,7 +255,7 @@ function loadMySentRequests() {
     const qSent = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid));
     onSnapshot(qSent, (snapshot) => { mySentRequests = []; snapshot.forEach(doc => { if(doc.data().status === "pending") mySentRequests.push({ id: doc.id, ...doc.data() }); }); });
 }
-let allNotifications = []; let deleteTimeouts = {};
+let allNotifications = []; let deleteTimeouts = {}; 
 function loadNotifications() {
   const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid));
   onSnapshot(qReq, (snapReq) => {
@@ -322,9 +278,9 @@ function renderNotifications() {
     allNotifications.forEach(n => {
         const initial = n.senderUsername.charAt(0).toUpperCase(); const avatar = getAvatarHtml("", initial);
         let content = '';
-        if(n.type === 'request') { content = `<div class="noti-text"><b>@${n.senderUsername}</b> sent you a friend request.</div><div class="noti-btns"><button class="btn-accept" onclick="acceptRequest('${n.id}', '${n.senderId}', '${n.senderUsername}')">Accept</button><button class="btn-reject" onclick="rejectRequest('${n.id}')">Delete</button></div>`; }
-        else if (n.type === 'like') { content = `<div class="noti-text"><b>@${n.senderUsername}</b> liked your post.</div>`; }
-        else if (n.type === 'comment') { content = `<div class="noti-text"><b>@${n.senderUsername}</b> commented: "${n.text}"</div>`; }
+        if(n.type === 'request') { content = `<div class="noti-text"><b>@${n.senderUsername}</b> sent you a friend request.</div><div class="noti-btns"><button class="btn-accept" onclick="acceptRequest('${n.id}', '${n.senderId}', '${n.senderUsername}')">Accept</button><button class="btn-reject" onclick="rejectRequest('${n.id}')">Delete</button></div>`; } 
+        else if (n.type === 'like') { content = `<div class="noti-text"><b>@${n.senderUsername}</b> liked your post.</div>`; } 
+        else if (n.type === 'comment') { content = `<div class="noti-text"><b>@${n.senderUsername}</b> commented: "${n.text}"</div>`; } 
         else if (n.type === 'friend_accept') { content = `<div class="noti-text"><b>@${n.senderUsername}</b> accepted your friend request.</div>`; }
         html += `<div class="noti-card" id="noti-${n.id}" data-id="${n.id}" data-original='${btoa(unescape(encodeURIComponent(content)))}' style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #222;"><div class="user-avatar-small">${avatar}</div>${content}</div>`;
     });
@@ -348,7 +304,7 @@ function activateInlineUndo(card) {
     card.classList.add('noti-deleted-state'); card.innerHTML = `Notification deleted <span class="undo-btn" onclick="undoInlineDelete('${notiId}', this)">UNDO</span>`;
     deleteTimeouts[notiId] = setTimeout(async () => {
         try { const reqSnap = await getDoc(doc(db, "friend_requests", notiId)); if(reqSnap.exists()) { await deleteDoc(doc(db, "friend_requests", notiId)); } else { await deleteDoc(doc(db, "notifications", notiId)); } } catch(e) { console.log("Error deleting noti: ", e); }
-    }, 4000);
+    }, 4000); 
 }
 
 window.undoInlineDelete = function(notiId, btnElement) {
@@ -394,18 +350,20 @@ if (searchInput && searchResults) {
     const searchTerm = e.target.value.trim().toLowerCase(); if (searchTerm.length < 2) { searchResults.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">Type at least 2 letters...</p>'; return; }
     searchResults.innerHTML = '';
     try {
-      const querySnapshot = await getDocs(collection(db, "users"));
+      const querySnapshot = await getDocs(collection(db, "users")); 
       let html = '';
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        if (data.uid !== currentUser.uid && data.username.includes(searchTerm)) {
-          const initial = (data.displayName || data.username).charAt(0).toUpperCase(); const avatarHtml = getAvatarHtml(data.profilePicUrl, initial);
+        if (data.uid !== currentUser.uid && data.username.includes(searchTerm)) { 
+          const initial = (data.displayName || data.username).charAt(0).toUpperCase(); const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
           let btnHtml = '';
           if (myFriendsList.includes(data.uid)) { btnHtml = `<button class="add-friend-btn" style="background:#262626; color:#fff;" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'">Message</button>`; } else {
               const existingReq = mySentRequests.find(r => r.receiverId === data.uid);
               if(existingReq) { btnHtml = `<button class="add-friend-btn" style="background:#333; color:#ff3b30;" onclick="cancelFriendRequest('${existingReq.id}', this)">Cancel</button>`; } else { btnHtml = `<button class="add-friend-btn" onclick="sendRequest('${data.uid}', '${data.username}', this)">Add Friend</button>`; }
-          }                                                               html += `<div class="user-result"><div class="user-info-left" onclick="window.location.href='profile.html?uid=${data.uid}'" style="cursor:pointer;"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div></div><div style="display:flex; gap:8px; align-items:center;">${btnHtml}<button onclick="reportProfile('${data.uid}', '${data.username}')" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">⋮</button></div></div>`;
-        }                                                             });
+          }
+          html += `<div class="user-result"><div class="user-info-left" onclick="window.location.href='profile.html?uid=${data.uid}'" style="cursor:pointer;"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div></div><div style="display:flex; gap:8px; align-items:center;">${btnHtml}<button onclick="reportProfile('${data.uid}', '${data.username}')" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">⋮</button></div></div>`; 
+        }
+      });
       searchResults.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No user found.</p>';
     } catch (error) { searchResults.innerHTML = '<p style="text-align: center; color: red;">Error.</p>'; }
   });
@@ -424,28 +382,39 @@ window.cancelFriendRequest = async function(requestId, btnElement) {
     if(!confirm("Cancel this friend request?")) return;
     btnElement.innerText = "Cancelling...";
     try { await deleteDoc(doc(db, "friend_requests", requestId)); btnElement.innerText = "Add Friend"; btnElement.style.background = "#0095f6"; } catch(e) { alert("Error: " + e.message); btnElement.innerText = "Cancel"; }
-}                                                               const adminPanelBtn = document.getElementById('adminPanelBtn'); if (adminPanelBtn) { adminPanelBtn.addEventListener('click', () => window.location.href = 'admin.html'); }
-const logoutBtn = document.getElementById('logoutBtn'); if (logoutBtn) { logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html')); }            
+}
+const adminPanelBtn = document.getElementById('adminPanelBtn'); if (adminPanelBtn) { adminPanelBtn.addEventListener('click', () => window.location.href = 'admin.html'); }
+const logoutBtn = document.getElementById('logoutBtn'); if (logoutBtn) { logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html')); }
+
 // --- SUGGESTIONS LOGIC (Updated) ---
 
 window.openAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.remove('hidden'); }
-window.closeAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.add('hidden'); }             
+window.closeAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.add('hidden'); }
+
 // --- SUGGESTIONS LOGIC (Full Page only) ---
-async function loadSuggestions() {                                  const fullContainer = document.getElementById('allSuggestionsList');                                                            if(!fullContainer) return;
-                                                                    try {
-        const usersRef = collection(db, "users");                       const snapshot = await getDocs(usersRef);
+async function loadSuggestions() {
+    const fullContainer = document.getElementById('allSuggestionsList');
+    if(!fullContainer) return;
+
+    try {
+        const usersRef = collection(db, "users");
+        const snapshot = await getDocs(usersRef);
         let suggestions = [];
-                                                                        snapshot.forEach((doc) => {
+
+        snapshot.forEach((doc) => {
             const data = doc.data();
             if (data.uid !== currentUser.uid && !myFriendsList.includes(data.uid)) {
                 suggestions.push(data);
-            }                                                           });
+            }
+        });
 
         let fullHtml = '';
         suggestions.forEach((user) => {
             const initial = (user.displayName || user.username).charAt(0).toUpperCase();
-            const avatar = user.profilePicUrl ? `<img src="${user.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;">${initial}</div>`;                                              
-            fullHtml += `                                                       <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid #222;">
+            const avatar = user.profilePicUrl ? `<img src="${user.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;">${initial}</div>`;
+            
+            fullHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid #222;">
                     <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.location.href='profile.html?uid=${user.uid}'">
                         <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; background:#333;">${avatar}</div>
                         <div>
@@ -455,10 +424,16 @@ async function loadSuggestions() {                                  const fullCo
                     </div>
                     <button onclick="sendRequest('${user.uid}', '${user.username}', this)" style="background:#0095f6; color:#fff; border:none; padding:6px 15px; border-radius:6px; font-weight:bold;">Add Friend</button>
                 </div>
-            `;                                                          });
+            `;
+        });
 
-        if(fullHtml === '') fullHtml = '<p style="color:#888; text-align:center;">No suggestions available.</p>';                       fullContainer.innerHTML = fullHtml;
-                                                                    } catch (error) {                                                   console.log("Suggestion error:", error);
-    }                                                           }
+        if(fullHtml === '') fullHtml = '<p style="color:#888; text-align:center;">No suggestions available.</p>';
+        fullContainer.innerHTML = fullHtml;
 
-window.openAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.remove('hidden'); }           window.closeAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.add('hidden'); }
+    } catch (error) {
+        console.log("Suggestion error:", error);
+    }
+}
+
+window.openAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.remove('hidden'); }
+window.closeAllSuggestions = function() { document.getElementById('allSuggestionsModal').classList.add('hidden'); }
