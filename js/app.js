@@ -258,8 +258,8 @@ authReady.then(() => {
         <button class="ig-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('Profile link copied!')">Share profile</button>
       </div>
       <div class="ig-tabs">
-          <div class="ig-tab active" id="tabPhotos" onclick="switchProfileTab('photos')">PHOTOS</div>
           <div class="ig-tab" id="tabStatus" onclick="switchProfileTab('status')">STATUS</div>
+          <div class="ig-tab active" id="tabPhotos" onclick="switchProfileTab('photos')">PHOTOS</div>
         </div>
         <div id="myPhotosContainer" class="ig-grid"></div>
         <div id="myStatusContainer" style="display: none; padding: 16px; color: #fff;"></div>
