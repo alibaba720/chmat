@@ -360,7 +360,10 @@ function loadNotifications() {
 
 function renderNotifications() {
     const notiList = document.getElementById('notiList'); const notiDot = document.getElementById('notiDot'); const notiCount = document.getElementById('notiCount');
-    let unreadCount = allNotifications.filter(n => n.read === false).length;
+    let unreadCount = allNotifications.filter(n => {
+        if (n.type === 'request') return true; // Saari pending requests unread hain
+        return n.read === false;
+    }).length;
     if(unreadCount > 0) { notiDot.classList.remove('hidden'); notiCount.innerText = unreadCount; notiCount.classList.remove('hidden'); } else { notiDot.classList.add('hidden'); notiCount.classList.add('hidden'); }
     if(allNotifications.length === 0) { notiList.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">No notifications.</p>'; return; }
     let html = '';
