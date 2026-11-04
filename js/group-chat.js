@@ -10,6 +10,7 @@ const chatName = document.getElementById('chatName');
 const chatAvatar = document.getElementById('chatAvatar');
 const messagesContainer = document.getElementById('chatMessages');
 const messageInput = document.getElementById('messageInput');
+const micBtn = document.getElementById('micBtn');
 const sendBtn = document.getElementById('sendMessageBtn');
 
 let currentUser = null;
@@ -91,6 +92,33 @@ async function sendMessage() {
         console.error("Error sending message: ", error);
         alert("Message send nahi hua.");
     }
+}
+
+
+// --- MIC / SEND TOGGLE LOGIC ---
+if (messageInput && micBtn && sendBtn) {
+    messageInput.addEventListener('input', () => {
+        if (messageInput.value.trim().length > 0) {
+            micBtn.style.display = 'none';
+            sendBtn.style.display = 'flex';
+        } else {
+            micBtn.style.display = 'flex';
+            sendBtn.style.display = 'none';
+        }
+    });
+}
+
+
+// --- HEADER CLICK LOGIC ---
+const headerInfo = document.querySelector('.chat-user-info');
+if (headerInfo) {
+    headerInfo.addEventListener('click', () => {
+        if (typeof window.openGroupInfo === 'function') {
+            window.openGroupInfo();
+        } else {
+            console.log('Group Info function not found');
+        }
+    });
 }
 
 sendBtn.addEventListener('click', sendMessage);
