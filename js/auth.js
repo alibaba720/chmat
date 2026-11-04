@@ -5,13 +5,13 @@ import { doc, setDoc, collection, query, where, getDocs } from "https://www.gsta
 // 1. Wait karein ke session ready ho jaye, phir check karein
 authReady.then(() => {
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Agar user pehle se login hai, toh app ke andar bhej dein
+        if (user && !isSigningUp) {
             window.location.href = "app.html";
         }
     });
 });
 
+let isSigningUp = false;
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
 const toggleBtn = document.getElementById('toggleBtn');
@@ -76,11 +76,13 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
 
     btn.innerText = "Signing up...";
     const authEmail = mobile + "@chmat.com"; 
+    isSigningUp = true;
     const userCredential = await createUserWithEmailAndPassword(auth, authEmail, password);
     const user = userCredential.user;
 
     await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid, mobile: mobile, username: username, email: realEmail, 
+      uid: user.uid, mobile: mobile, username: username, email: realEmail,
+      displayName: username, friends: [], bio: "Hello, I am using CHMAT!", 
       security: { q1, a1, q2, a2 }, createdAt: new Date()
     });
 
