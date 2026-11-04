@@ -438,70 +438,18 @@ async function loadChatList() {
             const group = docSnap.data();
             const groupInitial = group.name.charAt(0).toUpperCase();
             const groupAvatar = `<div style="width:100%; height:100%; border-radius:50%; background:#262626; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff; border:1px solid #333;">${groupInitial}</div>`;
-            
-            let timeStr = "";
-            if (group.lastTime) {
-                const date = group.lastTime.toDate();
-                const now = new Date();
-                if (date.toDateString() === now.toDateString()) {
-                    timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                } else {
-                    timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                }
-            }
-            
-            html += `<div class="user-result" onclick="window.location.href='group-chat.html?gid=${docSnap.id}&name=${encodeURIComponent(group.name)}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
-                        <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
-                            <div class="user-avatar-small">${groupAvatar}</div>
-                            <div class="user-details">
-                                <h4 style="margin:0; font-size:15px; color:#fff;">${group.name} <span style="font-size:10px; color:#0095f6; font-weight:bold;">GROUP</span></h4>
-                                <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${group.lastMessage || 'Tap to chat'}</p>
-                            </div>
-                        </div>
-                        <div style="font-size:12px; color:#888;">${timeStr}</div>
-                    </div>`;
+            html += `<div class="user-result" onclick="window.location.href='group-chat.html?gid=${docSnap.id}&name=${encodeURIComponent(group.name)}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;"><div class="user-info-left" style="display:flex; align-items:center; gap:10px;"><div class="user-avatar-small">${groupAvatar}</div><div class="user-details"><h4 style="margin:0; font-size:15px; color:#fff;">${group.name} <span style="font-size:10px; color:#0095f6; font-weight:bold;">GROUP</span></h4></div></div></div>`;
         });
     }
 
-    // 2. Load Friends with Last Message
+    // 2. Load Friends
     if (myFriendsList.length > 0) {
         for (const friendId of myFriendsList) {
             const data = await getUserProfile(friendId);
             if (data) { 
                 const initial = (data.displayName || data.username).charAt(0).toUpperCase(); 
                 const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
-                
-                // Fetch Last Message
-                const chatId = currentUser.uid < friendId ? `${currentUser.uid}_${friendId}` : `${friendId}_${currentUser.uid}`;
-                const q = query(collection(db, "messages"), where("chatId", "==", chatId), orderBy("createdAt", "desc"), limit(1));
-                const snap = await getDocs(q);
-                
-                let lastMsg = "Tap to chat";
-                let timeStr = "";
-                if (!snap.empty) {
-                    const msg = snap.docs[0].data();
-                    lastMsg = msg.type === 'audio' ? '🎤 Voice message' : msg.text;
-                    if (msg.createdAt) {
-                        const date = msg.createdAt.toDate();
-                        const now = new Date();
-                        if (date.toDateString() === now.toDateString()) {
-                            timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        } else {
-                            timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                        }
-                    }
-                }
-
-                html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
-                            <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
-                                <div class="user-avatar-small">${avatarHtml}</div>
-                                <div class="user-details">
-                                    <h4 style="margin:0; font-size:15px; color:#fff;">${data.displayName || data.username}</h4>
-                                    <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${lastMsg}</p>
-                                </div>
-                            </div>
-                            <div style="font-size:12px; color:#888;">${timeStr}</div>
-                        </div>`; 
+                html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;"><div class="user-info-left" style="display:flex; align-items:center; gap:10px;"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4 style="margin:0; font-size:15px; color:#fff;">${data.displayName || data.username}</h4><p style="margin:0; color:#888; font-size:13px;">Tap to chat</p></div></div></div>`; 
             }
         }
     }
