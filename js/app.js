@@ -1,7 +1,7 @@
 import { initStories } from "./stories.js";
 import { auth, db, authReady } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, increment, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const dropdownMenu = document.getElementById('dropdownMenu');
 const navItems = document.querySelectorAll('.nav-item');
@@ -423,30 +423,93 @@ window.rejectRequest = async function(reqId) { try { await deleteDoc(doc(db, "fr
 
 async function loadChatList() {
   const chatList = document.getElementById('chatList'); if (!chatList) return;
+  chatList.innerHTML = '<p style="text-align: center; color: #888;">Loading chats...</p>';
   try {
-    const userDoc = await getDoc(doc(db, "users", currentUser.uid)); if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid)); 
+    if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
     let html = '';
 
-    // Fetch and Display Groups
-    try {
-        const qGroups = query(collection(db, "groups"), where("members", "array-contains", currentUser.uid));
-        const snapGroups = await getDocs(qGroups);
-        snapGroups.forEach((docSnap) => {
+    // 1. Load Groups
+    const groupsQuery = query(collection(db, "groups"), where("members", "array-contains", currentUser.uid));
+    const groupsSnap = await getDocs(groupsQuery);
+    
+    if (!groupsSnap.empty) {
+        groupsSnap.forEach((docSnap) => {
             const group = docSnap.data();
             const groupInitial = group.name.charAt(0).toUpperCase();
-            const groupAvatar = `<div style="width:100%; height:100%; border-radius:50%; background:#0095f6; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff;">${groupInitial}</div>`;
-            html += `<div class="user-result" onclick="window.location.href='group-chat.html?gid=${docSnap.id}&name=${encodeURIComponent(group.name)}'" style="cursor:pointer;"><div class="user-info-left"><div class="user-avatar-small">${groupAvatar}</div><div class="user-details"><h4>${group.name} <span style="font-size:10px; color:#0095f6; font-weight:bold;">GROUP</span></h4><p style="color:#888;">Tap to open</p></div></div></div>`;
+            const groupAvatar = `<div style="width:100%; height:100%; border-radius:50%; background:#262626; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff; border:1px solid #333;">${groupInitial}</div>`;
+            
+            let timeStr = "";
+            if (group.lastTime) {
+                const date = group.lastTime.toDate();
+                const now = new Date();
+                if (date.toDateString() === now.toDateString()) {
+                    timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } else {
+                    timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                }
+            }
+            
+            html += `<div class="user-result" onclick="window.location.href='group-chat.html?gid=${docSnap.id}&name=${encodeURIComponent(group.name)}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
+                        <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
+                            <div class="user-avatar-small">${groupAvatar}</div>
+                            <div class="user-details">
+                                <h4 style="margin:0; font-size:15px; color:#fff;">${group.name} <span style="font-size:10px; color:#0095f6; font-weight:bold;">GROUP</span></h4>
+                                <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${group.lastMessage || 'Tap to chat'}</p>
+                            </div>
+                        </div>
+                        <div style="font-size:12px; color:#888;">${timeStr}</div>
+                    </div>`;
         });
-    } catch(e) { console.error("Group fetch error", e); }
+    }
 
+    // 2. Load Friends with Last Message
     if (myFriendsList.length > 0) {
-        await Promise.all(myFriendsList.map(async (friendId) => {
-          const data = await getUserProfile(friendId);
-          if (data) { const initial = (data.displayName || data.username).charAt(0).toUpperCase(); const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'"><div class="user-info-left"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div></div></div>`; }
-        }));
+        for (const friendId of myFriendsList) {
+            const data = await getUserProfile(friendId);
+            if (data) { 
+                const initial = (data.displayName || data.username).charAt(0).toUpperCase(); 
+                const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
+                
+                // Fetch Last Message
+                const chatId = currentUser.uid < friendId ? `${currentUser.uid}_${friendId}` : `${friendId}_${currentUser.uid}`;
+                const q = query(collection(db, "messages"), where("chatId", "==", chatId), orderBy("createdAt", "desc"), limit(1));
+                const snap = await getDocs(q);
+                
+                let lastMsg = "Tap to chat";
+                let timeStr = "";
+                if (!snap.empty) {
+                    const msg = snap.docs[0].data();
+                    lastMsg = msg.type === 'audio' ? '🎤 Voice message' : msg.text;
+                    if (msg.createdAt) {
+                        const date = msg.createdAt.toDate();
+                        const now = new Date();
+                        if (date.toDateString() === now.toDateString()) {
+                            timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        } else {
+                            timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                        }
+                    }
+                }
+
+                html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
+                            <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
+                                <div class="user-avatar-small">${avatarHtml}</div>
+                                <div class="user-details">
+                                    <h4 style="margin:0; font-size:15px; color:#fff;">${data.displayName || data.username}</h4>
+                                    <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${lastMsg}</p>
+                                </div>
+                            </div>
+                            <div style="font-size:12px; color:#888;">${timeStr}</div>
+                        </div>`; 
+            }
+        }
     }
     chatList.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No chats yet.</p>';
-  } catch (error) { chatList.innerHTML = '<p style="text-align: center; color: red;">Error loading chats.</p>'; }
+  } catch (error) { 
+      console.error(error);
+      chatList.innerHTML = '<p style="text-align: center; color: red;">Error loading chats.</p>'; 
+  }
 }
 
 const searchInput = document.getElementById('searchInput'); const searchResults = document.getElementById('searchResults');
