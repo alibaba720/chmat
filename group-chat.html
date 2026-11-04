@@ -5,14 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Group Chat - CHMAT</title>
   <link rel="stylesheet" href="css/chat.css?v=2">
+  <style>
+    /* Naya design mic/send toggle aur clickable header ke liye */
+    .chat-input-area { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-top: 1px solid #222; background: #000; }
+    #messageInput { flex: 1; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 10px 16px; color: #fff; outline: none; }
+    .action-btn { background: none; border: none; color: #0095f6; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .action-btn svg { width: 24px; height: 24px; fill: currentColor; }
+    .chat-user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  </style>
 </head>
 <body>
   <div class="chat-container">
     <header class="chat-header">
       <button class="back-btn" onclick="window.location.href='app.html'">←</button>
-      <div class="chat-user-info">
-        <div class="chat-avatar" style="background: #0095f6; color: white;" id="chatAvatar">G</div>
-        <div class="chat-name" id="chatName">Loading...</div>
+      <!-- Header par click karne se group info khulegi -->
+      <div class="chat-user-info" onclick="if(typeof openGroupInfo === 'function') openGroupInfo();">
+        <div class="chat-avatar" style="background: #0095f6; color: white; overflow: hidden; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-weight: bold;" id="chatAvatar">G</div>
+        <div class="chat-name" id="chatName" style="font-weight: 600;">Loading...</div>
       </div>
     </header>
 
@@ -20,7 +29,19 @@
 
     <footer class="chat-input-area">
       <input type="text" id="messageInput" placeholder="Message group..." autocomplete="off">
-      <button id="sendMessageBtn" class="send-btn">
+      
+      <!-- Mic Button -->
+      <button id="micBtn" class="action-btn" style="display: block;">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
+
+      <!-- Send Button -->
+      <button id="sendMessageBtn" class="action-btn" style="display: none;">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
           <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
         </svg>

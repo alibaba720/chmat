@@ -426,6 +426,19 @@ async function loadChatList() {
   try {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid)); if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
     let html = '';
+
+    // Fetch and Display Groups
+    try {
+        const qGroups = query(collection(db, "groups"), where("members", "array-contains", currentUser.uid));
+        const snapGroups = await getDocs(qGroups);
+        snapGroups.forEach((docSnap) => {
+            const group = docSnap.data();
+            const groupInitial = group.name.charAt(0).toUpperCase();
+            const groupAvatar = `<div style="width:100%; height:100%; border-radius:50%; background:#0095f6; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff;">${groupInitial}</div>`;
+            html += `<div class="user-result" onclick="window.location.href='group-chat.html?gid=${docSnap.id}&name=${encodeURIComponent(group.name)}'" style="cursor:pointer;"><div class="user-info-left"><div class="user-avatar-small">${groupAvatar}</div><div class="user-details"><h4>${group.name} <span style="font-size:10px; color:#0095f6; font-weight:bold;">GROUP</span></h4><p style="color:#888;">Tap to open</p></div></div></div>`;
+        });
+    } catch(e) { console.error("Group fetch error", e); }
+
     if (myFriendsList.length > 0) {
         await Promise.all(myFriendsList.map(async (friendId) => {
           const data = await getUserProfile(friendId);
