@@ -76,8 +76,19 @@ function loadMessages() {
 
         snapshot.forEach((doc) => {
             const msg = doc.data();
-            const isSentByMe = msg.senderId === currentUser.uid;
+            
+            // System Message Handler
+            if (msg.type === 'system') {
+                const sysDiv = document.createElement('div');
+                sysDiv.style.cssText = 'text-align:center; font-size:12px; color:#888; margin:10px 0; background:#1a1a1a; padding:6px; border-radius:8px; display:inline-block; width:100%;';
+                let actionText = msg.text === 'kicked' ? 'removed' : (msg.text === 'promoted' ? 'promoted to admin' : 'demoted to member');
+                
+                sysDiv.innerHTML = `<span style="color:#0095f6; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${msg.senderId}'">@${msg.senderName}</span> ${actionText} <span style="color:#ffd700; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${msg.targetId}'">@${msg.targetName}</span>`;
+                messagesContainer.appendChild(sysDiv);
+                return;
+            }
 
+            const isSentByMe = msg.senderId === currentUser.uid;
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${isSentByMe ? 'sent' : 'received'}`;
 
@@ -97,7 +108,6 @@ function loadMessages() {
                 ${msg.text}
                 <span class="msg-time">${timeStr}</span>
             `;
-
             messagesContainer.appendChild(msgDiv);
         });
 
@@ -241,6 +251,9 @@ window.kickMember = async function(uid, username) {
     try {
         await updateDoc(doc(db, "groups", groupId), { members: arrayRemove(uid) });
         await logActivity("Kicked", username);
+        await addDoc(collection(db, "groups", groupId, "messages"), {
+            type: 'system', text: 'kicked', senderId: currentUser.uid, senderName: currentUserData.username, targetId: uid, targetName: username, createdAt: serverTimestamp()
+        });
         alert("Member kicked successfully!");
         await loadGroupData(); 
         openGroupInfo(); 
@@ -255,6 +268,9 @@ window.makeAdmin = async function(uid, username) {
         currentAdmins.push(uid);
         await updateDoc(doc(db, "groups", groupId), { admins: currentAdmins });
         await logActivity("Promoted to Admin", username);
+        await addDoc(collection(db, "groups", groupId, "messages"), {
+            type: 'system', text: 'promoted', senderId: currentUser.uid, senderName: currentUserData.username, targetId: uid, targetName: username, createdAt: serverTimestamp()
+        });
         await loadGroupData(); 
         openGroupInfo(); 
     } catch(e) { alert("Error: " + e.message); }
@@ -268,6 +284,9 @@ window.demoteAdmin = async function(uid, username) {
         currentAdmins = currentAdmins.filter(id => id !== uid);
         await updateDoc(doc(db, "groups", groupId), { admins: currentAdmins });
         await logActivity("Demoted to Member", username);
+        await addDoc(collection(db, "groups", groupId, "messages"), {
+            type: 'system', text: 'demoted', senderId: currentUser.uid, senderName: currentUserData.username, targetId: uid, targetName: username, createdAt: serverTimestamp()
+        });
         await loadGroupData(); 
         openGroupInfo(); 
     } catch(e) { alert("Error: " + e.message); }
