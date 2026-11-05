@@ -38,10 +38,10 @@ authReady.then(() => {
         if (user) {
             currentUser = user;
             chatId = getChatId(currentUser.uid, receiverId);
-            
+
             const myDoc = await getDoc(doc(db, "users", currentUser.uid));
             if(myDoc.exists()) currentUserData = myDoc.data();
-            
+
             const recDoc = await getDoc(doc(db, "users", receiverId));
             if(recDoc.exists()) {
                 receiverData = recDoc.data();
@@ -78,12 +78,12 @@ window.closeSearch = function() {
 window.performSearch = function() {
     const term = document.getElementById('chatSearchInput').value.toLowerCase();
     const resultsList = document.getElementById('searchResultsList');
-    
+
     if (term.length < 2) {
         resultsList.classList.add('hidden');
         return;
     }
-    
+
     resultsList.classList.remove('hidden');
     let html = '';
     currentMessages.forEach(msg => {
@@ -91,7 +91,7 @@ window.performSearch = function() {
             html += `<div class="search-result-item" onclick="scrollToMessage('${msg.id}')">...${msg.text}...</div>`;
         }
     });
-    
+
     resultsList.innerHTML = html !== '' ? html : '<div class="search-result-item">No messages found.</div>';
 };
 
@@ -136,7 +136,7 @@ window.setMute = async function(duration) {
     if(duration === '1h') muteUntil = Date.now() + (60*60*1000);
     else if(duration === '24h') muteUntil = Date.now() + (24*60*60*1000);
     else if(duration === 'forever') muteUntil = 9999999999999;
-    
+
     try {
         await updateDoc(doc(db, "users", currentUser.uid), { [`muted_${receiverId}`]: muteUntil });
         closeMuteModal();
@@ -173,7 +173,6 @@ function checkDisappearStatus() {
 
 // PIN & PRIVACY LOGIC
 window.openPrivacyModal = function() {
-    // For now, prompt for PIN. In next step we'll build the UI.
     let pin = prompt("Set 4-digit PIN for this chat (Cancel to remove):");
     if(pin) {
         if(pin.length !== 4 || isNaN(pin)) { alert("Must be 4 digits!"); return; }
@@ -246,13 +245,13 @@ messageInput.addEventListener('input', () => {
 });
 
 function renderMessagesHTML(msgs) {
-    messagesContainer.innerHTML = ''; 
+    messagesContainer.innerHTML = '';
     msgs.forEach((msg) => {
         const isSentByMe = msg.senderId === currentUser.uid;
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${isSentByMe ? 'sent' : 'received'}`;
-        msgDiv.id = `msg-${msg.id}`; // For search jumping
-        
+        msgDiv.id = `msg-${msg.id}`;
+
         let timeStr = "";
         if (msg.createdAt) {
             const date = msg.createdAt.toDate();
@@ -275,28 +274,27 @@ function loadMessages() {
 
     const cachedChat = localStorage.getItem('chmat_chat_' + chatId);
     if (cachedChat) {
-        try { 
+        try {
             currentMessages = JSON.parse(cachedChat);
-            renderMessagesHTML(currentMessages); 
+            renderMessagesHTML(currentMessages);
         } catch(e) {}
     }
 
     onSnapshot(q, (snapshot) => {
         let msgs = [];
         snapshot.forEach((doc) => { msgs.push({ id: doc.id, ...doc.data() }); });
-        msgs.sort((a,b) => { 
+        msgs.sort((a,b) => {
             const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
             const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
-            return timeA - timeB; 
+            return timeA - timeB;
         });
-        
+
         // Disappearing Messages Logic (Client-side filter)
         const disappearTime = currentUserData[`disappear_${receiverId}`] || 'Off';
         if (disappearTime !== 'Off') {
             let maxAge = 0;
             if(disappearTime === '24h') maxAge = 24*60*60*1000;
             if(disappearTime === '7d') maxAge = 7*24*60*60*1000;
-            
             const now = Date.now();
             msgs = msgs.filter(m => {
                 const mTime = m.createdAt ? m.createdAt.toMillis() : now;
@@ -308,14 +306,22 @@ function loadMessages() {
         localStorage.setItem('chmat_chat_' + chatId, JSON.stringify(msgs));
         renderMessagesHTML(msgs);
 
-        });
+        // MARK AS READ LOGIC (Jab chat open ho toh messages read mark ho jayein)
+        for (const m of msgs) {
+            if (m.senderId === receiverId && m.receiverId === currentUser.uid && m.read !== true) {
+                try {
+                    await updateDoc(doc(db, "messages", m.id), { read: true });
+                } catch(e) { console.log("Read update error", e); }
+            }
+        }
+    });
 }
 
 async function sendTextMessage() {
     const text = messageInput.value.trim();
     if (text === "" || !currentUser) return;
-    
-    messageInput.value = ""; 
+
+    messageInput.value = "";
     recordBtn.style.display = 'flex';
     sendBtn.style.display = 'none';
 
@@ -345,20 +351,20 @@ recordBtn.addEventListener('click', async () => {
             if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; }
             recordingOverlay.classList.add('hidden');
             chatInputArea.style.display = 'flex';
-            
+
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            recordBtn.style.color = "#ffd700"; 
+            recordBtn.style.color = "#ffd700";
 
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = async () => {
                 try {
-                    await addDoc(collection(db, "messages"), { 
-                        chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
-                        type: "audio", audioUrl: reader.result, read: false, createdAt: serverTimestamp() 
+                    await addDoc(collection(db, "messages"), {
+                        chatId: chatId, senderId: currentUser.uid, receiverId: receiverId,
+                        type: "audio", audioUrl: reader.result, read: false, createdAt: serverTimestamp()
                     });
                 } catch (err) { alert("Failed to send voice note."); }
-                recordBtn.style.color = "#0095f6"; 
+                recordBtn.style.color = "#0095f6";
             };
         };
 
@@ -366,7 +372,7 @@ recordBtn.addEventListener('click', async () => {
         isRecording = true;
         recordingOverlay.classList.remove('hidden');
         chatInputArea.style.display = 'none';
-        
+
         startTime = Date.now();
         recordingTimer.innerText = "0:00";
         timerInterval = setInterval(() => {
@@ -379,7 +385,7 @@ recordBtn.addEventListener('click', async () => {
 window.stopAndSendRecording = function() { if (mediaRecorder && isRecording) { mediaRecorder.stop(); isRecording = false; } };
 window.cancelRecording = function() {
     if (mediaRecorder && isRecording) {
-        mediaRecorder.onstop = null; 
+        mediaRecorder.onstop = null;
         mediaRecorder.stop();
         isRecording = false;
         clearInterval(timerInterval);
