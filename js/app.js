@@ -429,7 +429,10 @@ function listenForUnread() {
     const q = query(collection(db, "messages"), where("receiverId", "==", currentUser.uid));
     onSnapshot(q, (snapshot) => {
         let unreadCount = 0;
-        snapshot.forEach(doc => { if (doc.data().read === false) unreadCount++; });
+        snapshot.forEach(doc => { 
+            if (doc.data().read === false) unreadCount++; 
+        });
+        
         const chatNavItem = document.querySelector('.nav-item[data-tab="chatTab"]');
         if (chatNavItem) {
             let oldBadge = chatNavItem.querySelector('.nav-red-dot');

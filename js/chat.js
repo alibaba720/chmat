@@ -308,15 +308,7 @@ function loadMessages() {
         localStorage.setItem('chmat_chat_' + chatId, JSON.stringify(msgs));
         renderMessagesHTML(msgs);
 
-        // MARK AS READ LOGIC (Yeh missing tha!)
-        for (const m of msgs) {
-            if (m.senderId === receiverId && m.receiverId === currentUser.uid && m.read !== true) {
-                try {
-                    await updateDoc(doc(db, "messages", m.id), { read: true });
-                } catch(e) { console.log("Read update error", e); }
-            }
-        }
-    });
+        });
 }
 
 async function sendTextMessage() {
