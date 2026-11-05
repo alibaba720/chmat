@@ -306,7 +306,8 @@ authReady.then(() => {
         // AB YEH HAMESHA CHALEGA, CHAHE NAYA USER HO YA PURANA
         loadMySentRequests(); 
         loadChatList(); // Background check
-        loadFeed(); 
+        loadFeed();
+        loadChatList(); // Startup call 
         try { initStories(currentUser, currentUserData, myFriendsList); } catch(e) { console.error("Stories Error:", e); }
         loadSuggestions(); 
         loadNotifications();
@@ -424,7 +425,7 @@ window.rejectRequest = async function(reqId) { try { await deleteDoc(doc(db, "fr
 
 async function loadChatList() {
   const chatList = document.getElementById('chatList'); if (!chatList) return;
-  chatList.innerHTML = '<p style="text-align: center; color: #888;">Loading chats...</p>';
+  
   try {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid)); 
     if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
@@ -457,6 +458,7 @@ async function loadChatList() {
             
             const chatId = currentUser.uid < friendId ? `${currentUser.uid}_${friendId}` : `${friendId}_${currentUser.uid}`;
             
+            // Fetch all messages for this chat
             const q = query(collection(db, "messages"), where("chatId", "==", chatId));
             const snap = await getDocs(q);
             
@@ -466,6 +468,7 @@ async function loadChatList() {
             snap.forEach(d => {
                 const msg = d.data();
                 msgs.push(msg);
+                // Logic: Agar message dusre ne bheja hai aur read nahi hai
                 if (msg.senderId === friendId && msg.receiverId === currentUser.uid && msg.read !== true) {
                     unreadCount++;
                 }
@@ -551,7 +554,7 @@ async function loadChatList() {
 
     chatList.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No chats yet.</p>';
     
-    // --- BOTTOM NAV RED DOT LOGIC ---
+    // BOTTOM NAV RED DOT
     const chatNavItem = document.querySelector('.nav-item[data-tab="chatTab"]');
     if (chatNavItem) {
         let oldBadge = chatNavItem.querySelector('.nav-red-dot');
@@ -568,7 +571,6 @@ async function loadChatList() {
 
   } catch (error) { 
       console.error(error);
-      chatList.innerHTML = '<p style="text-align: center; color: red;">Error loading chats.</p>'; 
   }
 }
 
