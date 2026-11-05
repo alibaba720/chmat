@@ -427,109 +427,144 @@ async function loadChatList() {
   try {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid)); 
     if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
-    let html = '';
+    
+    let chatItems = [];
+    let totalUnread = 0;
 
     // 1. Load Groups
     const groupsQuery = query(collection(db, "groups"), where("members", "array-contains", currentUser.uid));
     const groupsSnap = await getDocs(groupsQuery);
     
-    if (!groupsSnap.empty) {
-        groupsSnap.forEach((docSnap) => {
-            const group = docSnap.data();
-            const groupInitial = group.name.charAt(0).toUpperCase();
-            const groupAvatar = `<div style="width:100%; height:100%; border-radius:50%; background:#262626; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff; border:1px solid #333;">${groupInitial}</div>`;
+    groupsSnap.forEach((docSnap) => {
+        const group = docSnap.data();
+        chatItems.push({
+            type: 'group',
+            id: docSnap.id,
+            name: group.name,
+            lastMsg: group.lastMessage || 'Group created',
+            time: group.lastTime ? group.lastTime.toMillis() : 0,
+            rawTime: group.lastTime
+        });
+    });
+
+    // 2. Load Friends
+    for (const friendId of myFriendsList) {
+        const data = await getUserProfile(friendId);
+        if (data) { 
+            const initial = (data.displayName || data.username).charAt(0).toUpperCase(); 
+            const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
             
-            let timeStr = "";
-            if (group.lastTime) {
-                const date = group.lastTime.toDate();
-                const now = new Date();
-                if (date.toDateString() === now.toDateString()) {
-                    timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                } else {
-                    timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            const chatId = currentUser.uid < friendId ? `${currentUser.uid}_${friendId}` : `${friendId}_${currentUser.uid}`;
+            
+            const q = query(collection(db, "messages"), where("chatId", "==", chatId));
+            const snap = await getDocs(q);
+            
+            let msgs = [];
+            let unreadCount = 0;
+            
+            snap.forEach(d => {
+                const msg = d.data();
+                msgs.push(msg);
+                if (msg.senderId === friendId && msg.receiverId === currentUser.uid && msg.read !== true) {
+                    unreadCount++;
                 }
-            }
+            });
+            totalUnread += unreadCount;
             
-            html += `<div class="user-result" onclick="window.location.href='group-chat.html?gid=${docSnap.id}&name=${encodeURIComponent(group.name)}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
+            msgs.sort((a,b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0));
+            
+            let lastMsg = "Tap to chat";
+            let lastMsgTime = 0;
+            let lastMsgRawTime = null;
+            
+            if (msgs.length > 0) {
+                const msg = msgs[0];
+                lastMsg = msg.type === 'audio' ? '🎤 Voice message' : msg.text;
+                lastMsgTime = msg.createdAt ? msg.createdAt.toMillis() : 0;
+                lastMsgRawTime = msg.createdAt;
+            }
+
+            chatItems.push({
+                type: 'friend',
+                id: data.uid,
+                name: data.displayName || data.username,
+                username: data.username,
+                avatar: avatarHtml,
+                lastMsg: lastMsg,
+                time: lastMsgTime,
+                rawTime: lastMsgRawTime,
+                unread: unreadCount
+            });
+        }
+    }
+
+    // Sort by time descending (Latest on top)
+    chatItems.sort((a, b) => b.time - a.time);
+
+    let html = '';
+    chatItems.forEach(item => {
+        let timeStr = "";
+        if (item.rawTime) {
+            const date = item.rawTime.toDate();
+            const now = new Date();
+            if (date.toDateString() === now.toDateString()) {
+                timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else {
+                timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            }
+        }
+
+        if (item.type === 'group') {
+            const groupInitial = item.name.charAt(0).toUpperCase();
+            const groupAvatar = `<div style="width:100%; height:100%; border-radius:50%; background:#262626; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff; border:1px solid #333;">${groupInitial}</div>`;
+            html += `<div class="user-result" onclick="window.location.href='group-chat.html?gid=${item.id}&name=${encodeURIComponent(item.name)}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
                         <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
                             <div class="user-avatar-small">${groupAvatar}</div>
                             <div class="user-details">
-                                <h4 style="margin:0; font-size:15px; color:#fff;">${group.name} <span style="font-size:10px; color:#0095f6; font-weight:bold;">GROUP</span></h4>
-                                <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${group.lastMessage || 'Tap to chat'}</p>
+                                <h4 style="margin:0; font-size:15px; color:#fff;">${item.name} <span style="font-size:10px; color:#0095f6; font-weight:bold;">GROUP</span></h4>
+                                <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.lastMsg}</p>
                             </div>
                         </div>
                         <div style="font-size:12px; color:#888;">${timeStr}</div>
                     </div>`;
-        });
-    }
-
-    // 2. Load Friends with Last Message & Unread Count
-    if (myFriendsList.length > 0) {
-        for (const friendId of myFriendsList) {
-            const data = await getUserProfile(friendId);
-            if (data) { 
-                const initial = (data.displayName || data.username).charAt(0).toUpperCase(); 
-                const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
-                
-                const chatId = currentUser.uid < friendId ? `${currentUser.uid}_${friendId}` : `${friendId}_${currentUser.uid}`;
-                
-                const q = query(collection(db, "messages"), where("chatId", "==", chatId));
-                const snap = await getDocs(q);
-                
-                let msgs = [];
-                let unreadCount = 0;
-                
-                snap.forEach(d => {
-                    const msg = d.data();
-                    msgs.push(msg);
-                    // Agar message mujhe aaya hai aur read nahi hai, toh count barhao
-                    if (msg.senderId === friendId && msg.receiverId === currentUser.uid && msg.read !== true) {
-                        unreadCount++;
-                    }
-                });
-                
-                msgs.sort((a,b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0));
-                
-                let lastMsg = "Tap to chat";
-                let timeStr = "";
-                
-                if (msgs.length > 0) {
-                    const msg = msgs[0];
-                    lastMsg = msg.type === 'audio' ? '🎤 Voice message' : msg.text;
-                    if (msg.createdAt) {
-                        const date = msg.createdAt.toDate();
-                        const now = new Date();
-                        if (date.toDateString() === now.toDateString()) {
-                            timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        } else {
-                            timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                        }
-                    }
-                }
-
-                // Unread Badge HTML
-                let badgeHtml = '';
-                if (unreadCount > 0) {
-                    badgeHtml = `<div style="background: #ff3b30; color: #fff; border-radius: 50%; min-width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; padding: 0 4px; margin-left: 8px;">${unreadCount}</div>`;
-                }
-
-                html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
-                            <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
-                                <div class="user-avatar-small">${avatarHtml}</div>
-                                <div class="user-details">
-                                    <h4 style="margin:0; font-size:15px; color:#fff;">${data.displayName || data.username}</h4>
-                                    <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${lastMsg}</p>
-                                </div>
-                            </div>
-                            <div style="display:flex; align-items:center;">
-                                <div style="font-size:12px; color:#888;">${timeStr}</div>
-                                ${badgeHtml}
-                            </div>
-                        </div>`; 
+        } else {
+            let badgeHtml = '';
+            if (item.unread > 0) {
+                badgeHtml = `<div style="background: #ff3b30; color: #fff; border-radius: 50%; min-width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; padding: 0 4px; margin-left: 8px;">${item.unread}</div>`;
             }
+            html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${item.id}&name=${item.username}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
+                        <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
+                            <div class="user-avatar-small">${item.avatar}</div>
+                            <div class="user-details">
+                                <h4 style="margin:0; font-size:15px; color:#fff;">${item.name}</h4>
+                                <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.lastMsg}</p>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            <div style="font-size:12px; color:#888;">${timeStr}</div>
+                            ${badgeHtml}
+                        </div>
+                    </div>`;
+        }
+    });
+
+    chatList.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No chats yet.</p>';
+    
+    // --- BOTTOM NAV RED DOT LOGIC ---
+    const chatNavItem = document.querySelector('.nav-item[data-tab="chatTab"]');
+    if (chatNavItem) {
+        let oldBadge = chatNavItem.querySelector('.nav-red-dot');
+        if (oldBadge) oldBadge.remove();
+        
+        if (totalUnread > 0) {
+            let dot = document.createElement('div');
+            dot.className = 'nav-red-dot';
+            dot.style.cssText = 'position:absolute; top:5px; right:15px; width:10px; height:10px; background:red; border-radius:50%; border:2px solid #000;';
+            chatNavItem.style.position = 'relative';
+            chatNavItem.appendChild(dot);
         }
     }
-    chatList.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No chats yet.</p>';
+
   } catch (error) { 
       console.error(error);
       chatList.innerHTML = '<p style="text-align: center; color: red;">Error loading chats.</p>'; 
