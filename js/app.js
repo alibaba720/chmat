@@ -463,7 +463,7 @@ async function loadChatList() {
         });
     }
 
-    // 2. Load Friends with Last Message (No Index Required)
+    // 2. Load Friends with Last Message & Unread Count
     if (myFriendsList.length > 0) {
         for (const friendId of myFriendsList) {
             const data = await getUserProfile(friendId);
@@ -473,12 +473,21 @@ async function loadChatList() {
                 
                 const chatId = currentUser.uid < friendId ? `${currentUser.uid}_${friendId}` : `${friendId}_${currentUser.uid}`;
                 
-                // Fetch all messages for this chat and sort in JS to find the last one
                 const q = query(collection(db, "messages"), where("chatId", "==", chatId));
                 const snap = await getDocs(q);
                 
                 let msgs = [];
-                snap.forEach(d => msgs.push(d.data()));
+                let unreadCount = 0;
+                
+                snap.forEach(d => {
+                    const msg = d.data();
+                    msgs.push(msg);
+                    // Agar message mujhe aaya hai aur read nahi hai, toh count barhao
+                    if (msg.senderId === friendId && msg.receiverId === currentUser.uid && msg.read !== true) {
+                        unreadCount++;
+                    }
+                });
+                
                 msgs.sort((a,b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0));
                 
                 let lastMsg = "Tap to chat";
@@ -498,6 +507,12 @@ async function loadChatList() {
                     }
                 }
 
+                // Unread Badge HTML
+                let badgeHtml = '';
+                if (unreadCount > 0) {
+                    badgeHtml = `<div style="background: #ff3b30; color: #fff; border-radius: 50%; min-width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; padding: 0 4px; margin-left: 8px;">${unreadCount}</div>`;
+                }
+
                 html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
                             <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
                                 <div class="user-avatar-small">${avatarHtml}</div>
@@ -506,7 +521,10 @@ async function loadChatList() {
                                     <p style="margin:0; color:#888; font-size:13px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${lastMsg}</p>
                                 </div>
                             </div>
-                            <div style="font-size:12px; color:#888;">${timeStr}</div>
+                            <div style="display:flex; align-items:center;">
+                                <div style="font-size:12px; color:#888;">${timeStr}</div>
+                                ${badgeHtml}
+                            </div>
                         </div>`; 
             }
         }
