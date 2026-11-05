@@ -429,10 +429,19 @@ function listenForUnread() {
     const q = query(collection(db, "messages"), where("receiverId", "==", currentUser.uid));
     onSnapshot(q, (snapshot) => {
         let unreadCount = 0;
-        snapshot.forEach(doc => { 
-            if (doc.data().read === false) unreadCount++; 
-        });
+        snapshot.forEach(doc => { if (doc.data().read === false) unreadCount++; });
         
+        // DEBUG BOX
+        let debugDiv = document.getElementById('debug-unread');
+        if(!debugDiv) {
+            debugDiv = document.createElement('div');
+            debugDiv.id = 'debug-unread';
+            debugDiv.style.cssText = 'position:fixed; top:70px; left:10px; background:red; color:white; padding:10px; z-index:99999; font-size:14px; border-radius:5px; font-weight:bold;';
+            document.body.appendChild(debugDiv);
+        }
+        debugDiv.innerText = "DEBUG: Unread Count = " + unreadCount;
+        
+        // ORIGINAL LOGIC
         const chatNavItem = document.querySelector('.nav-item[data-tab="chatTab"]');
         if (chatNavItem) {
             let oldBadge = chatNavItem.querySelector('.nav-red-dot');
@@ -445,6 +454,16 @@ function listenForUnread() {
                 chatNavItem.appendChild(dot);
             }
         }
+    }, (error) => {
+        // ERROR DEBUG BOX
+        let debugDiv = document.getElementById('debug-unread');
+        if(!debugDiv) {
+            debugDiv = document.createElement('div');
+            debugDiv.id = 'debug-unread';
+            debugDiv.style.cssText = 'position:fixed; top:70px; left:10px; background:orange; color:black; padding:10px; z-index:99999; font-size:14px; border-radius:5px; font-weight:bold;';
+            document.body.appendChild(debugDiv);
+        }
+        debugDiv.innerText = "ERROR: " + error.message;
     });
 }
 
