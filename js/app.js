@@ -307,6 +307,7 @@ authReady.then(() => {
         loadMySentRequests(); 
         loadChatList(); // Background check
         loadFeed();
+        listenForUnread();
         loadChatList(); // Startup call 
         try { initStories(currentUser, currentUserData, myFriendsList); } catch(e) { console.error("Stories Error:", e); }
         loadSuggestions(); 
@@ -422,6 +423,27 @@ window.acceptRequest = async function(reqId, senderId, senderUsername) {
 };
 
 window.rejectRequest = async function(reqId) { try { await deleteDoc(doc(db, "friend_requests", reqId)); } catch (error) { console.error(error); } };
+
+
+function listenForUnread() {
+    const q = query(collection(db, "messages"), where("receiverId", "==", currentUser.uid));
+    onSnapshot(q, (snapshot) => {
+        let unreadCount = 0;
+        snapshot.forEach(doc => { if (doc.data().read === false) unreadCount++; });
+        const chatNavItem = document.querySelector('.nav-item[data-tab="chatTab"]');
+        if (chatNavItem) {
+            let oldBadge = chatNavItem.querySelector('.nav-red-dot');
+            if (oldBadge) oldBadge.remove();
+            if (unreadCount > 0) {
+                let dot = document.createElement('div');
+                dot.className = 'nav-red-dot';
+                dot.style.cssText = 'position:absolute; top:-2px; right:5px; width:12px; height:12px; background:#ff3b30; border-radius:50%; border:2px solid #000; z-index: 100;';
+                chatNavItem.style.position = 'relative';
+                chatNavItem.appendChild(dot);
+            }
+        }
+    });
+}
 
 async function loadChatList() {
   const chatList = document.getElementById('chatList'); if (!chatList) return;
