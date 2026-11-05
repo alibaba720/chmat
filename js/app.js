@@ -305,6 +305,7 @@ authReady.then(() => {
         
         // AB YEH HAMESHA CHALEGA, CHAHE NAYA USER HO YA PURANA
         loadMySentRequests(); 
+        loadChatList(); // Background check
         loadFeed(); 
         try { initStories(currentUser, currentUserData, myFriendsList); } catch(e) { console.error("Stories Error:", e); }
         loadSuggestions(); 
@@ -559,7 +560,7 @@ async function loadChatList() {
         if (totalUnread > 0) {
             let dot = document.createElement('div');
             dot.className = 'nav-red-dot';
-            dot.style.cssText = 'position:absolute; top:5px; right:15px; width:10px; height:10px; background:red; border-radius:50%; border:2px solid #000;';
+            dot.style.cssText = 'position:absolute; top:-2px; right:5px; width:12px; height:12px; background:#ff3b30; border-radius:50%; border:2px solid #000;';
             chatNavItem.style.position = 'relative';
             chatNavItem.appendChild(dot);
         }

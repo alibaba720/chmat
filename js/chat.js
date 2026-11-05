@@ -321,7 +321,7 @@ async function sendTextMessage() {
     try {
         await addDoc(collection(db, "messages"), {
             chatId: chatId, senderId: currentUser.uid, receiverId: receiverId,
-            text: text, type: "text", createdAt: serverTimestamp()
+            text: text, type: "text", read: false, createdAt: serverTimestamp()
         });
     } catch (error) { console.error(error); }
 }
@@ -354,7 +354,7 @@ recordBtn.addEventListener('click', async () => {
                 try {
                     await addDoc(collection(db, "messages"), { 
                         chatId: chatId, senderId: currentUser.uid, receiverId: receiverId, 
-                        type: "audio", audioUrl: reader.result, createdAt: serverTimestamp() 
+                        type: "audio", audioUrl: reader.result, read: false, createdAt: serverTimestamp() 
                     });
                 } catch (err) { alert("Failed to send voice note."); }
                 recordBtn.style.color = "#0095f6"; 
