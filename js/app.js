@@ -447,50 +447,34 @@ function listenForUnread() {
 
 async function loadChatList() {
   const chatList = document.getElementById('chatList'); if (!chatList) return;
-  
+  chatList.innerHTML = '<p style="text-align: center; color: #888;">Loading chats...</p>';
   try {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid)); 
     if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
-    
     let chatItems = [];
     let totalUnread = 0;
 
-    // 1. Load Groups
     const groupsQuery = query(collection(db, "groups"), where("members", "array-contains", currentUser.uid));
     const groupsSnap = await getDocs(groupsQuery);
-    
     groupsSnap.forEach((docSnap) => {
         const group = docSnap.data();
-        chatItems.push({
-            type: 'group',
-            id: docSnap.id,
-            name: group.name,
-            lastMsg: group.lastMessage || 'Group created',
-            time: group.lastTime ? group.lastTime.toMillis() : 0,
-            rawTime: group.lastTime
-        });
+        chatItems.push({ type: 'group', id: docSnap.id, name: group.name, lastMsg: group.lastMessage || 'Group created', time: group.lastTime ? group.lastTime.toMillis() : 0, rawTime: group.lastTime });
     });
 
-    // 2. Load Friends
     for (const friendId of myFriendsList) {
         const data = await getUserProfile(friendId);
         if (data) { 
             const initial = (data.displayName || data.username).charAt(0).toUpperCase(); 
             const avatarHtml = getAvatarHtml(data.profilePicUrl, initial); 
-            
             const chatId = currentUser.uid < friendId ? `${currentUser.uid}_${friendId}` : `${friendId}_${currentUser.uid}`;
-            
-            // Fetch all messages for this chat
             const q = query(collection(db, "messages"), where("chatId", "==", chatId));
             const snap = await getDocs(q);
             
             let msgs = [];
             let unreadCount = 0;
-            
             snap.forEach(d => {
                 const msg = d.data();
                 msgs.push(msg);
-                // Logic: Agar message dusre ne bheja hai aur read nahi hai
                 if (msg.senderId === friendId && msg.receiverId === currentUser.uid && msg.read !== true) {
                     unreadCount++;
                 }
@@ -499,45 +483,27 @@ async function loadChatList() {
             
             msgs.sort((a,b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0));
             
-            let lastMsg = "Tap to chat";
-            let lastMsgTime = 0;
-            let lastMsgRawTime = null;
-            
+            let lastMsg = "Tap to chat", lastMsgTime = 0, lastMsgRawTime = null;
             if (msgs.length > 0) {
                 const msg = msgs[0];
                 lastMsg = msg.type === 'audio' ? '🎤 Voice message' : msg.text;
                 lastMsgTime = msg.createdAt ? msg.createdAt.toMillis() : 0;
                 lastMsgRawTime = msg.createdAt;
             }
-
-            chatItems.push({
-                type: 'friend',
-                id: data.uid,
-                name: data.displayName || data.username,
-                username: data.username,
-                avatar: avatarHtml,
-                lastMsg: lastMsg,
-                time: lastMsgTime,
-                rawTime: lastMsgRawTime,
-                unread: unreadCount
-            });
+            chatItems.push({ type: 'friend', id: data.uid, name: data.displayName || data.username, username: data.username, avatar: avatarHtml, lastMsg: lastMsg, time: lastMsgTime, rawTime: lastMsgRawTime, unread: unreadCount });
         }
     }
 
-    // Sort by time descending (Latest on top)
     chatItems.sort((a, b) => b.time - a.time);
-
     let html = '';
+    
     chatItems.forEach(item => {
         let timeStr = "";
         if (item.rawTime) {
             const date = item.rawTime.toDate();
             const now = new Date();
-            if (date.toDateString() === now.toDateString()) {
-                timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } else {
-                timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            }
+            if (date.toDateString() === now.toDateString()) timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            else timeStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
         }
 
         if (item.type === 'group') {
@@ -554,10 +520,7 @@ async function loadChatList() {
                         <div style="font-size:12px; color:#888;">${timeStr}</div>
                     </div>`;
         } else {
-            let badgeHtml = '';
-            if (item.unread > 0) {
-                badgeHtml = `<div style="background: #ff3b30; color: #fff; border-radius: 50%; min-width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; padding: 0 4px; margin-left: 8px;">${item.unread}</div>`;
-            }
+            let badgeHtml = item.unread > 0 ? `<div style="background: #ff3b30; color: #fff; border-radius: 50%; min-width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; padding: 0 4px; margin-left: 8px;">${item.unread}</div>` : '';
             html += `<div class="user-result" onclick="window.location.href='chat.html?uid=${item.id}&name=${item.username}'" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer; border-bottom:1px solid #1a1a1a;">
                         <div class="user-info-left" style="display:flex; align-items:center; gap:10px;">
                             <div class="user-avatar-small">${item.avatar}</div>
@@ -576,24 +539,19 @@ async function loadChatList() {
 
     chatList.innerHTML = html !== '' ? html : '<p style="text-align: center; color: #888; margin-top: 20px;">No chats yet.</p>';
     
-    // BOTTOM NAV RED DOT
     const chatNavItem = document.querySelector('.nav-item[data-tab="chatTab"]');
     if (chatNavItem) {
         let oldBadge = chatNavItem.querySelector('.nav-red-dot');
         if (oldBadge) oldBadge.remove();
-        
         if (totalUnread > 0) {
             let dot = document.createElement('div');
             dot.className = 'nav-red-dot';
-            dot.style.cssText = 'position:absolute; top:-2px; right:5px; width:12px; height:12px; background:#ff3b30; border-radius:50%; border:2px solid #000;';
+            dot.style.cssText = 'position:absolute; top:-2px; right:5px; width:12px; height:12px; background:#ff3b30; border-radius:50%; border:2px solid #000; z-index: 100;';
             chatNavItem.style.position = 'relative';
             chatNavItem.appendChild(dot);
         }
     }
-
-  } catch (error) { 
-      console.error(error);
-  }
+  } catch (error) { console.error(error); }
 }
 
 const searchInput = document.getElementById('searchInput'); const searchResults = document.getElementById('searchResults');
