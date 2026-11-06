@@ -1,23 +1,9 @@
-// CHMAT Theme Engine V6 (Fixed & Complete)
+// CHMAT Theme Engine V7 (Fixed Snowfall)
 
 const themes = {
     // --- RESERVED ---
-    "victor_doom": {
-        name: "Victor Von Doom", type: "demon", isReserved: true,
-        image: "assets/themes/victor_doom.jpg", // Agar download ki hai toh, warna placeholder
-        caption: "Bow down to the King. Absolute power, absolute control.",
-        bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)",
-        primary: "#00ff00", text: "#ffffff", border: "#004400",
-        reservedText: "This legendary theme is permanently reserved for Mr. Tiger."
-    },
-    "white_queen": {
-        name: "White Queen", type: "angel", isReserved: false,
-        image: "assets/themes/white_queen.png",
-        caption: "Elegance, purity, and unmatched power. The Queen's aura.",
-        bgGradient: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
-        primary: "#d4af37", text: "#111111", border: "#d4af37",
-        reservedText: "This celestial theme is eternally reserved for the Queen of the CHMAT Universe."
-    },
+    "victor_doom": { name: "Victor Von Doom", type: "demon", isReserved: true, image: "assets/themes/victor_doom.jpg", caption: "Bow down to the King. Absolute power, absolute control.", bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)", primary: "#00ff00", text: "#ffffff", border: "#004400", reservedText: "This legendary theme is permanently reserved for Mr. Tiger." },
+    "white_queen": { name: "White Queen", type: "angel", isReserved: false, image: "assets/themes/white_queen.png", caption: "Elegance, purity, and unmatched power. The Queen's aura.", bgGradient: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)", primary: "#d4af37", text: "#111111", border: "#d4af37", reservedText: "This celestial theme is eternally reserved for the Queen of the CHMAT Universe." },
 
     // --- SUPERHEROES ---
     "iron_man": { name: "Iron Man", type: "angel", image: "assets/themes/iron_man.jpg", caption: "Genius. Billionaire. Playboy. Philanthropist. I am Iron Man.", bgGradient: "linear-gradient(135deg, #000000, #3a0000, #000000)", primary: "#ff0000", text: "#ffffff", border: "#550000" },
@@ -44,8 +30,89 @@ window.applyTheme = function(themeId) {
     root.setProperty('--theme-text', theme.text);
     root.setProperty('--theme-border', theme.border);
     localStorage.setItem('chmat_active_theme', themeId);
-    if(themeId === 'white_queen') { document.body.classList.add('theme-white-queen'); } else { document.body.classList.remove('theme-white-queen'); }
+    
+    if(themeId === 'white_queen') { 
+        document.body.classList.add('theme-white-queen'); 
+        if(typeof startSnowfall === 'function') startSnowfall();
+    } else { 
+        document.body.classList.remove('theme-white-queen'); 
+        if(typeof stopSnowfall === 'function') stopSnowfall();
+    }
 };
+
+// --- ROYAL SNOWFALL ANIMATION ---
+let snowInterval = null;
+const snowCSS = `
+.snowflake {
+  position: fixed;
+  top: -10vh;
+  pointer-events: none;
+  z-index: 9999;
+  color: #ffffff;
+  animation: fall linear forwards, sway ease-in-out infinite alternate, spin linear infinite;
+}
+@keyframes fall {
+  0% { top: -10vh; }
+  100% { top: 110vh; }
+}
+@keyframes sway {
+  0% { margin-left: -30px; }
+  100% { margin-left: 30px; }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+`;
+const styleSheet = document.createElement("style");
+styleSheet.innerText = snowCSS;
+document.head.appendChild(styleSheet);
+
+function startSnowfall() {
+    if (snowInterval) return;
+    snowInterval = setInterval(() => {
+        const flake = document.createElement('div');
+        flake.classList.add('snowflake');
+        
+        const rand = Math.random();
+        let size, duration, opacity, content;
+        
+        if (rand < 0.8) { 
+            size = Math.random() * 6 + 5 + 'px';
+            duration = Math.random() * 4 + 5 + 's';
+            opacity = Math.random() * 0.6 + 0.4;
+            content = '❄️';
+        } else { 
+            size = Math.random() * 3 + 2 + 'px';
+            duration = Math.random() * 3 + 3 + 's';
+            opacity = Math.random() * 0.4 + 0.3;
+            content = '';
+        }
+
+        flake.style.width = size;
+        flake.style.height = size;
+        flake.style.left = Math.random() * 100 + 'vw';
+        flake.style.opacity = opacity;
+        flake.style.animationDuration = `${duration}, ${Math.random() * 2 + 2}s, ${Math.random() * 3 + 2}s`;
+        flake.style.fontSize = size;
+        flake.innerText = content;
+        
+        if (!content) {
+             flake.style.background = '#fff';
+             flake.style.borderRadius = '50%';
+        }
+        document.body.appendChild(flake);
+        setTimeout(() => { flake.remove(); }, parseFloat(duration) * 1000);
+    }, 150);
+}
+
+function stopSnowfall() {
+    if (snowInterval) {
+        clearInterval(snowInterval);
+        snowInterval = null;
+    }
+    document.querySelectorAll('.snowflake').forEach(el => el.remove());
+}
 
 (function applyGlobalTheme() {
     const savedTheme = localStorage.getItem('chmat_active_theme') || 'iron_man';
@@ -60,101 +127,10 @@ window.applyTheme = function(themeId) {
     }
 })();
 
-window.themesData = themes;
-
-
-
-// --- ROYAL SNOWFALL CLEAN ANIMATION ---
-let snowInterval = null;
-const snowCSS = `
-.snowflake {
-  position: fixed;
-  top: -10vh;
-  pointer-events: none;
-  z-index: 9999;
-  color: #ffffff;
-  animation: fall linear forwards, sway ease-in-out infinite alternate, spin linear infinite;
-}
-@keyframes fall {
-  0% { transform: translateY(-10vh); }
-  100% { transform: translateY(110vh); }
-}
-@keyframes sway {
-  0% { margin-left: -20px; }
-  100% { margin-left: 20px; }
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-`;
-const styleSheet = document.createElement("style");
-styleSheet.innerText = snowCSS;
-document.head.appendChild(styleSheet);
-
-function startSnowfall() {
-    if (snowInterval) return;
-
-    snowInterval = setInterval(() => {
-        const flake = document.createElement('div');
-        flake.classList.add('snowflake');
-        
-        const rand = Math.random();
-        let size, duration, blur, opacity, content;
-        
-        if (rand < 0.8) { // Asli Snowflakes (❄️)
-            size = Math.random() * 6 + 5 + 'px';
-            duration = Math.random() * 5 + 6 + 's';
-            blur = '0px';
-            opacity = Math.random() * 0.5 + 0.5;
-            content = '❄️';
-        } else { // Chote white dots (Door wali baraf)
-            size = Math.random() * 3 + 2 + 'px';
-            duration = Math.random() * 4 + 4 + 's';
-            blur = '1px';
-            opacity = Math.random() * 0.4 + 0.3;
-            content = '';
-        }
-
-        flake.style.width = size;
-        flake.style.height = size;
-        flake.style.left = Math.random() * 100 + 'vw';
-        flake.style.opacity = opacity;
-        flake.style.filter = `blur(${blur})`;
-        // 3 animations: Fall, Sway (left-right), Spin (rotate)
-        flake.style.animationDuration = `${duration}, ${Math.random() * 2 + 2}s, ${Math.random() * 4 + 3}s`;
-        flake.style.fontSize = size;
-        flake.innerText = content;
-        
-        if (!content) {
-             flake.style.background = '#fff';
-             flake.style.borderRadius = '50%';
-        }
-
-        document.body.appendChild(flake);
-        setTimeout(() => { flake.remove(); }, parseFloat(duration) * 1000);
-    }, 120);
-}
-
-function stopSnowfall() {
-    if (snowInterval) {
-        clearInterval(snowInterval);
-        snowInterval = null;
-    }
-    document.querySelectorAll('.snowflake').forEach(el => el.remove());
-}
-
-// Overwrite applyTheme
-const originalApplyTheme = window.applyTheme;
-window.applyTheme = function(themeId) {
-    if(originalApplyTheme) originalApplyTheme(themeId);
-    if (themeId === 'white_queen') {
+window.addEventListener('DOMContentLoaded', () => {
+    if(localStorage.getItem('chmat_active_theme') === 'white_queen') {
         startSnowfall();
-    } else {
-        stopSnowfall();
     }
-};
+});
 
-if (localStorage.getItem('chmat_active_theme') === 'white_queen') {
-    document.addEventListener('DOMContentLoaded', startSnowfall);
-}
+window.themesData = themes;
