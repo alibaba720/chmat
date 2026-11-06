@@ -44,6 +44,7 @@ function renderThemes() {
     themesArray.forEach(theme => {
         html += `
             <div class="theme-card" onclick="handleThemeClick('${theme.id}')">
+                <img src="${theme.image}" class="theme-bg-blur">
                 <img src="${theme.image}" class="theme-bg-img" alt="${theme.name}" onerror="this.src='https://via.placeholder.com/600x400/111/fff?text=${theme.name}'">
                 <div class="theme-overlay"></div>
                 ${theme.isReserved ? '<div class="theme-badge">👑</div>' : ''}
