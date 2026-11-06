@@ -88,7 +88,7 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
     });
 
     alert("Account created successfully!");
-    window.location.href = "app.html";
+    window.location.href = "onboarding.html";
 
   } catch (error) {
     alert("Registration Error: " + error.message); btn.innerText = "Sign Up"; btn.disabled = false;
