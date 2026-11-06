@@ -58,12 +58,13 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
   const username = document.getElementById('regUsername').value.trim().toLowerCase();
   const realEmail = document.getElementById('regEmail').value.trim().toLowerCase();
   const password = document.getElementById('regPassword').value;
+  const gender = document.getElementById('regGender').value;
   const q1 = document.getElementById('regQuestion1').value;
   const a1 = document.getElementById('regAnswer1').value.trim().toLowerCase();
   const q2 = document.getElementById('regQuestion2').value;
   const a2 = document.getElementById('regAnswer2').value.trim().toLowerCase();
 
-  if (!mobile || !username || !realEmail || !password || !q1 || !a1 || !q2 || !a2) { alert("Please fill all fields!"); return; }
+  if (!mobile || !username || !realEmail || !password || !gender || !q1 || !a1 || !q2 || !a2) { alert("Please fill all fields, including Gender!"); return; }
 
   const btn = document.getElementById('registerBtn');
   btn.innerText = "Checking..."; btn.disabled = true;
@@ -82,7 +83,7 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
 
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid, mobile: mobile, username: username, email: realEmail,
-      displayName: username, friends: [], bio: "Hello, I am using CHMAT!", 
+      displayName: username, friends: [], bio: "Hello, I am using CHMAT!", gender: gender, 
       security: { q1, a1, q2, a2 }, createdAt: new Date()
     });
 
