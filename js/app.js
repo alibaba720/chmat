@@ -577,9 +577,22 @@ async function loadChatList() {
 }
 
 const searchInput = document.getElementById('searchInput'); const searchResults = document.getElementById('searchResults');
-if (searchInput && searchResults) {
+const friendsPageContent = document.getElementById('friendsPageContent');
+
+if (searchInput && searchResults && friendsPageContent) {
   searchInput.addEventListener('input', async (e) => {
-    const searchTerm = e.target.value.trim().toLowerCase(); if (searchTerm.length < 2) { searchResults.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">Type at least 2 letters...</p>'; return; }
+    const searchTerm = e.target.value.trim().toLowerCase(); 
+    
+    if (searchTerm.length === 0) {
+        friendsPageContent.style.display = 'block';
+        searchResults.classList.add('hidden');
+        return;
+    }
+    
+    friendsPageContent.style.display = 'none';
+    searchResults.classList.remove('hidden');
+
+    if (searchTerm.length < 2) { searchResults.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">Type at least 2 letters...</p>'; return; }
     searchResults.innerHTML = '';
     try {
       const querySnapshot = await getDocs(collection(db, "users")); 
@@ -706,3 +719,140 @@ window.closeViewPost = function() {
     modal.style.display = 'none';
     modal.classList.add('hidden');
 };
+
+
+// ==========================================
+// FRIENDS PAGE & REAL-TIME POPUP LOGIC
+// ==========================================
+
+function initFriendsPage() {
+    const friendsPageContent = document.getElementById('friendsPageContent');
+    const searchResults = document.getElementById('searchResults');
+    if(!friendsPageContent) return;
+    
+    friendsPageContent.style.display = 'block';
+    if(searchResults) searchResults.classList.add('hidden');
+    
+    loadFriendsPageData();
+}
+
+async function loadFriendsPageData() {
+    const reqList = document.getElementById('frRequestsList');
+    const sugList = document.getElementById('frSuggestionsList');
+    
+    if(reqList) reqList.innerHTML = '<p style="color:#888;">Loading...</p>';
+    if(sugList) sugList.innerHTML = '<p style="color:#888;">Loading...</p>';
+
+    // Listen to Requests
+    const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid), where("status", "==", "pending"));
+    onSnapshot(qReq, async (snapshot) => {
+        if(snapshot.empty) {
+            if(reqList) reqList.innerHTML = '<p style="color:#888; font-size:14px;">No pending requests.</p>';
+            return;
+        }
+        
+        let html = '';
+        for(const docSnap of snapshot.docs) {
+            const req = docSnap.data();
+            const userProf = await getUserProfile(req.senderId);
+            const avatar = userProf && userProf.profilePicUrl ? `<img src="${userProf.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;font-weight:bold;">${req.senderUsername.charAt(0).toUpperCase()}</div>`;
+            
+            html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #222;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; cursor:pointer;" onclick="window.location.href='profile.html?uid=${req.senderId}'">${avatar}</div>
+                    <div>
+                        <div style="font-size:15px; font-weight:600; color:#fff; cursor:pointer;" onclick="window.location.href='profile.html?uid=${req.senderId}'">${req.senderUsername}</div>
+                        <div style="font-size:12px; color:#888;">Wants to be friends</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button onclick="acceptRequest('${docSnap.id}', '${req.senderId}', '${req.senderUsername}')" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Confirm</button>
+                    <button onclick="rejectRequest('${docSnap.id}')" style="background:#262626; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Delete</button>
+                </div>
+            </div>`;
+        }
+        if(reqList) reqList.innerHTML = html;
+    });
+
+    // Load Suggestions (Users not in friends list)
+    try {
+        const usersSnap = await getDocs(collection(db, "users"));
+        let sugHtml = '';
+        usersSnap.forEach(doc => {
+            const u = doc.data();
+            if(u.uid !== currentUser.uid && !myFriendsList.includes(u.uid)) {
+                const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;font-weight:bold;color:#fff;">${(u.username||'U').charAt(0).toUpperCase()}</div>`;
+                sugHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #222;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; cursor:pointer;" onclick="window.location.href='profile.html?uid=${u.uid}'">${avatar}</div>
+                        <div>
+                            <div style="font-size:15px; font-weight:600; color:#fff; cursor:pointer;" onclick="window.location.href='profile.html?uid=${u.uid}'">${u.username}</div>
+                            <div style="font-size:12px; color:#888;">Suggested for you</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="sendRequest('${u.uid}', '${u.username}', this)" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Add Friend</button>
+                    </div>
+                </div>`;
+            }
+        });
+        if(sugList) sugList.innerHTML = sugHtml !== '' ? sugHtml : '<p style="color:#888; font-size:14px;">No suggestions right now.</p>';
+    } catch(e) { console.log(e); }
+}
+
+// REAL-TIME POPUP LOGIC
+let seenRequestIds = new Set();
+
+function listenForNewRequests() {
+    const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid), where("status", "==", "pending"));
+    onSnapshot(qReq, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+            if (change.type === 'added') {
+                const req = change.doc.data();
+                const reqId = change.doc.id;
+                
+                // Agar request pehle se seen nahi hai aur nayi hai (1 minute ke andar)
+                const now = Date.now();
+                const reqTime = req.createdAt ? req.createdAt.toMillis() : 0;
+                
+                if (!seenRequestIds.has(reqId) && (now - reqTime < 60000)) {
+                    seenRequestIds.add(reqId);
+                    showFriendPopup(req, reqId);
+                }
+            }
+        });
+    });
+}
+
+async function showFriendPopup(req, reqId) {
+    const popup = document.getElementById('frPopup');
+    const avatar = document.getElementById('frPopupAvatar');
+    const text = document.getElementById('frPopupText');
+    const acceptBtn = document.getElementById('frPopupAccept');
+    const deleteBtn = document.getElementById('frPopupDelete');
+    
+    if(!popup) return;
+
+    const userProf = await getUserProfile(req.senderId);
+    if(userProf && userProf.profilePicUrl) avatar.innerHTML = `<img src="${userProf.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+    else avatar.innerHTML = `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;font-weight:bold;color:#fff;">${req.senderUsername.charAt(0).toUpperCase()}</div>`;
+
+    text.innerHTML = `<span style="color:#0095f6; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${req.senderId}'">@${req.senderUsername}</span> sent you a friend request.`;
+    
+    acceptBtn.onclick = () => { acceptRequest(reqId, req.senderId, req.senderUsername); popup.style.display = 'none'; };
+    deleteBtn.onclick = () => { rejectRequest(reqId); popup.style.display = 'none'; };
+
+    popup.style.display = 'flex';
+    
+    setTimeout(() => { popup.style.display = 'none'; }, 8000); // 8 second baad popup gayab
+}
+
+// Initialize on load
+setTimeout(() => {
+    if(currentUser) {
+        initFriendsPage();
+        listenForNewRequests();
+    }
+}, 2000);
