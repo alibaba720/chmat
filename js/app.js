@@ -459,6 +459,7 @@ async function loadChatList() {
   try {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid)); 
     if (userDoc.exists()) myFriendsList = userDoc.data().friends || [];
+        renderTopFriends();
     let chatItems = [];
     let totalUnread = 0;
 
@@ -963,3 +964,32 @@ setTimeout(() => {
         listenForNewRequests();
     }
 }, 2000);
+
+// --- TOP HORIZONTAL FRIENDS LIST LOGIC ---
+async function renderTopFriends() {
+    const topList = document.getElementById('topFriendsList');
+    if (!topList) return;
+    
+    let html = '';
+    if (myFriendsList.length === 0) {
+        topList.innerHTML = '<p style="color:#888; font-size:13px; padding:5px;">No friends yet to show here.</p>';
+        return;
+    }
+
+    for (const friendId of myFriendsList) {
+        const data = await getUserProfile(friendId);
+        if (data) {
+            const initial = (data.displayName || data.username).charAt(0).toUpperCase();
+            const avatarHtml = getAvatarHtml(data.profilePicUrl, initial);
+            
+            html += `
+            <div style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; min-width: 64px;" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'">
+                <div style="width:60px; height:60px; border-radius:50%; overflow:hidden; border:2px solid #0095f6; background:#333;">
+                    ${avatarHtml}
+                </div>
+                <span style="font-size:12px; color:#fff; max-width:66px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;">${data.username}</span>
+            </div>`;
+        }
+    }
+    topList.innerHTML = html;
+}
