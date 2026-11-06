@@ -96,16 +96,28 @@
           
           let isRequested = false;
           let reqId = null;
+          let incomingReqId = null;
+
           if(currentUser.uid !== targetUid && !isFriend) {
               try {
-                  // Firebase Index error se bachne ke liye sirf senderId se fetch karein
-                  const qReq = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid));
-                  const reqSnap = await getDocs(qReq);
-                  reqSnap.forEach(doc => {
-                      const reqData = doc.data();
-                      if (reqData.receiverId === targetUid && reqData.status === 'pending') {
+                  // Check 1: Kya humne usko request bheji hai? (Outgoing)
+                  const qOutgoing = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid));
+                  const outSnap = await getDocs(qOutgoing);
+                  outSnap.forEach(doc => {
+                      const d = doc.data();
+                      if (d.receiverId === targetUid && d.status === 'pending') {
                           isRequested = true;
                           reqId = doc.id;
+                      }
+                  });
+
+                  // Check 2: Kya usne humein request bheji hai? (Incoming)
+                  const qIncoming = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid));
+                  const inSnap = await getDocs(qIncoming);
+                  inSnap.forEach(doc => {
+                      const d = doc.data();
+                      if (d.senderId === targetUid && d.status === 'pending') {
+                          incomingReqId = doc.id;
                       }
                   });
               } catch(e) {
@@ -116,9 +128,13 @@
           let btnHtml = '';
           if(currentUser.uid === targetUid) {
              btnHtml = `<button class="ig-btn" onclick="window.location.href='edit-profile.html'">Edit profile</button>
-                        <button class="ig-btn">Share profile</button>`;
+                        <button class="ig-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('Profile link copied!')">Share profile</button>`;
           } else if(isFriend) {
               btnHtml = `<button class="ig-btn ig-btn-blue" onclick="window.location.href='chat.html?uid=${targetUid}&name=${data.username}'">Message</button>`;
+          } else if (incomingReqId) {
+              // Facebook Style Confirm and Delete Buttons
+              btnHtml = `<button class="ig-btn ig-btn-blue" style="flex: 2;" onclick="acceptReqFromProfile('${incomingReqId}', '${targetUid}', '${data.username}')">Confirm req</button>
+                         <button class="ig-btn" style="flex: 1; background: #e4e6eb; color: #000;" onclick="rejectReqFromProfile('${incomingReqId}')">Delete</button>`;
           } else if (isRequested) {
               btnHtml = `<button class="ig-btn" style="background:#262626; color:#ff3b30; border:1px solid #333;" onclick="promptCancelReq('${reqId}')">Cancel Request</button>`;
           } else {
@@ -190,6 +206,35 @@
     }
 
     
+
+window.acceptReqFromProfile = async function(reqId, senderId, senderUsername) {
+    try {
+        await deleteDoc(doc(db, "friend_requests", reqId));
+        await updateDoc(doc(db, "users", currentUser.uid), { friends: arrayUnion(senderId) });
+        await updateDoc(doc(db, "users", senderId), { friends: arrayUnion(currentUser.uid) });
+        
+        // Notification to sender
+        const myDoc = await getDoc(doc(db, "users", currentUser.uid));
+        await addDoc(collection(db, "notifications"), {
+            receiverId: senderId, 
+            senderId: currentUser.uid, 
+            senderUsername: myDoc.data().username, 
+            type: "friend_accept", 
+            read: false, 
+            createdAt: serverTimestamp()
+        });
+        window.location.reload();
+    } catch(e) { alert("Error accepting request: " + e.message); }
+};
+
+window.rejectReqFromProfile = async function(reqId) {
+    if(!confirm("Are you sure you want to delete this request?")) return;
+    try {
+        await deleteDoc(doc(db, "friend_requests", reqId));
+        window.location.reload();
+    } catch(e) { alert("Error deleting request: " + e.message); }
+};
+
 window.promptCancelReq = function(reqId) {
     const modal = document.getElementById('cancelReqModal');
     modal.style.display = 'flex';
