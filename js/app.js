@@ -278,7 +278,22 @@ authReady.then(() => {
           await setDoc(doc(db, "users", user.uid), currentUserData);
         }
         
-        myFriendsList = currentUserData.friends || []; 
+        myFriendsList = currentUserData.friends || [];
+
+        // RANI ENTRY TRIGGER (Testing with current user)
+        // Baad mein yahan Rani ki specific UID aayegi
+        if (sessionStorage.getItem('rani_entry_shown') !== 'true') {
+            sessionStorage.setItem('rani_entry_shown', 'true');
+            if(window.startRoseShower) {
+                window.startRoseShower(() => {
+                    // After 1 min of roses, if white_queen theme is active, start snowfall
+                    if(localStorage.getItem('chmat_active_theme') === 'white_queen') {
+                        if(typeof startSnowfall === 'function') startSnowfall();
+                    }
+                });
+            }
+        }
+ 
         userCache[currentUser.uid] = currentUserData;
         const displayName = currentUserData.displayName || currentUserData.username || "User"; 
         const bio = currentUserData.bio || "No bio yet."; 

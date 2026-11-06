@@ -134,3 +134,79 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.themesData = themes;
+
+// --- ROYAL ROSE SHOWER ANIMATION ---
+let roseInterval = null;
+const roseCSS = `
+.rose-particle {
+  position: fixed;
+  top: -10vh;
+  pointer-events: none;
+  z-index: 10000;
+  animation: roseFall linear forwards, roseSway ease-in-out infinite alternate, roseSpin linear infinite;
+  filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5));
+}
+@keyframes roseFall {
+  0% { top: -10vh; }
+  100% { top: 110vh; }
+}
+@keyframes roseSway {
+  0% { margin-left: -40px; }
+  100% { margin-left: 40px; }
+}
+@keyframes roseSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+`;
+if (!document.getElementById('rose-styles')) {
+    const styleSheet = document.createElement("style");
+    styleSheet.id = 'rose-styles';
+    styleSheet.innerText = roseCSS;
+    document.head.appendChild(styleSheet);
+}
+
+window.startRoseShower = function(callback) {
+    if (roseInterval) return;
+    
+    let roseDuration = 60000; // 1 minute
+    let startTime = Date.now();
+
+    roseInterval = setInterval(() => {
+        if (Date.now() - startTime > roseDuration) {
+            clearInterval(roseInterval);
+            roseInterval = null;
+            document.querySelectorAll('.rose-particle').forEach(el => el.remove());
+            if (callback) callback();
+            return;
+        }
+
+        const particle = document.createElement('div');
+        particle.classList.add('rose-particle');
+        
+        const isPetal = Math.random() > 0.3; // 70% petals, 30% full roses
+        let size, duration, opacity, content;
+
+        if (isPetal) {
+            size = Math.random() * 15 + 10 + 'px';
+            duration = Math.random() * 6 + 6 + 's'; // Slow falling
+            opacity = Math.random() * 0.6 + 0.4;
+            content = '🌸'; // Petal representation (or 🌺)
+        } else {
+            size = Math.random() * 10 + 15 + 'px';
+            duration = Math.random() * 3 + 3 + 's'; // Fast falling
+            opacity = 1;
+            content = '🌹'; // Full rose
+        }
+
+        particle.style.fontSize = size;
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.opacity = opacity;
+        particle.style.animationDuration = `${duration}, ${Math.random() * 2 + 2}s, ${Math.random() * 3 + 2}s`;
+        particle.innerText = content;
+
+        document.body.appendChild(particle);
+        setTimeout(() => { particle.remove(); }, parseFloat(duration) * 1000);
+
+    }, 150);
+};

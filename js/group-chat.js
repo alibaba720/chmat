@@ -64,6 +64,18 @@ async function loadGroupData() {
     const groupSnap = await getDoc(groupRef);
     if(groupSnap.exists()) {
         groupData = groupSnap.data();
+
+    // --- RANI GROUP ENTRY TRIGGER ---
+    // Check karega ke kya current user (jo add hua hai) special hai
+    if (sessionStorage.getItem('rani_group_shower_' + groupId) !== 'true') {
+        // Testing ke liye hum currentUser.uid check kar rahe hain
+        // Baad mein yahan Rani ki UID aayegi
+        if (groupData.members.includes(currentUser.uid) && window.startRoseShower) {
+            sessionStorage.setItem('rani_group_shower_' + groupId, 'true');
+            window.startRoseShower();
+        }
+    }
+
         
         // Auto-migration for owner and admins
         if (!groupData.owner && groupData.admin) {
