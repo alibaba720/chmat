@@ -1,4 +1,4 @@
-// CHMAT Theme Engine V14 (Only Roses & Snowfall - No Text/Sound)
+// CHMAT Theme Engine V15 (Only Roses + Snowfall - FORCED)
 
 const themes = {
     "victor_doom": { name: "Victor Von Doom", type: "demon", isReserved: true, image: "assets/themes/victor_doom.jpg", caption: "Bow down to the King.", bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)", primary: "#00ff00", text: "#ffffff", border: "#004400", reservedText: "Reserved for Mr. Tiger." },
@@ -54,7 +54,7 @@ function startSnowfall() {
 }
 function stopSnowfall() { if (snowInterval) { clearInterval(snowInterval); snowInterval = null; } document.querySelectorAll('.snowflake').forEach(el => el.remove()); }
 
-// --- RANI ENTRY (ONLY ROSES - NO TEXT/SOUND) ---
+// --- ONLY ROSES (FORCED TRIGGER) ---
 let roseInterval = null;
 window.startRoseShower = function(callback) {
     if (roseInterval) return;
@@ -78,17 +78,11 @@ window.startRoseShower = function(callback) {
         const isPetal = Math.random() > 0.3; let size, duration, opacity, content;
 
         if (isPetal) {
-            size = Math.random() * 12 + 8 + 'px'; 
-            duration = Math.random() * 6 + 6 + 's'; 
-            opacity = Math.random() * 0.7 + 0.3; 
-            content = '🌹';
+            size = Math.random() * 12 + 8 + 'px'; duration = Math.random() * 6 + 6 + 's'; opacity = Math.random() * 0.7 + 0.3; content = '🌹';
             particle.style.filter = 'sepia(1) saturate(8) hue-rotate(330deg) brightness(0.7) drop-shadow(0 0 3px rgba(255,0,0,0.8))';
             particle.style.transform = 'scaleX(0.6) scaleY(0.8)';
         } else {
-            size = Math.random() * 10 + 15 + 'px'; 
-            duration = Math.random() * 3 + 3 + 's'; 
-            opacity = 1; 
-            content = '🌹';
+            size = Math.random() * 10 + 15 + 'px'; duration = Math.random() * 3 + 3 + 's'; opacity = 1; content = '🌹';
             particle.style.filter = 'drop-shadow(0 0 6px rgba(255,0,0,0.8))';
         }
         
@@ -98,18 +92,20 @@ window.startRoseShower = function(callback) {
     }, 150);
 };
 
-// --- AUTO TRIGGER ---
+// --- FORCED AUTO TRIGGER ---
 window.addEventListener('DOMContentLoaded', () => {
+    // 1. Force Snowfall if White Queen
     if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
     
-    if (sessionStorage.getItem('rani_entry_shown') !== 'true') {
-        sessionStorage.setItem('rani_entry_shown', 'true');
-        setTimeout(() => {
-            window.startRoseShower(() => {
-                if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
-            });
-        }, 1000);
-    }
+    // 2. Clear Session Storage to ALWAYS trigger Roses on load
+    sessionStorage.removeItem('rani_entry_shown'); 
+    
+    // 3. Trigger Roses after 1.5 seconds
+    setTimeout(() => {
+        window.startRoseShower(() => {
+            if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
+        });
+    }, 1500);
 });
 
 window.themesData = themes;
