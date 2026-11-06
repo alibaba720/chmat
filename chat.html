@@ -57,227 +57,49 @@
     .settings-item { border-color: var(--theme-border) !important; }
     .input-group input { background: transparent !important; color: var(--theme-text) !important; }
 
-    /* --- V4: ULTIMATE THEME VISUALS & ICONS --- */
     
-    /* 1. Fix Backgrounds: Make all containers transparent so the gradient shows */
-    body, .app-container, .settings-container, .chat-container, .post-card, .ig-grid-item, .settings-group, .input-group, .dropdown-menu, .comment-sheet, .modal-content {
-        background: transparent !important;
+    /* --- STRICT WHITE QUEEN OVERRIDE (DO NOT REMOVE) --- */
+    body.theme-white-queen { 
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%) !important; 
+        color: #111111 !important; 
     }
-    
-    /* Create a glass effect for cards */
-    .post-card, .settings-group, .dropdown-menu, .theme-card {
-        background: rgba(10, 10, 10, 0.5) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-    }
-
-    /* 2. Top Header & Notification Heart */
-    .app-header, .settings-header, .chat-header {
-        background: rgba(0, 0, 0, 0.6) !important;
+    body.theme-white-queen .app-header, 
+    body.theme-white-queen .bottom-nav,
+    body.theme-white-queen .post-card,
+    body.theme-white-queen .ig-top-bar,
+    body.theme-white-queen .settings-group {
+        background: rgba(255, 255, 255, 0.8) !important; 
         backdrop-filter: blur(10px) !important;
-        border-bottom: 1px solid var(--theme-primary) !important; /* Glowing bottom border */
+        border-color: #d4af37 !important; /* Gold Border */
     }
-    
-    /* Change Heart Icon Color & Glow */
-    .header-icons svg, #notiBtn svg {
-        stroke: var(--theme-primary) !important;
-        fill: var(--theme-primary) !important;
-        filter: drop-shadow(0 0 8px var(--theme-primary));
-        transition: 0.3s;
+    body.theme-white-queen .logo { 
+        color: #00e5ff !important; /* Icy Blue */
+        text-shadow: 0 0 15px #00e5ff !important; 
     }
-
-    /* 3. Bottom Navigation Icons (Home, Search, Post, Chat, Profile) */
-    .bottom-nav {
-        background: rgba(0, 0, 0, 0.8) !important;
-        backdrop-filter: blur(15px) !important;
-        border-top: 1px solid var(--theme-primary) !important;
+    body.theme-white-queen .nav-item svg { stroke: #b8860b !important; } /* Dark Gold */
+    body.theme-white-queen .nav-item.active svg { 
+        stroke: #00e5ff !important; 
+        fill: #00e5ff !important; 
+        filter: drop-shadow(0 0 5px #00e5ff) !important;
     }
-    
-    .nav-item svg {
-        stroke: var(--theme-text) !important;
-        fill: none !important;
-        transition: all 0.3s ease;
-    }
-    
-    /* Active Button: Give it the Theme Primary Color and a Neon Glow */
-    .nav-item.active svg {
-        stroke: var(--theme-primary) !important;
-        fill: var(--theme-primary) !important;
-        filter: drop-shadow(0 0 10px var(--theme-primary));
-        transform: scale(1.1);
-    }
-
-    /* 4. Buttons (Like, Comment, Edit Profile, etc) */
-    .action-btn, .ig-btn, .save-btn, .btn-primary, .add-friend-btn {
-        background: transparent !important;
-        color: var(--theme-primary) !important;
-        border: 1px solid var(--theme-primary) !important;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5) inset !important;
-        text-shadow: 0 0 5px var(--theme-primary) !important;
-        transition: 0.3s;
-    }
-    
-    .action-btn:active, .ig-btn:active, .btn-primary:active {
-        background: var(--theme-primary) !important;
-        color: #000 !important; /* Dark text on bright button click */
-        box-shadow: 0 0 20px var(--theme-primary) !important;
-    }
-    
-    /* Like button specific */
-    .action-btn.liked {
-        color: #ff3b30 !important;
-        border-color: #ff3b30 !important;
-        text-shadow: 0 0 10px #ff3b30 !important;
-    }
-
-    /* 5. Text Colors and Tabs */
-    .ig-username, .ig-name, .post-display-name, h2, h3 {
-        color: var(--theme-text) !important;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    }
-    
-    .ig-tab.active {
-        color: var(--theme-primary) !important;
-        border-bottom: 2px solid var(--theme-primary) !important;
-        text-shadow: 0 0 8px var(--theme-primary);
-    }
-    
-    .ig-tab {
-        color: #888 !important;
-    }
-
-    /* 6. Input Fields */
-    input, textarea, #messageInput, #commentInput {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid var(--theme-border) !important;
-        color: var(--theme-text) !important;
-    }
-    
-    input:focus, textarea:focus {
-        border-color: var(--theme-primary) !important;
-        box-shadow: 0 0 8px var(--theme-primary) !important;
-    }
-    
-    /* Logo Glow */
-    .logo {
-        color: var(--theme-primary) !important;
-        text-shadow: 0 0 15px var(--theme-primary), 0 0 30px var(--theme-primary) !important;
-    }
-
-
-    /* --- WHITE QUEEN SPECIFIC UI FIXES --- */
-    body.theme-white-queen button, 
     body.theme-white-queen .ig-btn, 
     body.theme-white-queen .btn-primary, 
     body.theme-white-queen .action-btn,
-    body.theme-white-queen .add-friend-btn {
+    body.theme-white-queen .edit-profile-btn {
         background: #ffffff !important;
-        color: #111111 !important;
-        border: 2px solid #d4af37 !important; /* Gold Border */
-        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2) !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    body.theme-white-queen button:active, 
-    body.theme-white-queen .ig-btn:active {
-        background: #fffdf5 !important;
-        box-shadow: 0 0 20px #d4af37, 0 0 40px #d4af37 !important; /* Gold Blink/Glow */
-        transform: scale(0.95);
-    }
-
-    /* Fix Bottom Nav visibility */
-    body.theme-white-queen .bottom-nav {
-        background: rgba(255, 255, 255, 0.9) !important;
-        border-top: 2px solid #d4af37 !important;
-    }
-    body.theme-white-queen .nav-item svg {
-        stroke: #111111 !important; /* Dark icons for visibility */
-    }
-    body.theme-white-queen .nav-item.active svg {
-        stroke: #d4af37 !important; /* Gold when active */
-        fill: #d4af37 !important;
-    }
-    
-    /* Fix Text Visibility */
-    body.theme-white-queen .post-card, 
-    body.theme-white-queen .ig-top-bar,
-    body.theme-white-queen .app-header {
-        background: rgba(255, 255, 255, 0.8) !important;
-        border-bottom: 1px solid #d4af37 !important;
-    }
-    body.theme-white-queen .ig-username,
-    body.theme-white-queen .post-display-name,
-    body.theme-white-queen .logo {
-        color: #111111 !important;
-        text-shadow: none !important;
-    }
-    body.theme-white-queen .ig-dp-img {
-        border: 2px solid #d4af37 !important;
-    }
-
-
-    
-    /* --- WHITE QUEEN (ICE & GOLD) OVERRIDES --- */
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
-
-    /* 1. Main Background - Ice White */
-    body.theme-white-queen, 
-    body.theme-white-queen .app-container, 
-    body.theme-white-queen .app-content,
-    body.theme-white-queen .post-card,
-    body.theme-white-queen .profile-container,
-    body.theme-white-queen .settings-group {
-        background: linear-gradient(135deg, #f0f8ff 0%, #e6e6fa 100%) !important; /* Ice white/silver gradient */
-        color: #111111 !important;
-    }
-
-    /* 2. Logo - Icy Blue Glow */
-    body.theme-white-queen .logo {
-        font-family: 'Cinzel Decorative', serif !important;
-        color: #00e5ff !important; /* Icy Blue */
-        text-shadow: 0 0 10px rgba(0, 229, 255, 0.8), 0 0 20px rgba(0, 229, 255, 0.5) !important;
-    }
-
-    /* 3. Transparent Bottom Nav with Gold Border */
-    body.theme-white-queen .bottom-nav {
-        background: rgba(255, 255, 255, 0.4) !important; /* Transparent Glass */
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
-        border-top: 2px solid #d4af37 !important; /* Gold Border */
-    }
-
-    /* Bottom Nav Icons */
-    body.theme-white-queen .nav-item svg {
-        stroke: #b8860b !important; /* Dark Gold */
-    }
-    body.theme-white-queen .nav-item.active svg {
-        stroke: #00e5ff !important; /* Icy Blue for Active */
-        fill: #00e5ff !important;
-        filter: drop-shadow(0 0 8px #00e5ff) !important;
-    }
-
-    /* 4. Buttons (Edit profile, etc) - Ice & Gold */
-    body.theme-white-queen .ig-btn, 
-    body.theme-white-queen .btn-primary, 
-    body.theme-white-queen .action-btn {
-        background: rgba(255, 255, 255, 0.6) !important; /* Semi transparent white */
-        color: #b8860b !important; /* Dark Gold text */
-        border: 1px solid #d4af37 !important; /* Gold border */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+        color: #b8860b !important; /* Dark Gold Text */
+        border: 1px solid #d4af37 !important; /* Gold Border */
     }
     body.theme-white-queen .ig-btn:active {
         background: #d4af37 !important;
         color: #ffffff !important;
-        box-shadow: 0 0 15px #d4af37 !important;
     }
-    
-    /* Fix Text Colors */
-    body.theme-white-queen .ig-username, 
-    body.theme-white-queen .ig-name, 
+    /* Force text colors to be dark on ice background */
     body.theme-white-queen .display-name,
-    body.theme-white-queen .post-display-name {
+    body.theme-white-queen .ig-username,
+    body.theme-white-queen .post-display-name,
+    body.theme-white-queen .post-text,
+    body.theme-white-queen .settings-item {
         color: #111111 !important;
     }
 
