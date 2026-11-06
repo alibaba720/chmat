@@ -59,17 +59,41 @@
 .ig-grid-item { aspect-ratio: 1/1; background: #1a1a1a; overflow: hidden; display: flex; justify-content: center; align-items: center; font-size: 12px; padding: 8px; text-align: center; }
 .ig-grid-item img { width: 100%; height: 100%; object-fit: cover; }
 
-    :root {
-        --theme-bg: #000000;
-        --theme-text: #ffffff;
-        --theme-primary: #0095f6;
-        --theme-border: #262626;
-    }
+    
     body { background: var(--theme-bg) !important; color: var(--theme-text) !important; transition: background 0.3s, color 0.3s; }
     .app-header, .bottom-nav, .chat-header { background: var(--theme-bg) !important; border-color: var(--theme-border) !important; }
     .logo, .nav-item svg { color: var(--theme-text) !important; stroke: var(--theme-text) !important; }
     .ig-btn-blue { background: var(--theme-primary) !important; }
     .ig-tab.active { border-bottom-color: var(--theme-text) !important; }
+
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Cinzel:wght@700&family=Playfair+Display:wght@700&display=swap');
+
+    :root {
+        --theme-bg: #050505;
+        --theme-text: #ffffff;
+        --theme-primary: #ff0000;
+        --theme-border: #331111;
+        --theme-btn-bg: #ff0000;
+        --theme-btn-text: #ffffff;
+        --theme-font: sans-serif;
+        --theme-logo-font: 'Orbitron', sans-serif;
+        --theme-logo-color: #ffd700;
+    }
+
+    body { background: var(--theme-bg) !important; color: var(--theme-text) !important; font-family: var(--theme-font) !important; transition: background 0.4s, color 0.4s; }
+    
+    .app-header, .bottom-nav, .chat-header { background: var(--theme-bg) !important; border-color: var(--theme-border) !important; }
+    .logo { font-family: var(--theme-logo-font) !important; color: var(--theme-logo-color) !important; text-shadow: 0 0 10px var(--theme-primary); }
+    
+    .ig-btn-blue, .btn-primary, .save-btn, .add-friend-btn { background: var(--theme-btn-bg) !important; color: var(--theme-btn-text) !important; border: 1px solid var(--theme-primary) !important; }
+    
+    .post-card, .ig-grid-item, .dropdown-menu { background: var(--theme-bg) !important; border-color: var(--theme-border) !important; }
+    .ig-stats, .ig-bio-section, .post-text, .post-display-name { color: var(--theme-text) !important; }
+    .ig-tab.active { border-bottom-color: var(--theme-text) !important; color: var(--theme-text) !important; }
+    
+    /* Nav icons color */
+    .nav-item svg { stroke: var(--theme-text) !important; }
+    .nav-item.active svg { fill: var(--theme-text) !important; }
 </style>
 </head>
 <body>
