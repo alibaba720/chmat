@@ -1,16 +1,22 @@
-// Theme UI Logic V2 (Split Layout)
+// Theme UI Logic
 function renderThemes() {
     const demonsCol = document.getElementById('demonsColumn');
     const angelsCol = document.getElementById('angelsColumn');
+    
     if(!demonsCol || !angelsCol || !window.themesData) return;
 
     const data = window.themesData;
-    let demonsHtml = '<div class="column-title">🌑 Villain's Aura</div>';
-    let angelsHtml = '<div class="column-title">☀️ Superheroes</div>';
+    let demonsHtml = '<div class="column-title">Villain\'s Aura</div>';
+    let angelsHtml = '<div class="column-title">Superheroes</div>';
 
     for (const id in data) {
         const theme = data[id];
-        const cardHtml = createCardHtml(id, theme);
+        const cardHtml = `
+            <div class="theme-card ${theme.isReserved ? 'reserved' : ''}" style="background: ${theme.bgGradient};" onclick="handleThemeClick('${id}')">
+                ${theme.isReserved ? '<div class="theme-badge">👑</div>' : ''}
+                <div class="theme-name">${theme.name}</div>
+            </div>
+        `;
         
         if (theme.type === 'demon') {
             demonsHtml += cardHtml;
@@ -21,18 +27,6 @@ function renderThemes() {
 
     demonsCol.innerHTML = demonsHtml;
     angelsCol.innerHTML = angelsHtml;
-}
-
-function createCardHtml(id, theme) {
-    const isReserved = theme.isReserved ? 'reserved' : '';
-    const badge = theme.isReserved ? '<div class="theme-badge">👑</div>' : '';
-    
-    return `
-        <div class="theme-card ${isReserved}" style="background: ${theme.bgGradient};" onclick="handleThemeClick('${id}')">
-            ${badge}
-            <div class="theme-name">${theme.name}</div>
-        </div>
-    `;
 }
 
 window.handleThemeClick = function(id) {
@@ -46,12 +40,6 @@ window.handleThemeClick = function(id) {
     } else {
         window.applyTheme(id);
         if(navigator.vibrate) navigator.vibrate(50);
-        
-        // Small visual feedback
-        const card = event.currentTarget;
-        const originalBorder = card.style.borderColor;
-        card.style.borderColor = '#fff';
-        setTimeout(() => { card.style.borderColor = originalBorder; }, 300);
     }
 };
 

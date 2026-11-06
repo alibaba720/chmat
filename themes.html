@@ -8,7 +8,7 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
     
-    .header { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; }
+    .header { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(0,0,0,0.9); z-index: 100; }
     .back-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; margin-right: 15px; }
     h2 { margin: 0; font-size: 18px; font-weight: 600; }
     
@@ -16,10 +16,10 @@
     .split-container { display: flex; width: 100%; height: calc(100vh - 60px); }
     
     .column { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 10px; }
-    .column-left { border-right: 1px solid #222; background: rgba(20, 0, 0, 0.2); }
-    .column-right { background: rgba(0, 0, 20, 0.2); }
+    .column-left { border-right: 1px solid #222; background: rgba(20, 0, 0, 0.1); }
+    .column-right { background: rgba(0, 0, 20, 0.1); }
     
-    .column-title { text-align: center; font-size: 14px; font-weight: bold; padding: 10px 0; position: sticky; top: 0; background: inherit; z-index: 10; text-transform: uppercase; letter-spacing: 1px; }
+    .column-title { text-align: center; font-size: 14px; font-weight: bold; padding: 10px 0; position: sticky; top: 0; background: #000; z-index: 10; letter-spacing: 1px; }
     .column-left .column-title { color: #ff4444; }
     .column-right .column-title { color: #44aaff; }
     
@@ -36,12 +36,12 @@
     
     .theme-name { font-size: 13px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; }
     
-    /* Professional Popup */
-    .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 9999; }
-    .popup-box { background: #111; border: 1px solid #ffd700; border-radius: 16px; padding: 24px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+    /* Popup */
+    .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 9999; }
+    .popup-box { background: #111; border: 1px solid #ffd700; border-radius: 16px; padding: 24px; width: 85%; max-width: 350px; text-align: center; }
     .popup-box h3 { color: #ffd700; margin-top: 0; font-size: 20px; }
     .popup-box p { color: #ccc; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
-    .popup-close { background: #ffd700; color: #000; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; }
+    .popup-close { background: #ffd700; color: #000; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -51,20 +51,17 @@
   </div>
 
   <div class="split-container">
-    <!-- Left Side: Demons -->
+    <!-- Left Side -->
     <div class="column column-left" id="demonsColumn">
-        <div class="column-title">🌑 Demons</div>
-        <!-- Cards injected here -->
+        <div class="column-title">Villain's Aura</div>
     </div>
 
-    <!-- Right Side: Angels -->
+    <!-- Right Side -->
     <div class="column column-right" id="angelsColumn">
-        <div class="column-title">☀️ Angels</div>
-        <!-- Cards injected here -->
+        <div class="column-title">Superheroes</div>
     </div>
   </div>
 
-  <!-- Reserved Theme Popup -->
   <div id="reservedPopup" class="popup-overlay">
     <div class="popup-box">
       <h3 id="reservedTitle">Access Denied</h3>
