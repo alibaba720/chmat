@@ -62,27 +62,33 @@ window.applyTheme = function(themeId) {
 
 window.themesData = themes;
 
-// --- ROYAL SNOWFALL ANIMATION ---
+
+// --- ROYAL SNOWFALL 3D ANIMATION ---
 let snowInterval = null;
 const snowCSS = `
 .snowflake {
   position: fixed;
-  top: -10px;
-  background: #ffffff;
-  border-radius: 50%;
+  top: -10vh;
   pointer-events: none;
   z-index: 9999;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 1), 0 0 15px #d4af37;
   animation: fall linear forwards, sway ease-in-out infinite alternate;
-  filter: blur(0.5px);
+}
+.frost-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+  box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.5), inset 0 0 120px rgba(212, 175, 55, 0.15);
+  background: radial-gradient(circle at center, transparent 60%, rgba(255,255,255,0.1) 100%);
+  transition: opacity 0.5s ease;
 }
 @keyframes fall {
   0% { transform: translateY(-10vh); }
   100% { transform: translateY(110vh); }
 }
 @keyframes sway {
-  0% { margin-left: -20px; }
-  100% { margin-left: 20px; }
+  0% { margin-left: -30px; }
+  100% { margin-left: 30px; }
 }
 `;
 const styleSheet = document.createElement("style");
@@ -91,25 +97,60 @@ document.head.appendChild(styleSheet);
 
 function startSnowfall() {
     if (snowInterval) return;
+    
+    // Add Frost Overlay
+    if (!document.querySelector('.frost-overlay')) {
+        const frost = document.createElement('div');
+        frost.className = 'frost-overlay';
+        document.body.appendChild(frost);
+    }
+
     snowInterval = setInterval(() => {
         const flake = document.createElement('div');
         flake.classList.add('snowflake');
-        const size = Math.random() * 4 + 2 + 'px';
-        const left = Math.random() * 100 + 'vw';
-        const duration = Math.random() * 4 + 3 + 's';
-        const opacity = Math.random() * 0.7 + 0.3;
-        const startX = (Math.random() - 0.5) * 150 + 'px';
         
+        const rand = Math.random();
+        let size, duration, blur, opacity, content;
+        
+        // 3D Layers Logic
+        if (rand < 0.6) { // Background (Small, slow, blurry)
+            size = Math.random() * 3 + 2 + 'px';
+            duration = Math.random() * 5 + 8 + 's';
+            blur = '2px';
+            opacity = Math.random() * 0.4 + 0.3;
+            content = '❄️';
+        } else if (rand < 0.9) { // Midground (Medium, normal)
+            size = Math.random() * 5 + 4 + 'px';
+            duration = Math.random() * 4 + 5 + 's';
+            blur = '0px';
+            opacity = Math.random() * 0.5 + 0.5;
+            content = '❄️';
+        } else { // Foreground (Large, fast, very blurry)
+            size = Math.random() * 8 + 8 + 'px';
+            duration = Math.random() * 2 + 3 + 's';
+            blur = '4px';
+            opacity = 0.9;
+            content = '';
+        }
+
         flake.style.width = size;
         flake.style.height = size;
-        flake.style.left = left;
+        flake.style.left = Math.random() * 100 + 'vw';
         flake.style.opacity = opacity;
-        flake.style.animationDuration = duration;
-        flake.style.setProperty('--start-x', startX);
+        flake.style.filter = `blur(${blur})`;
+        flake.style.animationDuration = duration + ', ' + (Math.random() * 2 + 2) + 's';
+        flake.style.fontSize = size;
+        flake.innerText = content;
         
+        if (!content) {
+             flake.style.background = '#fff';
+             flake.style.borderRadius = '50%';
+             flake.style.boxShadow = '0 0 10px rgba(255,255,255,0.8), 0 0 20px #d4af37';
+        }
+
         document.body.appendChild(flake);
         setTimeout(() => { flake.remove(); }, parseFloat(duration) * 1000);
-    }, 150);
+    }, 100); // Faster spawn rate
 }
 
 function stopSnowfall() {
@@ -118,9 +159,11 @@ function stopSnowfall() {
         snowInterval = null;
     }
     document.querySelectorAll('.snowflake').forEach(el => el.remove());
+    const frost = document.querySelector('.frost-overlay');
+    if (frost) frost.remove();
 }
 
-// Overwrite applyTheme to trigger snow
+// Overwrite applyTheme
 const originalApplyTheme = window.applyTheme;
 window.applyTheme = function(themeId) {
     if(originalApplyTheme) originalApplyTheme(themeId);
@@ -131,7 +174,6 @@ window.applyTheme = function(themeId) {
     }
 };
 
-// Start snow on load if white_queen is active
 if (localStorage.getItem('chmat_active_theme') === 'white_queen') {
     document.addEventListener('DOMContentLoaded', startSnowfall);
 }
