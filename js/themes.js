@@ -1,16 +1,8 @@
-// CHMAT Theme Engine V15 (Only Roses + Snowfall - FORCED)
+// CHMAT Theme Engine V20 (Absolute Force Fix)
 
 const themes = {
     "victor_doom": { name: "Victor Von Doom", type: "demon", isReserved: true, image: "assets/themes/victor_doom.jpg", caption: "Bow down to the King.", bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)", primary: "#00ff00", text: "#ffffff", border: "#004400", reservedText: "Reserved for Mr. Tiger." },
-        "white_queen": { 
-        name: "White Queen", type: "angel", isReserved: false, 
-        image: "assets/themes/white_queen.png", 
-        caption: "Elegance and unmatched power.", 
-        bgGradient: "linear-gradient(135deg, #f4f9ff 0%, #dbe9f4 100%)", 
-        primary: "#d4af37", 
-        text: "#111111", 
-        border: "#d4af37" 
-    },
+    "white_queen": { name: "White Queen", type: "angel", isReserved: false, image: "assets/themes/white_queen.png", caption: "Elegance and unmatched power.", bgGradient: "linear-gradient(135deg, #f4f9ff 0%, #dbe9f4 100%)", primary: "#d4af37", text: "#111111", border: "#d4af37", reservedText: "Reserved for the Queen." },
     "iron_man": { name: "Iron Man", type: "angel", image: "assets/themes/iron_man.jpg", caption: "I am Iron Man.", bgGradient: "linear-gradient(135deg, #000000, #3a0000, #000000)", primary: "#ff0000", text: "#ffffff", border: "#550000" },
     "thor": { name: "Thor", type: "angel", image: "assets/themes/thor.jpg", caption: "Bring me Thanos!", bgGradient: "linear-gradient(135deg, #000000, #001a33, #000000)", primary: "#00bfff", text: "#ffffff", border: "#003366" },
     "spiderman": { name: "Spider-Man", type: "angel", image: "assets/themes/spiderman.jpg", caption: "With great power comes great responsibility.", bgGradient: "linear-gradient(135deg, #000000, #330000, #000033)", primary: "#e62429", text: "#ffffff", border: "#660000" },
@@ -24,21 +16,71 @@ const themes = {
     "loki": { name: "Loki", type: "demon", image: "assets/themes/loki.jpg", caption: "Glorious purpose.", bgGradient: "linear-gradient(135deg, #000000, #002200, #1a1a00)", primary: "#ffd700", text: "#ffffff", border: "#004400" }
 };
 
+// Function to inject strict CSS ONLY for White Queen
+function applyStrictWhiteQueenCSS() {
+    if (document.getElementById('strict-wq-css')) return;
+    const style = document.createElement('style');
+    style.id = 'strict-wq-css';
+    style.innerHTML = `
+        body.theme-white-queen, 
+        body.theme-white-queen .app-container, 
+        body.theme-white-queen .app-content,
+        body.theme-white-queen #mainContent,
+        body.theme-white-queen .tab-content,
+        body.theme-white-queen .post-card,
+        body.theme-white-queen .profile-container,
+        body.theme-white-queen .settings-group,
+        body.theme-white-queen .ig-grid-item {
+            background: #f4f9ff !important; /* ICE WHITE */
+            background-color: #f4f9ff !important;
+            background-image: linear-gradient(135deg, #f4f9ff 0%, #dbe9f4 100%) !important;
+            color: #111111 !important;
+        }
+        /* Kill all red borders and make them Gold */
+        * { border-color: #d4af37 !important; } 
+        
+        /* Make text dark and visible */
+        body.theme-white-queen h1, body.theme-white-queen h2, body.theme-white-queen h3, 
+        body.theme-white-queen p, body.theme-white-queen span, 
+        body.theme-white-queen .display-name, body.theme-white-queen .ig-username, 
+        body.theme-white-queen .post-display-name, body.theme-white-queen .post-text {
+            color: #111111 !important;
+        }
+        
+        /* Nav Bar - White with Gold Icons */
+        body.theme-white-queen .bottom-nav { background: #ffffff !important; border-top: 2px solid #d4af37 !important; }
+        body.theme-white-queen .nav-item svg { stroke: #d4af37 !important; fill: none !important; }
+        body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
+        
+        /* Buttons */
+        body.theme-white-queen .ig-btn, body.theme-white-queen .btn-primary, body.theme-white-queen .action-btn {
+            background: #ffffff !important; color: #b8860b !important; border: 1px solid #d4af37 !important;
+        }
+        body.theme-white-queen .logo { color: #00e5ff !important; text-shadow: 0 0 15px #00e5ff !important; }
+    `;
+    document.head.appendChild(style);
+}
+
 window.applyTheme = function(themeId) {
     const theme = themes[themeId];
     if (!theme) return;
+    
     const root = document.documentElement.style;
     root.setProperty('--theme-bg-grad', theme.bgGradient);
     root.setProperty('--theme-primary', theme.primary);
     root.setProperty('--theme-text', theme.text);
     root.setProperty('--theme-border', theme.border);
+    
     localStorage.setItem('chmat_active_theme', themeId);
     
     if(themeId === 'white_queen') { 
         document.body.classList.add('theme-white-queen'); 
+        applyStrictWhiteQueenCSS(); // Inject the heavy CSS
         if(typeof startSnowfall === 'function') startSnowfall();
     } else { 
         document.body.classList.remove('theme-white-queen'); 
+        const wqCss = document.getElementById('strict-wq-css');
+        if(wqCss) wqCss.remove(); // Remove the heavy CSS when switching back
         if(typeof stopSnowfall === 'function') stopSnowfall();
     }
 };
@@ -62,19 +104,10 @@ function startSnowfall() {
 }
 function stopSnowfall() { if (snowInterval) { clearInterval(snowInterval); snowInterval = null; } document.querySelectorAll('.snowflake').forEach(el => el.remove()); }
 
-// --- ONLY ROSES (FORCED TRIGGER) ---
+// --- RANI ENTRY (ROSES) ---
 let roseInterval = null;
 window.startRoseShower = function(callback) {
     if (roseInterval) return;
-
-    // --- SOFT WIND AUDIO ---
-    if (!window.softWindAudio) {
-        window.softWindAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/1238/1238-preview.mp3'); 
-        window.softWindAudio.volume = 0.15; // Bohot halki awaaz (15%)
-        window.softWindAudio.loop = true;
-        window.softWindAudio.play().catch(e => console.log("Audio blocked by browser"));
-    }
-
     
     if (!document.getElementById('rose-styles')) {
         const styleSheet = document.createElement("style"); styleSheet.id = 'rose-styles'; 
@@ -87,12 +120,6 @@ window.startRoseShower = function(callback) {
         if (Date.now() - startTime > roseDuration) {
             clearInterval(roseInterval); roseInterval = null;
             document.querySelectorAll('.rose-particle').forEach(el => el.remove());
-
-            if (window.softWindAudio) {
-                window.softWindAudio.pause();
-                window.softWindAudio = null;
-            }
-    
             if (callback) callback();
             return;
         }
@@ -115,20 +142,31 @@ window.startRoseShower = function(callback) {
     }, 150);
 };
 
-// --- FORCED AUTO TRIGGER ---
+// --- AUTO TRIGGER ON LOAD ---
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. Force Snowfall if White Queen
-    if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
+    let active = localStorage.getItem('chmat_active_theme');
     
-    // 2. Clear Session Storage to ALWAYS trigger Roses on load
-    sessionStorage.removeItem('rani_entry_shown'); 
-    
-    // 3. Trigger Roses after 1.5 seconds
-    setTimeout(() => {
-        window.startRoseShower(() => {
-            if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
-        });
-    }, 1500);
+    // Force default to white_queen
+    if(!active || active === 'iron_man') {
+        active = 'white_queen';
+        localStorage.setItem('chmat_active_theme', 'white_queen');
+    }
+
+    if(active === 'white_queen') {
+        document.body.classList.add('theme-white-queen');
+        applyStrictWhiteQueenCSS();
+        startSnowfall();
+    }
+
+    // Trigger roses once per session
+    if (sessionStorage.getItem('rani_entry_shown') !== 'true') {
+        sessionStorage.setItem('rani_entry_shown', 'true');
+        setTimeout(() => {
+            window.startRoseShower(() => {
+                if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
+            });
+        }, 1000);
+    }
 });
 
 window.themesData = themes;
