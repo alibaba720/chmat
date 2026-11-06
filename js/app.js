@@ -828,31 +828,23 @@ async function loadFriendsPageData() {
     } catch(e) { console.log(e); }
 }
 
-// REAL-TIME POPUP LOGIC
+// ==========================================
+// SMART POPUP QUEUE & SWIPE LOGIC
+// ==========================================
+let popupQueue = [];
+let isShowingPopup = false;
 let seenRequestIds = new Set();
 
-function listenForNewRequests() {
-    const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid), where("status", "==", "pending"));
-    onSnapshot(qReq, (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-            if (change.type === 'added') {
-                const req = change.doc.data();
-                const reqId = change.doc.id;
-                
-                // Agar request pehle se seen nahi hai aur nayi hai (1 minute ke andar)
-                const now = Date.now();
-                const reqTime = req.createdAt ? req.createdAt.toMillis() : 0;
-                
-                if (!seenRequestIds.has(reqId) && (now - reqTime < 60000)) {
-                    seenRequestIds.add(reqId);
-                    showFriendPopup(req, reqId);
-                }
-            }
-        });
-    });
+function queuePopup(title, text, avatarUrl, reqId, senderId, type) {
+    popupQueue.push({ title, text, avatarUrl, reqId, senderId, type });
+    processPopupQueue();
 }
 
-async function showFriendPopup(req, reqId) {
+async function processPopupQueue() {
+    if (isShowingPopup || popupQueue.length === 0) return;
+    isShowingPopup = true;
+    
+    const data = popupQueue.shift();
     const popup = document.getElementById('frPopup');
     const avatar = document.getElementById('frPopupAvatar');
     const text = document.getElementById('frPopupText');
@@ -861,19 +853,122 @@ async function showFriendPopup(req, reqId) {
     
     if(!popup) return;
 
-    const userProf = await getUserProfile(req.senderId);
-    if(userProf && userProf.profilePicUrl) avatar.innerHTML = `<img src="${userProf.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">`;
-    else avatar.innerHTML = `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;font-weight:bold;color:#fff;">${req.senderUsername.charAt(0).toUpperCase()}</div>`;
+    if(data.avatarUrl) avatar.innerHTML = `<img src="${data.avatarUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+    else avatar.innerHTML = `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;font-weight:bold;color:#fff;">${data.title.charAt(0).toUpperCase()}</div>`;
 
-    text.innerHTML = `<span style="color:#0095f6; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${req.senderId}'">@${req.senderUsername}</span> sent you a friend request.`;
+    text.innerHTML = data.text;
     
-    acceptBtn.onclick = () => { acceptRequest(reqId, req.senderId, req.senderUsername); popup.style.display = 'none'; };
-    deleteBtn.onclick = () => { rejectRequest(reqId); popup.style.display = 'none'; };
+    // Setup Buttons
+    if (data.type === 'request') {
+        acceptBtn.style.display = 'block';
+        deleteBtn.style.display = 'block';
+        acceptBtn.onclick = () => { acceptRequest(data.reqId, data.senderId, data.title); closeCurrentPopup(); };
+        deleteBtn.onclick = () => { rejectRequest(data.reqId); closeCurrentPopup(); };
+    } else {
+        // For 'accepted' notification
+        acceptBtn.style.display = 'none';
+        deleteBtn.style.display = 'none';
+    }
 
+    // Show Popup
     popup.style.display = 'flex';
-    
-    setTimeout(() => { popup.style.display = 'none'; }, 8000); // 8 second baad popup gayab
+    popup.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+    popup.style.transform = 'translateY(0)';
+    popup.style.opacity = '1';
+
+    // Setup Swipe to Dismiss
+    let startX = 0;
+    popup.ontouchstart = (e) => { startX = e.touches[0].clientX; popup.style.transition = 'none'; };
+    popup.ontouchmove = (e) => { 
+        let currentX = e.touches[0].clientX;
+        let diff = currentX - startX;
+        popup.style.transform = `translateX(${diff}px)`; 
+    };
+    popup.ontouchend = (e) => {
+        let endX = e.changedTouches[0].clientX;
+        let diff = endX - startX;
+        popup.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+        if (Math.abs(diff) > 80) {
+            // Swipe successful
+            closeCurrentPopup(diff > 0 ? 'right' : 'left');
+        } else {
+            popup.style.transform = 'translateX(0)';
+        }
+    };
+
+    // Auto hide after 3 seconds
+    if (window.popupTimer) clearTimeout(window.popupTimer);
+    window.popupTimer = setTimeout(() => { closeCurrentPopup('up'); }, 3000);
 }
+
+function closeCurrentPopup(direction = 'up') {
+    const popup = document.getElementById('frPopup');
+    if(!popup) return;
+    
+    if (direction === 'left') {
+        popup.style.transform = 'translateX(-150%)';
+    } else if (direction === 'right') {
+        popup.style.transform = 'translateX(150%)';
+    } else {
+        popup.style.transform = 'translateY(-100%)';
+    }
+    popup.style.opacity = '0';
+
+    setTimeout(() => {
+        popup.style.display = 'none';
+        isShowingPopup = false;
+        processPopupQueue(); // Show next popup if any
+    }, 300);
+}
+
+// LISTENER FOR NEW REQUESTS & ACCEPTS
+function listenForNewRequests() {
+    // 1. Listen to Friend Requests
+    const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid), where("status", "==", "pending"));
+    onSnapshot(qReq, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+            if (change.type === 'added') {
+                const req = change.doc.data();
+                const reqId = change.doc.id;
+                const now = Date.now();
+                const reqTime = req.createdAt ? req.createdAt.toMillis() : 0;
+                
+                if (!seenRequestIds.has(reqId) && (now - reqTime < 120000)) { // 2 mins
+                    seenRequestIds.add(reqId);
+                    const userProf = await getUserProfile(req.senderId);
+                    const avatarUrl = userProf ? userProf.profilePicUrl : null;
+                    
+                    queuePopup(req.senderUsername, `<span style="color:#0095f6; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${req.senderId}'">@${req.senderUsername}</span> sent you a friend request.`, avatarUrl, reqId, req.senderId, 'request');
+                }
+            }
+        });
+    });
+
+    // 2. Listen to Accepted Notifications
+    const qNoti = query(collection(db, "notifications"), where("receiverId", "==", currentUser.uid), where("type", "==", "friend_accept"));
+    onSnapshot(qNoti, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+            if (change.type === 'added') {
+                const noti = change.doc.data();
+                const notiId = change.doc.id;
+                // Check if it's recent (within 2 mins)
+                const now = Date.now();
+                const notiTime = noti.createdAt ? noti.createdAt.toMillis() : 0;
+                
+                if (now - notiTime < 120000) {
+                    const userProf = await getUserProfile(noti.senderId);
+                    const avatarUrl = userProf ? userProf.profilePicUrl : null;
+                    
+                    queuePopup(noti.senderUsername, `<span style="color:#0095f6; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${noti.senderId}'">@${noti.senderUsername}</span> accepted your friend request.`, avatarUrl, null, noti.senderId, 'accepted');
+                    
+                    // Mark as read so we don't show again
+                    updateDoc(doc(db, "notifications", notiId), { read: true });
+                }
+            }
+        });
+    });
+}
+
 
 // Initialize on load
 setTimeout(() => {
