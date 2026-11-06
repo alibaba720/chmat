@@ -223,7 +223,22 @@ window.openGroupInfo = async function() {
         }
     }
 
-    let adminSettingsBtn = isAdmin ? `<button onclick="openAdminActivity()" style="margin-top:15px; background:#262626; color:#fff; border:1px solid #444; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:bold; width:100%;">Admin Activity Log</button>` : '';
+    let adminSettingsBtn = '';
+    if (isAdmin) {
+        // Privacy toggle (Only Owner can change, Admins can see status)
+        let isPrivacyOn = groupData.adminApproval === true;
+        let privacyBtn = isOwner ? 
+            `<button onclick="toggleAdminApproval()" style="background:#262626; color:${isPrivacyOn ? '#0095f6' : '#888'}; border:1px solid #444; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:bold; margin-left:5px;">Approval: ${isPrivacyOn ? 'ON' : 'OFF'}</button>` : 
+            `<span style="color:#888; font-size:12px; margin-left:5px;">Approval: ${isPrivacyOn ? 'ON' : 'OFF'}</span>`;
+
+        adminSettingsBtn = `
+            <div style="display:flex; justify-content:center; gap:8px; margin-top:15px; flex-wrap:wrap;">
+                <button onclick="openAddMemberModal()" style="background:#0095f6; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:bold;">Add Member</button>
+                <button onclick="openAdminActivity()" style="background:#262626; color:#fff; border:1px solid #444; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:bold;">Activity Log</button>
+                ${privacyBtn}
+            </div>
+        `;
+    }
 
     modal.innerHTML = `
       <div style="background:#111; width:100%; max-width:600px; border-radius:20px 20px 0 0; padding:20px; display:flex; flex-direction:column; max-height:85vh; border-top: 1px solid #333;">
@@ -341,5 +356,109 @@ window.openAdminActivity = async function() {
         contentBox.innerHTML = html;
     } catch(e) {
         contentBox.innerHTML = `<p style="color:red; padding:20px;">Error loading activity: ${e.message}</p>`;
+    }
+};
+
+// --- PHASE 2: ADD MEMBER & APPROVAL LOGIC ---
+
+window.toggleAdminApproval = async function() {
+    if(!confirm("Change Admin Approval setting for this group?")) return;
+    try {
+        const groupSnap = await getDoc(doc(db, "groups", groupId));
+        const currentStatus = groupSnap.data().adminApproval || false;
+        await updateDoc(doc(db, "groups", groupId), { adminApproval: !currentStatus });
+        await loadGroupData();
+        openGroupInfo(); // Refresh UI
+    } catch(e) { alert("Error: " + e.message); }
+};
+
+window.openAddMemberModal = async function() {
+    let modal = document.getElementById('addMemberModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'addMemberModal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10005; display: flex; flex-direction: column;';
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    
+    modal.innerHTML = `
+        <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;">
+            <h3 style="margin:0; color:#fff; font-size:18px;">Add Members</h3>
+            <button onclick="document.getElementById('addMemberModal').style.display='none'" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
+        </div>
+        <div id="addMemberList" style="padding: 16px; overflow-y:auto; flex:1; color:#fff;">
+            <p style="text-align:center; color:#888;">Loading friends...</p>
+        </div>
+    `;
+
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const myFriends = userDoc.data().friends || [];
+        
+        // Filter friends who are NOT already in the group
+        const availableFriends = myFriends.filter(fid => !groupData.members.includes(fid));
+        
+        if (availableFriends.length === 0) {
+            document.getElementById('addMemberList').innerHTML = '<p style="text-align:center; color:#888;">All your friends are already in this group or you have no friends.</p>';
+            return;
+        }
+
+        let html = '';
+        for (const fid of availableFriends) {
+            const uSnap = await getDoc(doc(db, "users", fid));
+            if (uSnap.exists()) {
+                const uData = uSnap.data();
+                const initial = (uData.displayName || uData.username).charAt(0).toUpperCase();
+                const avatar = uData.profilePicUrl ? `<img src="${uData.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;border-radius:50%;font-weight:bold;">${initial}</div>`;
+                
+                html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #222;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:40px; height:40px; border-radius:50%; overflow:hidden;">${avatar}</div>
+                        <div>
+                            <div style="font-size:15px; font-weight:600;">${uData.displayName || uData.username}</div>
+                            <div style="font-size:12px; color:#888;">@${uData.username}</div>
+                        </div>
+                    </div>
+                    <button onclick="handleAddMember('${fid}', '${uData.username}')" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold;">Add</button>
+                </div>`;
+            }
+        }
+        document.getElementById('addMemberList').innerHTML = html;
+    } catch(e) {
+        document.getElementById('addMemberList').innerHTML = `<p style="color:red;">Error loading friends: ${e.message}</p>`;
+    }
+};
+
+window.handleAddMember = async function(fid, fname) {
+    const isAdmin = groupData.owner === currentUser.uid || (groupData.admins && groupData.admins.includes(currentUser.uid));
+    const isApprovalRequired = groupData.adminApproval === true;
+
+    if (isAdmin || !isApprovalRequired) {
+        // Directly add
+        try {
+            await updateDoc(doc(db, "groups", groupId), { members: arrayUnion(fid) });
+            await logActivity("Added to group", fname);
+            alert(fname + " added successfully!");
+            await loadGroupData();
+            openGroupInfo();
+            document.getElementById('addMemberModal').style.display = 'none';
+        } catch(e) { alert("Error: " + e.message); }
+    } else {
+        // Send approval request to Admin/Owner
+        try {
+            const ownerUid = groupData.owner || groupData.admin;
+            await addDoc(collection(db, "groups", groupId, "approvals"), {
+                targetUid: fid,
+                targetUsername: fname,
+                requestedBy: currentUser.uid,
+                requestedByName: currentUserData.username,
+                status: "pending",
+                createdAt: serverTimestamp()
+            });
+            alert("Request sent to Admin for approval.");
+            document.getElementById('addMemberModal').style.display = 'none';
+        } catch(e) { alert("Error sending request: " + e.message); }
     }
 };
