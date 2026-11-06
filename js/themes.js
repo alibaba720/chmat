@@ -1,4 +1,4 @@
-// CHMAT Theme Engine V11 (The Perfect Version)
+// CHMAT Theme Engine V12 (Clean Slate - Only Snowfall)
 
 const themes = {
     "victor_doom": { name: "Victor Von Doom", type: "demon", isReserved: true, image: "assets/themes/victor_doom.jpg", caption: "Bow down to the King.", bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)", primary: "#00ff00", text: "#ffffff", border: "#004400", reservedText: "Reserved for Mr. Tiger." },
@@ -35,7 +35,7 @@ window.applyTheme = function(themeId) {
     }
 };
 
-// --- SNOWFALL ---
+// --- ONLY SNOWFALL ---
 let snowInterval = null;
 function startSnowfall() {
     if (snowInterval || !document.getElementById('snow-styles')) {
@@ -54,86 +54,9 @@ function startSnowfall() {
 }
 function stopSnowfall() { if (snowInterval) { clearInterval(snowInterval); snowInterval = null; } document.querySelectorAll('.snowflake').forEach(el => el.remove()); }
 
-// --- RANI ENTRY (ROSES + TEXT + SOUND) ---
-let roseInterval = null;
-window.startRoseShower = function(callback) {
-    if (roseInterval) return;
-    
-    // 1. Icy Royal Text
-    if (!document.getElementById('queen-welcome-text')) {
-        const welcomeDiv = document.createElement('div'); welcomeDiv.id = 'queen-welcome-text';
-        welcomeDiv.style.cssText = 'position: fixed; top: 35%; left: 50%; transform: translate(-50%, -50%); z-index: 99999; text-align: center; pointer-events: none; opacity: 0; transition: opacity 2s ease-in-out; width: 100%;';
-        welcomeDiv.innerHTML = `<div style="font-family: 'Cinzel', serif; font-weight: 700; color: #ffffff; text-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff, 0 0 30px #00b0ff;"><div style="font-size: 2.5rem; letter-spacing: 2px;">Welcome Back</div><div style="font-size: 4rem; font-style: italic; margin-top: 10px;">My Queen</div></div>`;
-        document.body.appendChild(welcomeDiv);
-        setTimeout(() => { welcomeDiv.style.opacity = '1'; }, 100);
-        setTimeout(() => { welcomeDiv.style.opacity = '0'; setTimeout(() => welcomeDiv.remove(), 2000); }, 8000);
-    }
-
-    // 2. Sounds (Wind + Soft Birds)
-    if (!window.windAudio) {
-        window.windAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/1238/1238-preview.mp3');
-        window.windAudio.volume = 0.4; window.windAudio.loop = true; window.windAudio.play().catch(e => console.log("Audio blocked"));
-        setTimeout(() => {
-            window.birdsAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2433/2433-preview.mp3');
-            window.birdsAudio.volume = 0.1; window.birdsAudio.play().catch(e => console.log(e));
-        }, 5000);
-    }
-
-    // 3. Roses (Using the exact logic from your script)
-    if (!document.getElementById('rose-styles')) {
-        const styleSheet = document.createElement("style"); styleSheet.id = 'rose-styles'; 
-        styleSheet.innerText = `.rose-particle { position: fixed; top: -10vh; pointer-events: none; z-index: 10000; animation: roseFall linear forwards, roseSway ease-in-out infinite alternate, roseSpin linear infinite; filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5)); } @keyframes roseFall { 0% { top: -10vh; } 100% { top: 110vh; } } @keyframes roseSway { 0% { margin-left: -40px; } 100% { margin-left: 40px; } } @keyframes roseSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`; 
-        document.head.appendChild(styleSheet);
-    }
-
-    let startTime = Date.now(); let roseDuration = 60000; 
-    roseInterval = setInterval(() => {
-        if (Date.now() - startTime > roseDuration) {
-            clearInterval(roseInterval); roseInterval = null;
-            document.querySelectorAll('.rose-particle').forEach(el => el.remove());
-            if (window.windAudio) { window.windAudio.pause(); window.windAudio = null; }
-            if (window.birdsAudio) { window.birdsAudio.pause(); window.birdsAudio = null; }
-            if (callback) callback();
-            return;
-        }
-
-        const particle = document.createElement('div'); particle.classList.add('rose-particle');
-        const isPetal = Math.random() > 0.3; let size, duration, opacity, content;
-
-        if (isPetal) {
-            // YEH WOH EXACT LOGIC HAI JO AAPNE BHEJI
-            size = Math.random() * 12 + 8 + 'px'; 
-            duration = Math.random() * 6 + 6 + 's'; 
-            opacity = Math.random() * 0.7 + 0.3; 
-            content = '🌹';
-            particle.style.filter = 'sepia(1) saturate(8) hue-rotate(330deg) brightness(0.7) drop-shadow(0 0 3px rgba(255,0,0,0.8))';
-            particle.style.transform = 'scaleX(0.6) scaleY(0.8)';
-        } else {
-            size = Math.random() * 10 + 15 + 'px'; 
-            duration = Math.random() * 3 + 3 + 's'; 
-            opacity = 1; 
-            content = '🌹';
-            particle.style.filter = 'drop-shadow(0 0 6px rgba(255,0,0,0.8))';
-        }
-        
-        particle.style.cssText += `width:${size}; height:${size}; left:${Math.random() * 100}vw; opacity:${opacity}; animation-duration:${duration}, ${Math.random() * 2 + 2}s, ${Math.random() * 3 + 2}s; font-size:${size};`;
-        particle.innerText = content;
-        document.body.appendChild(particle); setTimeout(() => { particle.remove(); }, parseFloat(duration) * 1000);
-    }, 150);
-};
-
-// --- AUTO TRIGGER ---
+// --- NO AUTO TRIGGER FOR ROSES (Clean Slate) ---
 window.addEventListener('DOMContentLoaded', () => {
     if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
-    
-    if (sessionStorage.getItem('rani_entry_shown') !== 'true') {
-        sessionStorage.setItem('rani_entry_shown', 'true');
-        setTimeout(() => {
-            window.startRoseShower(() => {
-                if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
-            });
-        }, 1000);
-    }
 });
 
 window.themesData = themes;

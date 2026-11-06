@@ -121,196 +121,16 @@
     .nav-item svg { stroke: var(--theme-text) !important; }
     .nav-item.active svg { fill: var(--theme-text) !important; }
 
-    /* --- V4: ULTIMATE THEME VISUALS & ICONS --- */
     
-    /* 1. Fix Backgrounds: Make all containers transparent so the gradient shows */
-    body, .app-container, .settings-container, .chat-container, .post-card, .ig-grid-item, .settings-group, .input-group, .dropdown-menu, .comment-sheet, .modal-content {
-        background: transparent !important;
-    }
-    
-    /* Create a glass effect for cards */
-    .post-card, .settings-group, .dropdown-menu, .theme-card {
-        background: rgba(10, 10, 10, 0.5) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-    }
-
-    /* 2. Top Header & Notification Heart */
-    .app-header, .settings-header, .chat-header {
-        background: rgba(0, 0, 0, 0.6) !important;
-        backdrop-filter: blur(10px) !important;
-        border-bottom: 1px solid var(--theme-primary) !important; /* Glowing bottom border */
-    }
-    
-    /* Change Heart Icon Color & Glow */
-    .header-icons svg, #notiBtn svg {
-        stroke: var(--theme-primary) !important;
-        fill: var(--theme-primary) !important;
-        filter: drop-shadow(0 0 8px var(--theme-primary));
-        transition: 0.3s;
-    }
-
-    /* 3. Bottom Navigation Icons (Home, Search, Post, Chat, Profile) */
-    .bottom-nav {
-        background: rgba(0, 0, 0, 0.8) !important;
-        backdrop-filter: blur(15px) !important;
-        border-top: 1px solid var(--theme-primary) !important;
-    }
-    
-    .nav-item svg {
-        stroke: var(--theme-text) !important;
-        fill: none !important;
-        transition: all 0.3s ease;
-    }
-    
-    /* Active Button: Give it the Theme Primary Color and a Neon Glow */
-    .nav-item.active svg {
-        stroke: var(--theme-primary) !important;
-        fill: var(--theme-primary) !important;
-        filter: drop-shadow(0 0 10px var(--theme-primary));
-        transform: scale(1.1);
-    }
-
-    /* 4. Buttons (Like, Comment, Edit Profile, etc) */
-    .action-btn, .ig-btn, .save-btn, .btn-primary, .add-friend-btn {
-        background: transparent !important;
-        color: var(--theme-primary) !important;
-        border: 1px solid var(--theme-primary) !important;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5) inset !important;
-        text-shadow: 0 0 5px var(--theme-primary) !important;
-        transition: 0.3s;
-    }
-    
-    .action-btn:active, .ig-btn:active, .btn-primary:active {
-        background: var(--theme-primary) !important;
-        color: #000 !important; /* Dark text on bright button click */
-        box-shadow: 0 0 20px var(--theme-primary) !important;
-    }
-    
-    /* Like button specific */
-    .action-btn.liked {
-        color: #ff3b30 !important;
-        border-color: #ff3b30 !important;
-        text-shadow: 0 0 10px #ff3b30 !important;
-    }
-
-    /* 5. Text Colors and Tabs */
-    .ig-username, .ig-name, .post-display-name, h2, h3 {
-        color: var(--theme-text) !important;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    }
-    
-    .ig-tab.active {
-        color: var(--theme-primary) !important;
-        border-bottom: 2px solid var(--theme-primary) !important;
-        text-shadow: 0 0 8px var(--theme-primary);
-    }
-    
-    .ig-tab {
-        color: #888 !important;
-    }
-
-    /* 6. Input Fields */
-    input, textarea, #messageInput, #commentInput {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid var(--theme-border) !important;
-        color: var(--theme-text) !important;
-    }
-    
-    input:focus, textarea:focus {
-        border-color: var(--theme-primary) !important;
-        box-shadow: 0 0 8px var(--theme-primary) !important;
-    }
-    
-    /* Logo Glow */
-    .logo {
-        color: var(--theme-primary) !important;
-        text-shadow: 0 0 15px var(--theme-primary), 0 0 30px var(--theme-primary) !important;
-    }
-
-
-    /* --- WHITE QUEEN SPECIFIC UI FIXES --- */
     body.theme-white-queen button, 
-    body.theme-white-queen .ig-btn, 
-    body.theme-white-queen .btn-primary, 
-    body.theme-white-queen .action-btn,
-    body.theme-white-queen .add-friend-btn {
-        background: #ffffff !important;
-        color: #111111 !important;
-        border: 2px solid #d4af37 !important; /* Gold Border */
-        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2) !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    body.theme-white-queen button:active, 
-    body.theme-white-queen .ig-btn:active {
-        background: #fffdf5 !important;
-        box-shadow: 0 0 20px #d4af37, 0 0 40px #d4af37 !important; /* Gold Blink/Glow */
-        transform: scale(0.95);
-    }
-
-    /* Fix Bottom Nav visibility */
-    body.theme-white-queen .bottom-nav {
-        background: rgba(255, 255, 255, 0.9) !important;
-        border-top: 2px solid #d4af37 !important;
-    }
-    body.theme-white-queen .nav-item svg {
-        stroke: #111111 !important; /* Dark icons for visibility */
-    }
-    body.theme-white-queen .nav-item.active svg {
-        stroke: #d4af37 !important; /* Gold when active */
-        fill: #d4af37 !important;
-    }
-    
-    /* Fix Text Visibility */
-    body.theme-white-queen .post-card, 
-    body.theme-white-queen .ig-top-bar,
-    body.theme-white-queen .app-header {
-        background: rgba(255, 255, 255, 0.8) !important;
-        border-bottom: 1px solid #d4af37 !important;
-    }
-    body.theme-white-queen .ig-username,
-    body.theme-white-queen .post-display-name,
-    body.theme-white-queen .logo {
-        color: #111111 !important;
-        text-shadow: none !important;
-    }
-    body.theme-white-queen .ig-dp-img {
-        border: 2px solid #d4af37 !important;
-    }
-
-
-    /* --- WHITE QUEEN UI UPGRADES --- */
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
-
-    body.theme-white-queen .bottom-nav {
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(10px);
-        border-top: 2px solid #d4af37 !important; /* Gold top border */
-    }
-    body.theme-white-queen .nav-item svg {
-        stroke: #555555 !important; /* Dark grey for unselected */
-    }
-    body.theme-white-queen .nav-item.active svg {
-        stroke: #d4af37 !important; /* Gold for active */
-        fill: rgba(212, 175, 55, 0.2) !important;
-        filter: drop-shadow(0 0 5px #d4af37);
-    }
     body.theme-white-queen .ig-btn, 
     body.theme-white-queen .btn-primary, 
     body.theme-white-queen .action-btn {
         background: #ffffff !important;
-        color: #d4af37 !important; /* Gold text */
-        border: 1px solid #d4af37 !important; /* Gold border */
-        box-shadow: 0 2px 10px rgba(212, 175, 55, 0.2);
+        color: #111111 !important;
+        border: 1px solid #d4af37 !important;
     }
-    body.theme-white-queen .ig-btn:active {
-        background: #d4af37 !important;
-        color: #ffffff !important;
-        box-shadow: 0 0 15px #d4af37 !important;
-    }
+    body.theme-white-queen .logo { color: #111111 !important; text-shadow: none !important; }
 
 </style>
 </head>
@@ -475,7 +295,7 @@
   <!-- Post Options Modal -->
   <div id="postOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: rgba(0,0,0,0.7); align-items: flex-end;"><div onclick="closePostOptions()" style="position: absolute; width: 100%; height: 100%;"></div><div style="background: #1c1c1e; width: 100%; border-radius: 20px 20px 0 0; padding: 20px 0; position: relative; display: flex; flex-direction: column;"><div style="text-align:center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 10px; color: #888; font-size: 13px; font-weight: bold;">Post Options</div><div onclick="changePrivacyAction('Public')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🌍</span> Public</div><div onclick="changePrivacyAction('Friends')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">👥</span> Friends</div><div onclick="changePrivacyAction('Only Me')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🔒</span> Only Me</div><div style="height: 8px; background: #000; margin: 10px 0;"></div><div onclick="deletePostAction()" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #ff3b30; font-size: 15px; font-weight: bold;"><span style="font-size:20px;">🗑️</span> Delete Post</div><div onclick="closePostOptions()" style="padding: 16px 20px; text-align: center; color: #aaa; cursor: pointer; border-top: 1px solid #333; margin-top: 10px;">Cancel</div></div></div>
 
-  <script src="js/themes.js?v=7777"></script>
+  <script src="js/themes.js?v=1111"></script>
   <script type="module" src="js/app.js?v=999"></script>
 
   <div id="viewPostModal" class="modal-overlay hidden" style="z-index: 10005; background: rgba(0,0,0,0.95); display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
