@@ -22,40 +22,30 @@ function applyStrictWhiteQueenCSS() {
     const style = document.createElement('style');
     style.id = 'strict-wq-css';
     style.innerHTML = `
+        
+        /* 1. Background Image (Snowy Castle) */
         body.theme-white-queen, 
-        body.theme-white-queen .app-container, 
+        body.theme-white-queen .app-container {
+        }
+
+        /* 2. Transparent Glass effect for containers */
         body.theme-white-queen .app-content,
         body.theme-white-queen #mainContent,
         body.theme-white-queen .tab-content,
         body.theme-white-queen .post-card,
         body.theme-white-queen .profile-container,
         body.theme-white-queen .settings-group,
-        body.theme-white-queen .ig-grid-item {
-            background: #f4f9ff !important; /* ICE WHITE */
-            background-color: #f4f9ff !important;
-            background-image: linear-gradient(135deg, #f4f9ff 0%, #dbe9f4 100%) !important;
-            color: #111111 !important;
+        body.theme-white-queen .ig-grid-item,
+        body.theme-white-queen .app-header {
         }
-        /* Kill all red borders and make them Gold */
-        * { border-color: #d4af37 !important; } 
-        
-        /* Make text dark and visible */
+
+        /* 3. Keep Text Dark and Readable */
         body.theme-white-queen h1, body.theme-white-queen h2, body.theme-white-queen h3, 
         body.theme-white-queen p, body.theme-white-queen span, 
         body.theme-white-queen .display-name, body.theme-white-queen .ig-username, 
         body.theme-white-queen .post-display-name, body.theme-white-queen .post-text {
-            color: #111111 !important;
         }
-        
-        /* Nav Bar - White with Gold Icons */
-        body.theme-white-queen .bottom-nav { background: #ffffff !important; border-top: 2px solid #d4af37 !important; }
-        body.theme-white-queen .nav-item svg { stroke: #d4af37 !important; fill: none !important; }
-        body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
-        
-        /* Buttons */
-        body.theme-white-queen .ig-btn, body.theme-white-queen .btn-primary, body.theme-white-queen .action-btn {
-            background: #ffffff !important; color: #b8860b !important; border: 1px solid #d4af37 !important;
-        }
+
         body.theme-white-queen .logo { color: #d4af37 !important; text-shadow: 0 0 15px #d4af37 !important; }
     `;
     document.head.appendChild(style);
