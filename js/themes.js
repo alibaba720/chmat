@@ -11,7 +11,7 @@ const themes = {
         reservedText: "This legendary theme is permanently reserved for Mr. Tiger."
     },
     "white_queen": {
-        name: "White Queen", type: "angel", isReserved: true,
+        name: "White Queen", type: "angel", isReserved: false,
         image: "assets/themes/white_queen.png",
         caption: "Elegance, purity, and unmatched power. The Queen's aura.",
         bgGradient: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
