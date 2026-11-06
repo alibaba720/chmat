@@ -25,16 +25,48 @@ async function getUserProfile(uid) {
     return null;
 }
 
+let currentTab = 'homeTab';
+
+window.switchTab = function(tabId, updateHistory = true) {
+  if (tabId === 'post') { window.location.href = 'post.html'; return; }
+  
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+  navItems.forEach(nav => nav.classList.remove('active'));
+  
+  const targetTab = document.getElementById(tabId);
+  const targetNav = document.querySelector('.nav-item[data-tab="' + tabId + '"]');
+  
+  if (targetTab) targetTab.classList.remove('hidden');
+  if (targetNav) targetNav.classList.add('active');
+  
+  currentTab = tabId;
+  sessionStorage.setItem('chmat_active_tab', tabId);
+  
+  if (tabId === 'chatTab') loadChatList();
+  
+  if (updateHistory) {
+      history.pushState({ tab: tabId }, '', '#' + tabId);
+  }
+}
+
 navItems.forEach(item => {
   item.addEventListener('click', () => {
     const tabId = item.getAttribute('data-tab');
-    if (tabId === 'post') { window.location.href = 'post.html'; return; }
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-    navItems.forEach(nav => nav.classList.remove('active'));
-    document.getElementById(tabId).classList.remove('hidden');
-    item.classList.add('active');
-    if (tabId === 'chatTab') loadChatList();
+    if (tabId !== currentTab) {
+        switchTab(tabId, true);
+    }
   });
+});
+
+window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.tab) {
+        switchTab(event.state.tab, false);
+    } else {
+        if (currentTab !== 'homeTab') {
+            switchTab('homeTab', false);
+            history.replaceState({ tab: 'homeTab' }, '', '#homeTab');
+        }
+    }
 });
 
 const notiBtn = document.getElementById('notiBtn');
@@ -218,6 +250,14 @@ if(sendCommentBtn) {
 const commentInput = document.getElementById('commentInput');
 if(commentInput) { commentInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('sendCommentBtn').click(); }); }
 
+
+    // Initialize Tab on Load
+    setTimeout(() => {
+        const initialTab = sessionStorage.getItem('chmat_active_tab') || 'homeTab';
+        switchTab(initialTab, false);
+        history.replaceState({ tab: initialTab }, '', '#' + initialTab);
+    }, 500);
+    
 authReady.then(() => {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
