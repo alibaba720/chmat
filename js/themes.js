@@ -56,7 +56,7 @@ function applyStrictWhiteQueenCSS() {
         body.theme-white-queen .ig-btn, body.theme-white-queen .btn-primary, body.theme-white-queen .action-btn {
             background: #ffffff !important; color: #b8860b !important; border: 1px solid #d4af37 !important;
         }
-        body.theme-white-queen .logo { color: #00e5ff !important; text-shadow: 0 0 15px #00e5ff !important; }
+        body.theme-white-queen .logo { color: #d4af37 !important; text-shadow: 0 0 15px #d4af37 !important; }
     `;
     document.head.appendChild(style);
 }
