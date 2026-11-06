@@ -145,6 +145,62 @@
         color: #111111 !important;
     }
 
+
+    /* --- FORCE ICE & GOLD (NO RED, NO BLACK) --- */
+    
+    /* 1. Background Ice White */
+    body, .app-container, .post-card, .settings-group, .dropdown-menu, .bottom-nav, .app-header {
+        background: linear-gradient(135deg, #f4f9ff 0%, #dbe9f4 100%) !important;
+        background-color: #f4f9ff !important;
+        color: #111111 !important;
+    }
+
+    /* 2. Kill all Red Borders/Lines, make them Gold */
+    * {
+        border-color: #d4af37 !important; /* Force Gold */
+    }
+    .bottom-nav { border-top: 2px solid #d4af37 !important; }
+    .app-header, .ig-top-bar { border-bottom: 1px solid #d4af37 !important; }
+    .post-card, .settings-group { border: 1px solid #d4af37 !important; }
+
+    /* 3. Logo Icy Blue */
+    .logo { 
+        color: #00e5ff !important; 
+        text-shadow: 0 0 15px #00e5ff !important; 
+    }
+
+    /* 4. Text Colors */
+    h1, h2, h3, span, p, .display-name, .ig-username, .post-text, .settings-item {
+        color: #111111 !important;
+    }
+
+    /* 5. Icons */
+    .nav-item svg { stroke: #b8860b !important; } /* Dark Gold */
+    .nav-item.active svg { 
+        stroke: #00e5ff !important; 
+        fill: #00e5ff !important; 
+        filter: drop-shadow(0 0 5px #00e5ff) !important;
+    }
+    .header-icons svg { stroke: #d4af37 !important; fill: #d4af37 !important; } /* Heart icon Gold */
+
+    /* 6. Buttons */
+    button, .ig-btn, .btn-primary, .action-btn {
+        background: #ffffff !important;
+        color: #b8860b !important;
+        border: 1px solid #d4af37 !important;
+    }
+    button:active, .ig-btn:active {
+        background: #d4af37 !important;
+        color: #ffffff !important;
+    }
+
+    /* 7. Input Fields */
+    input, textarea, .comment-input-area {
+        background: rgba(255, 255, 255, 0.7) !important;
+        color: #111111 !important;
+        border: 1px solid #d4af37 !important;
+    }
+
 </style>
 </head>
 <body>
