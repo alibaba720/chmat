@@ -17,7 +17,7 @@
 <body>
   <div class="chat-container">
     <header class="chat-header">
-      <button class="back-btn" onclick="window.location.href='app.html'">←</button>
+      <button class="back-btn" onclick="window.history.back()">←</button>
       <!-- Header par click karne se group info khulegi -->
       <div class="chat-user-info" onclick="if(typeof openGroupInfo === 'function') openGroupInfo();">
         <div class="chat-avatar" style="background: #0095f6; color: white; overflow: hidden; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-weight: bold;" id="chatAvatar">G</div>

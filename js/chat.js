@@ -84,7 +84,8 @@ window.blockUser = async function() { if(!confirm("Block this user? They will be
 window.reportUser = async function() { let reason = prompt("Report User\n\nReason:\n1. Fake Account\n2. Harassment\n3. Spam"); if(!reason) return; try { await addDoc(collection(db, "reports"), { type: "profile", targetId: receiverId, reporterId: currentUser.uid, reason: reason, status: "pending", createdAt: serverTimestamp() }); alert("Report submitted."); document.getElementById('infoOptionsMenu').classList.add('hidden'); } catch(e) { alert("Error reporting: " + e.message); } };
 
 // --- MESSAGES LOGIC ---
-messageInput.addEventListener('input', () => { if (messageInput.value.trim().length > 0) { recordBtn.style.display = 'none'; sendBtn.style.display = 'flex'; } else { recordBtn.style.display = 'flex'; sendBtn.style.display = 'none'; } });
+messageInput.addEventListener('input', () => { if (messageInput.value.trim().length > 0) { recordBtn.style.display = 'none'; sendBtn.style.display = 'flex'; } else { recordBtn.style.display = 'flex'; sendBtn.style.display = 'none';
+        if(messageInput) messageInput.focus(); } });
 
 function renderMessagesHTML(msgs) {
     messagesContainer.innerHTML = '';
@@ -162,6 +163,7 @@ async function sendTextMessage() {
     messageInput.value = "";
     recordBtn.style.display = 'flex';
     sendBtn.style.display = 'none';
+        if(messageInput) messageInput.focus();
 
     try {
         const docRef = await addDoc(collection(db, "messages"), payload);

@@ -123,6 +123,7 @@ function loadMessages() {
         });
 
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        if(messageInput) messageInput.focus();
     });
 }
 
@@ -152,6 +153,7 @@ async function sendMessage() {
     } catch (error) {
         console.error("Error sending message: ", error);
         alert("Message send nahi hua.");
+        if(messageInput) messageInput.focus();
     }
 }
 
@@ -431,7 +433,7 @@ window.openAddMemberModal = async function() {
                             <div style="font-size:12px; color:#888;">@${uData.username}</div>
                         </div>
                     </div>
-                    <button onclick="handleAddMember('${fid}', '${uData.username}')" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold;">Add</button>
+                    <button onclick="handleAddMember('${fid}', '${uData.username}', this)" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold;">Add</button>
                 </div>`;
             }
         }
@@ -441,11 +443,14 @@ window.openAddMemberModal = async function() {
     }
 };
 
-window.handleAddMember = async function(fid, fname) {
+window.handleAddMember = async function(fid, fname, btnElement) {
     const ownerUid = groupData.owner || groupData.admin;
     const adminsList = groupData.admins || (groupData.admin ? [groupData.admin] : []);
     const isAdmin = (ownerUid === currentUser.uid) || adminsList.includes(currentUser.uid);
     const isApprovalRequired = groupData.adminApproval === true;
+
+    // Disable button while processing
+    if(btnElement) { btnElement.innerText = "..."; btnElement.disabled = true; }
 
     if (isAdmin || !isApprovalRequired) {
         try {
@@ -454,11 +459,13 @@ window.handleAddMember = async function(fid, fname) {
             await addDoc(collection(db, "groups", groupId, "messages"), {
                 type: 'system', text: 'added', senderId: currentUser.uid, senderName: currentUserData.username, targetId: fid, targetName: fname, createdAt: serverTimestamp()
             });
-            alert(fname + " added successfully!");
             await loadGroupData();
-            openGroupInfo();
-            document.getElementById('addMemberModal').style.display = 'none';
-        } catch(e) { alert("Error: " + e.message); }
+            // DO NOT CLOSE MODAL. Just hide the added user's row.
+            if(btnElement) { btnElement.closest('div[style*="display:flex"]').style.display = 'none'; }
+        } catch(e) { 
+            alert("Error: " + e.message); 
+            if(btnElement) { btnElement.innerText = "Add"; btnElement.disabled = false; }
+        }
     } else {
         try {
             await addDoc(collection(db, "groups", groupId, "approvals"), {
@@ -470,7 +477,10 @@ window.handleAddMember = async function(fid, fname) {
                 createdAt: serverTimestamp()
             });
             alert("Request sent to Admin for approval.");
-            document.getElementById('addMemberModal').style.display = 'none';
-        } catch(e) { alert("Error sending request: " + e.message); }
+            if(btnElement) { btnElement.closest('div[style*="display:flex"]').style.display = 'none'; }
+        } catch(e) { 
+            alert("Error sending request: " + e.message); 
+            if(btnElement) { btnElement.innerText = "Add"; btnElement.disabled = false; }
+        }
     }
 };
