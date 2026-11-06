@@ -604,7 +604,7 @@ if (searchInput && searchResults && friendsPageContent) {
           let btnHtml = '';
           if (myFriendsList.includes(data.uid)) { btnHtml = `<button class="add-friend-btn" style="background:#262626; color:#fff;" onclick="window.location.href='chat.html?uid=${data.uid}&name=${data.username}'">Message</button>`; } else {
               const existingReq = mySentRequests.find(r => r.receiverId === data.uid);
-              if(existingReq) { btnHtml = `<button class="add-friend-btn" style="background:#333; color:#ff3b30;" onclick="cancelFriendRequest('${existingReq.id}', this)">Cancel</button>`; } else { btnHtml = `<button class="add-friend-btn" onclick="sendRequest('${data.uid}', '${data.username}', this)">Add Friend</button>`; }
+              if(existingReq) { btnHtml = `<button class="add-friend-btn" style="background:#262626; color:#ff3b30; border:1px solid #333; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;" onclick="promptCancelFriendRequest('${existingReq.id}', this)">Cancel</button>`; } else { btnHtml = `<button class="add-friend-btn" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;" onclick="sendRequest('${data.uid}', '${data.username}', this)">Add Friend</button>`; }
           }
           html += `<div class="user-result"><div class="user-info-left" onclick="window.location.href='profile.html?uid=${data.uid}'" style="cursor:pointer;"><div class="user-avatar-small">${avatarHtml}</div><div class="user-details"><h4>${data.displayName || data.username}</h4><p>@${data.username}</p></div></div><div style="display:flex; gap:8px; align-items:center;">${btnHtml}<button onclick="reportProfile('${data.uid}', '${data.username}')" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">⋮</button></div></div>`; 
         }
@@ -790,6 +790,16 @@ async function loadFriendsPageData() {
             const u = doc.data();
             if(u.uid !== currentUser.uid && !myFriendsList.includes(u.uid)) {
                 const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;font-weight:bold;color:#fff;">${(u.username||'U').charAt(0).toUpperCase()}</div>`;
+                
+                // CHECK KAREIN KE REQUEST PEHLE SE BHEJI HUI HAI YA NAHI
+                const existingReq = mySentRequests.find(r => r.receiverId === u.uid);
+                let btnHtml = '';
+                if (existingReq) {
+                    btnHtml = `<button onclick="promptCancelFriendRequest('${existingReq.id}', this)" style="background:#262626; color:#ff3b30; border:1px solid #333; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Cancel</button>`;
+                } else {
+                    btnHtml = `<button onclick="sendRequest('${u.uid}', '${u.username}', this)" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Add Friend</button>`;
+                }
+
                 sugHtml += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #222;">
                     <div style="display:flex; align-items:center; gap:12px;">
@@ -800,7 +810,7 @@ async function loadFriendsPageData() {
                         </div>
                     </div>
                     <div style="display:flex; gap:8px;">
-                        <button onclick="sendRequest('${u.uid}', '${u.username}', this)" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Add Friend</button>
+                        ${btnHtml}
                     </div>
                 </div>`;
             }
