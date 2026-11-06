@@ -30,7 +30,59 @@
     .btn-skip:hover { color: #fff; }
     
     .loading-text { color: #0095f6; font-size: 14px; margin-top: 10px; display: none; }
-  </style>
+  
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Cinzel:wght@700&family=Playfair+Display:wght@700&display=swap');
+
+    :root {
+        --theme-bg-grad: linear-gradient(135deg, #000000, #3a0000, #000000);
+        --theme-primary: #ff0000;
+        --theme-text: #ffffff;
+        --theme-border: #550000;
+        --theme-font: 'Orbitron', sans-serif;
+        --theme-btn-radius: 4px;
+        --theme-btn-shadow: 0 0 10px #ff0000;
+    }
+
+    body { 
+        background: var(--theme-bg-grad) !important; 
+        background-attachment: fixed !important;
+        color: var(--theme-text) !important; 
+        font-family: var(--theme-font) !important;
+        transition: background 0.5s, color 0.5s; 
+    }
+    
+    .app-header, .bottom-nav, .chat-header, .settings-header { 
+        background: rgba(0, 0, 0, 0.4) !important; 
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-color: var(--theme-border) !important; 
+    }
+    
+    .logo { color: var(--theme-primary) !important; text-shadow: 0 0 15px var(--theme-primary); }
+    
+    .post-card, .ig-grid-item, .dropdown-menu, .settings-group, .input-group, .theme-card { 
+        background: rgba(20, 20, 20, 0.6) !important; 
+        backdrop-filter: blur(5px) !important;
+        border: 1px solid var(--theme-border) !important; 
+    }
+    
+    button, .ig-btn, .btn-primary, .save-btn, .add-friend-btn, .ig-btn-blue { 
+        background: var(--theme-primary) !important; 
+        color: #fff !important; 
+        border-radius: var(--theme-btn-radius) !important;
+        box-shadow: var(--theme-btn-shadow) !important;
+        font-family: var(--theme-font) !important;
+    }
+    
+    .nav-item svg { stroke: var(--theme-text) !important; }
+    .nav-item.active svg { fill: var(--theme-text) !important; }
+    
+    /* Override specific black backgrounds that might block the theme */
+    .settings-container, .chat-container, .app-container { background: transparent !important; }
+    .settings-item { border-color: var(--theme-border) !important; }
+    .input-group input { background: transparent !important; color: var(--theme-text) !important; }
+
+</style>
 </head>
 <body>
 
@@ -67,5 +119,6 @@
   </div>
 
   <script type="module" src="js/onboarding.js"></script>
+  <script src="js/themes.js"></script>
 </body>
 </html>
