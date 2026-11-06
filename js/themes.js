@@ -1,4 +1,4 @@
-// CHMAT Theme Engine V20 (Absolute Force Fix)
+// CHMAT Theme Engine V21 (Absolute Final)
 
 const themes = {
     "victor_doom": { name: "Victor Von Doom", type: "demon", isReserved: true, image: "assets/themes/victor_doom.jpg", caption: "Bow down to the King.", bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)", primary: "#00ff00", text: "#ffffff", border: "#004400", reservedText: "Reserved for Mr. Tiger." },
@@ -16,37 +16,59 @@ const themes = {
     "loki": { name: "Loki", type: "demon", image: "assets/themes/loki.jpg", caption: "Glorious purpose.", bgGradient: "linear-gradient(135deg, #000000, #002200, #1a1a00)", primary: "#ffd700", text: "#ffffff", border: "#004400" }
 };
 
-// Function to inject strict CSS ONLY for White Queen
-function applyStrictWhiteQueenCSS() {
-    if (document.getElementById('strict-wq-css')) return;
+// Function to inject Castle Background & Glassmorphism for White Queen
+function injectQueenCSS() {
+    if (document.getElementById('queen-css')) return;
     const style = document.createElement('style');
-    style.id = 'strict-wq-css';
+    style.id = 'queen-css';
     style.innerHTML = `
-        
-        /* 1. Background Image (Snowy Castle) */
-        body.theme-white-queen, 
-        body.theme-white-queen .app-container {
+        /* Background: Snowy Castle */
+        body.theme-white-queen { 
+            background-image: url('https://images.unsplash.com/photo-1543794114-67110a3f9e79?q=80&w=1000&auto=format&fit=crop') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
+            background-color: #f4f9ff !important;
+            color: #111111 !important;
         }
-
-        /* 2. Transparent Glass effect for containers */
-        body.theme-white-queen .app-content,
-        body.theme-white-queen #mainContent,
-        body.theme-white-queen .tab-content,
+        
+        /* Glassmorphism for Cards, Headers, Nav */
+        body.theme-white-queen .app-header, 
+        body.theme-white-queen .bottom-nav,
         body.theme-white-queen .post-card,
         body.theme-white-queen .profile-container,
         body.theme-white-queen .settings-group,
         body.theme-white-queen .ig-grid-item,
-        body.theme-white-queen .app-header {
+        body.theme-white-queen .app-content {
+            background: rgba(255, 255, 255, 0.75) !important; /* 75% White Glass */
+            backdrop-filter: blur(15px) !important;
+            -webkit-backdrop-filter: blur(15px) !important;
+            border-color: #d4af37 !important;
         }
 
-        /* 3. Keep Text Dark and Readable */
+        /* Gold Logo */
+        body.theme-white-queen .logo { 
+            color: #d4af37 !important; 
+            text-shadow: 0 0 15px #d4af37 !important; 
+        }
+
+        /* Text Colors */
         body.theme-white-queen h1, body.theme-white-queen h2, body.theme-white-queen h3, 
         body.theme-white-queen p, body.theme-white-queen span, 
         body.theme-white-queen .display-name, body.theme-white-queen .ig-username, 
         body.theme-white-queen .post-display-name, body.theme-white-queen .post-text {
+            color: #111111 !important;
         }
 
-        body.theme-white-queen .logo { color: #d4af37 !important; text-shadow: 0 0 15px #d4af37 !important; }
+        /* Bottom Nav Icons */
+        body.theme-white-queen .bottom-nav { border-top: 2px solid #d4af37 !important; }
+        body.theme-white-queen .nav-item svg { stroke: #d4af37 !important; fill: none !important; }
+        body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
+        
+        /* Buttons */
+        body.theme-white-queen .ig-btn, body.theme-white-queen .btn-primary, body.theme-white-queen .action-btn {
+            background: #ffffff !important; color: #b8860b !important; border: 1px solid #d4af37 !important;
+        }
     `;
     document.head.appendChild(style);
 }
@@ -54,23 +76,21 @@ function applyStrictWhiteQueenCSS() {
 window.applyTheme = function(themeId) {
     const theme = themes[themeId];
     if (!theme) return;
-    
     const root = document.documentElement.style;
     root.setProperty('--theme-bg-grad', theme.bgGradient);
     root.setProperty('--theme-primary', theme.primary);
     root.setProperty('--theme-text', theme.text);
     root.setProperty('--theme-border', theme.border);
-    
     localStorage.setItem('chmat_active_theme', themeId);
     
     if(themeId === 'white_queen') { 
         document.body.classList.add('theme-white-queen'); 
-        applyStrictWhiteQueenCSS(); // Inject the heavy CSS
+        injectQueenCSS();
         if(typeof startSnowfall === 'function') startSnowfall();
     } else { 
         document.body.classList.remove('theme-white-queen'); 
-        const wqCss = document.getElementById('strict-wq-css');
-        if(wqCss) wqCss.remove(); // Remove the heavy CSS when switching back
+        const qCss = document.getElementById('queen-css');
+        if(qCss) qCss.remove();
         if(typeof stopSnowfall === 'function') stopSnowfall();
     }
 };
@@ -134,21 +154,14 @@ window.startRoseShower = function(callback) {
 
 // --- AUTO TRIGGER ON LOAD ---
 window.addEventListener('DOMContentLoaded', () => {
-    let active = localStorage.getItem('chmat_active_theme');
+    let active = localStorage.getItem('chmat_active_theme') || 'white_queen';
     
-    // Force default to white_queen
-    if(!active || active === 'iron_man') {
-        active = 'white_queen';
-        localStorage.setItem('chmat_active_theme', 'white_queen');
-    }
-
     if(active === 'white_queen') {
         document.body.classList.add('theme-white-queen');
-        applyStrictWhiteQueenCSS();
+        injectQueenCSS();
         startSnowfall();
     }
 
-    // Trigger roses once per session
     if (sessionStorage.getItem('rani_entry_shown') !== 'true') {
         sessionStorage.setItem('rani_entry_shown', 'true');
         setTimeout(() => {
