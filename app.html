@@ -281,6 +281,37 @@
         border: 2px solid #d4af37 !important;
     }
 
+
+    /* --- WHITE QUEEN UI UPGRADES --- */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
+    body.theme-white-queen .bottom-nav {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border-top: 2px solid #d4af37 !important; /* Gold top border */
+    }
+    body.theme-white-queen .nav-item svg {
+        stroke: #555555 !important; /* Dark grey for unselected */
+    }
+    body.theme-white-queen .nav-item.active svg {
+        stroke: #d4af37 !important; /* Gold for active */
+        fill: rgba(212, 175, 55, 0.2) !important;
+        filter: drop-shadow(0 0 5px #d4af37);
+    }
+    body.theme-white-queen .ig-btn, 
+    body.theme-white-queen .btn-primary, 
+    body.theme-white-queen .action-btn {
+        background: #ffffff !important;
+        color: #d4af37 !important; /* Gold text */
+        border: 1px solid #d4af37 !important; /* Gold border */
+        box-shadow: 0 2px 10px rgba(212, 175, 55, 0.2);
+    }
+    body.theme-white-queen .ig-btn:active {
+        background: #d4af37 !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 15px #d4af37 !important;
+    }
+
 </style>
 </head>
 <body>

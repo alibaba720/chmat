@@ -167,6 +167,35 @@ if (!document.getElementById('rose-styles')) {
 }
 
 window.startRoseShower = function(callback) {
+    // 1. ADD WELCOME TEXT OVERLAY
+    if (!document.getElementById('queen-welcome-text')) {
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.id = 'queen-welcome-text';
+        welcomeDiv.style.cssText = 'position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.8); z-index: 99999; text-align: center; pointer-events: none; opacity: 0; transition: all 4s ease-in-out;';
+        welcomeDiv.innerHTML = `<h1 style="color: rgba(212, 175, 55, 0.8); font-family: 'Playfair Display', serif; font-size: 3rem; margin: 0; text-shadow: 0 0 20px rgba(255,255,255,0.8); line-height: 1.2;">Welcome Back<br><span style="font-size: 4rem; font-style: italic;">My Queen</span></h1>`;
+        document.body.appendChild(welcomeDiv);
+        
+        // Trigger animation after a tiny delay
+        setTimeout(() => {
+            welcomeDiv.style.opacity = '1';
+            welcomeDiv.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 100);
+        
+        // Remove it after 15 seconds
+        setTimeout(() => {
+            welcomeDiv.style.opacity = '0';
+            setTimeout(() => welcomeDiv.remove(), 4000);
+        }, 15000);
+    }
+
+    // 2. PLAY SOFT MAGICAL SOUND
+    if (!window.queenAudio) {
+        window.queenAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'); // Soft magic chime
+        window.queenAudio.volume = 0.2; // Very soft
+        window.queenAudio.loop = true;
+        window.queenAudio.play().catch(e => console.log('Audio play failed:', e));
+    }
+
     if (roseInterval) return;
     
     let roseDuration = 60000; // 1 minute
@@ -177,6 +206,10 @@ window.startRoseShower = function(callback) {
             clearInterval(roseInterval);
             roseInterval = null;
             document.querySelectorAll('.rose-particle').forEach(el => el.remove());
+            if (window.queenAudio) {
+                window.queenAudio.pause();
+                window.queenAudio = null;
+            }
             if (callback) callback();
             return;
         }
