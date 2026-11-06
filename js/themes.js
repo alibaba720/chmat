@@ -1,10 +1,10 @@
-// CHMAT Theme Engine V5 (Categorized)
+// CHMAT Theme Engine V6 (Fixed & Complete)
 
 const themes = {
-    // --- RESERVED (MR TIGER & QUEEN) ---
+    // --- RESERVED ---
     "victor_doom": {
         name: "Victor Von Doom", type: "demon", isReserved: true,
-        image: "https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=600&auto=format&fit=crop",
+        image: "assets/themes/victor_doom.jpg", // Agar download ki hai toh, warna placeholder
         caption: "Bow down to the King. Absolute power, absolute control.",
         bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)",
         primary: "#00ff00", text: "#ffffff", border: "#004400",
@@ -22,35 +22,16 @@ const themes = {
     // --- SUPERHEROES ---
     "iron_man": { name: "Iron Man", type: "angel", image: "assets/themes/iron_man.jpg", caption: "Genius. Billionaire. Playboy. Philanthropist. I am Iron Man.", bgGradient: "linear-gradient(135deg, #000000, #3a0000, #000000)", primary: "#ff0000", text: "#ffffff", border: "#550000" },
     "thor": { name: "Thor", type: "angel", image: "assets/themes/thor.jpg", caption: "I am Thor, son of Odin. Bring me Thanos!", bgGradient: "linear-gradient(135deg, #000000, #001a33, #000000)", primary: "#00bfff", text: "#ffffff", border: "#003366" },
-    "spiderman": { name: "Spider-Man", type: "angel", image: "https://images.unsplash.com/photo-1604200213928-ba3cf4fc8436?q=80&w=600&auto=format&fit=crop", caption: "With great power comes great responsibility.", bgGradient: "linear-gradient(135deg, #000000, #330000, #000033)", primary: "#e62429", text: "#ffffff", border: "#660000" },
+    "spiderman": { name: "Spider-Man", type: "angel", image: "assets/themes/spiderman.jpg", caption: "With great power comes great responsibility.", bgGradient: "linear-gradient(135deg, #000000, #330000, #000033)", primary: "#e62429", text: "#ffffff", border: "#660000" },
     "captain_america": { name: "Captain America", type: "angel", image: "assets/themes/captain.jpg", caption: "I can do this all day. Avengers Assemble!", bgGradient: "linear-gradient(135deg, #000000, #0a1b3a, #000000)", primary: "#1e3a8a", text: "#ffffff", border: "#112a5c" },
     "doctor_strange": { name: "Doctor Strange", type: "angel", image: "assets/themes/dr_strange.jpg", caption: "We are in the endgame now.", bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", primary: "#4a148c", text: "#ffffff", border: "#330066" },
-    "hulk": { 
-        name: "Hulk", type: "angel", 
-        image: "assets/themes/hulk.jpg", 
-        caption: "That's my secret, Captain. I'm always angry.", 
-        bgGradient: "linear-gradient(135deg, #001100, #003300, #1a0033)", 
-        primary: "#39ff14", text: "#ffffff", border: "#005500" 
-    },
-    "black_widow": { 
-        name: "Black Widow", type: "angel", 
-        image: "assets/themes/natasha.jpg", 
-        caption: "I've got red in my ledger. I'd like to wipe it out.", 
-        bgGradient: "linear-gradient(135deg, #000000, #1a0000, #000000)", 
-        primary: "#e60000", text: "#ffffff", border: "#550000" 
-    },
-    "hawkeye": { 
-        name: "Hawkeye", type: "angel", 
-        image: "assets/themes/hawkeye.jpg", 
-        caption: "I'm a sniper. I aim, I shoot, I hit.", 
-        bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", 
-        primary: "#8000ff", text: "#ffffff", border: "#330066" 
-    }
-
+    "hulk": { name: "Hulk", type: "angel", image: "assets/themes/hulk.jpg", caption: "That's my secret, Captain. I'm always angry.", bgGradient: "linear-gradient(135deg, #001100, #003300, #1a0033)", primary: "#39ff14", text: "#ffffff", border: "#005500" },
+    "black_widow": { name: "Black Widow", type: "angel", image: "assets/themes/natasha.jpg", caption: "I've got red in my ledger. I'd like to wipe it out.", bgGradient: "linear-gradient(135deg, #000000, #1a0000, #000000)", primary: "#e60000", text: "#ffffff", border: "#550000" },
+    "hawkeye": { name: "Hawkeye", type: "angel", image: "assets/themes/hawkeye.jpg", caption: "I'm a sniper. I aim, I shoot, I hit.", bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", primary: "#8000ff", text: "#ffffff", border: "#330066" },
 
     // --- VILLAINS AURA ---
-    "thanos": { name: "Thanos", type: "demon", image: "https://images.unsplash.com/photo-1620336655052-b57986a1b4d6?q=80&w=600&auto=format&fit=crop", caption: "I am inevitable. Perfectly balanced, as all things should be.", bgGradient: "linear-gradient(135deg, #050505, #1a0033, #050505)", primary: "#9c27b0", text: "#ffffff", border: "#330066" },
-    "venom": { name: "Venom", type: "demon", image: "https://images.unsplash.com/photo-1608889175123-8ee362201f81?q=80&w=600&auto=format&fit=crop", caption: "We are Venom. You are a loser, and we are going to eat your brain.", bgGradient: "linear-gradient(135deg, #000000, #111111, #000000)", primary: "#ff003c", text: "#ffffff", border: "#333333" },
+    "thanos": { name: "Thanos", type: "demon", image: "assets/themes/thanos.jpg", caption: "I am inevitable. Perfectly balanced, as all things should be.", bgGradient: "linear-gradient(135deg, #050505, #1a0033, #050505)", primary: "#9c27b0", text: "#ffffff", border: "#330066" },
+    "venom": { name: "Venom", type: "demon", image: "assets/themes/venom.jpg", caption: "We are Venom. You are a loser, and we are going to eat your brain.", bgGradient: "linear-gradient(135deg, #000000, #111111, #000000)", primary: "#ff003c", text: "#ffffff", border: "#333333" },
     "loki": { name: "Loki", type: "demon", image: "assets/themes/loki.jpg", caption: "I am burdened with glorious purpose.", bgGradient: "linear-gradient(135deg, #000000, #002200, #1a1a00)", primary: "#ffd700", text: "#ffffff", border: "#004400" }
 };
 
@@ -76,4 +57,5 @@ window.applyTheme = function(themeId) {
         root.setProperty('--theme-border', theme.border);
     }
 })();
+
 window.themesData = themes;
