@@ -58,6 +58,15 @@ function stopSnowfall() { if (snowInterval) { clearInterval(snowInterval); snowI
 let roseInterval = null;
 window.startRoseShower = function(callback) {
     if (roseInterval) return;
+
+    // --- SOFT WIND AUDIO ---
+    if (!window.softWindAudio) {
+        window.softWindAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/1238/1238-preview.mp3'); 
+        window.softWindAudio.volume = 0.15; // Bohot halki awaaz (15%)
+        window.softWindAudio.loop = true;
+        window.softWindAudio.play().catch(e => console.log("Audio blocked by browser"));
+    }
+
     
     if (!document.getElementById('rose-styles')) {
         const styleSheet = document.createElement("style"); styleSheet.id = 'rose-styles'; 
@@ -70,6 +79,12 @@ window.startRoseShower = function(callback) {
         if (Date.now() - startTime > roseDuration) {
             clearInterval(roseInterval); roseInterval = null;
             document.querySelectorAll('.rose-particle').forEach(el => el.remove());
+
+            if (window.softWindAudio) {
+                window.softWindAudio.pause();
+                window.softWindAudio = null;
+            }
+    
             if (callback) callback();
             return;
         }
