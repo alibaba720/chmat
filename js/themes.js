@@ -25,11 +25,33 @@ const themes = {
     "spiderman": { name: "Spider-Man", type: "angel", image: "https://images.unsplash.com/photo-1604200213928-ba3cf4fc8436?q=80&w=600&auto=format&fit=crop", caption: "With great power comes great responsibility.", bgGradient: "linear-gradient(135deg, #000000, #330000, #000033)", primary: "#e62429", text: "#ffffff", border: "#660000" },
     "captain_america": { name: "Captain America", type: "angel", image: "assets/themes/captain.jpg", caption: "I can do this all day. Avengers Assemble!", bgGradient: "linear-gradient(135deg, #000000, #0a1b3a, #000000)", primary: "#1e3a8a", text: "#ffffff", border: "#112a5c" },
     "doctor_strange": { name: "Doctor Strange", type: "angel", image: "assets/themes/dr_strange.jpg", caption: "We are in the endgame now.", bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", primary: "#4a148c", text: "#ffffff", border: "#330066" },
+    "hulk": { 
+        name: "Hulk", type: "angel", 
+        image: "assets/themes/hulk.jpg", 
+        caption: "That's my secret, Captain. I'm always angry.", 
+        bgGradient: "linear-gradient(135deg, #001100, #003300, #1a0033)", 
+        primary: "#39ff14", text: "#ffffff", border: "#005500" 
+    },
+    "black_widow": { 
+        name: "Black Widow", type: "angel", 
+        image: "assets/themes/natasha.jpg", 
+        caption: "I've got red in my ledger. I'd like to wipe it out.", 
+        bgGradient: "linear-gradient(135deg, #000000, #1a0000, #000000)", 
+        primary: "#e60000", text: "#ffffff", border: "#550000" 
+    },
+    "hawkeye": { 
+        name: "Hawkeye", type: "angel", 
+        image: "assets/themes/hawkeye.jpg", 
+        caption: "I'm a sniper. I aim, I shoot, I hit.", 
+        bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", 
+        primary: "#8000ff", text: "#ffffff", border: "#330066" 
+    }
+
 
     // --- VILLAINS AURA ---
     "thanos": { name: "Thanos", type: "demon", image: "https://images.unsplash.com/photo-1620336655052-b57986a1b4d6?q=80&w=600&auto=format&fit=crop", caption: "I am inevitable. Perfectly balanced, as all things should be.", bgGradient: "linear-gradient(135deg, #050505, #1a0033, #050505)", primary: "#9c27b0", text: "#ffffff", border: "#330066" },
     "venom": { name: "Venom", type: "demon", image: "https://images.unsplash.com/photo-1608889175123-8ee362201f81?q=80&w=600&auto=format&fit=crop", caption: "We are Venom. You are a loser, and we are going to eat your brain.", bgGradient: "linear-gradient(135deg, #000000, #111111, #000000)", primary: "#ff003c", text: "#ffffff", border: "#333333" },
-    "loki": { name: "Loki", type: "demon", image: "assets/themes/loki.jpg", caption: "I am burdened with glorious purpose.", bgGradient: "linear-gradient(135deg, #000000, #003300, #000000)", primary: "#2e7d32", text: "#ffffff", border: "#004400" }
+    "loki": { name: "Loki", type: "demon", image: "assets/themes/loki.jpg", caption: "I am burdened with glorious purpose.", bgGradient: "linear-gradient(135deg, #000000, #002200, #1a1a00)", primary: "#ffd700", text: "#ffffff", border: "#004400" }
 };
 
 window.applyTheme = function(themeId) {
