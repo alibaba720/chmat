@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { collection, query, orderBy, getDocs, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, query, orderBy, getDocs, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc, arrayRemove, arrayUnion, arrayUnion } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const groupId = urlParams.get('gid');
