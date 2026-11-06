@@ -1,4 +1,4 @@
-// CHMAT Theme Engine V12 (Clean Slate - Only Snowfall)
+// CHMAT Theme Engine V14 (Only Roses & Snowfall - No Text/Sound)
 
 const themes = {
     "victor_doom": { name: "Victor Von Doom", type: "demon", isReserved: true, image: "assets/themes/victor_doom.jpg", caption: "Bow down to the King.", bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)", primary: "#00ff00", text: "#ffffff", border: "#004400", reservedText: "Reserved for Mr. Tiger." },
@@ -35,7 +35,7 @@ window.applyTheme = function(themeId) {
     }
 };
 
-// --- ONLY SNOWFALL ---
+// --- SNOWFALL ---
 let snowInterval = null;
 function startSnowfall() {
     if (snowInterval || !document.getElementById('snow-styles')) {
@@ -54,9 +54,62 @@ function startSnowfall() {
 }
 function stopSnowfall() { if (snowInterval) { clearInterval(snowInterval); snowInterval = null; } document.querySelectorAll('.snowflake').forEach(el => el.remove()); }
 
-// --- NO AUTO TRIGGER FOR ROSES (Clean Slate) ---
+// --- RANI ENTRY (ONLY ROSES - NO TEXT/SOUND) ---
+let roseInterval = null;
+window.startRoseShower = function(callback) {
+    if (roseInterval) return;
+    
+    if (!document.getElementById('rose-styles')) {
+        const styleSheet = document.createElement("style"); styleSheet.id = 'rose-styles'; 
+        styleSheet.innerText = `.rose-particle { position: fixed; top: -10vh; pointer-events: none; z-index: 10000; animation: roseFall linear forwards, roseSway ease-in-out infinite alternate, roseSpin linear infinite; filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5)); } @keyframes roseFall { 0% { top: -10vh; } 100% { top: 110vh; } } @keyframes roseSway { 0% { margin-left: -40px; } 100% { margin-left: 40px; } } @keyframes roseSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`; 
+        document.head.appendChild(styleSheet);
+    }
+
+    let startTime = Date.now(); let roseDuration = 60000; 
+    roseInterval = setInterval(() => {
+        if (Date.now() - startTime > roseDuration) {
+            clearInterval(roseInterval); roseInterval = null;
+            document.querySelectorAll('.rose-particle').forEach(el => el.remove());
+            if (callback) callback();
+            return;
+        }
+
+        const particle = document.createElement('div'); particle.classList.add('rose-particle');
+        const isPetal = Math.random() > 0.3; let size, duration, opacity, content;
+
+        if (isPetal) {
+            size = Math.random() * 12 + 8 + 'px'; 
+            duration = Math.random() * 6 + 6 + 's'; 
+            opacity = Math.random() * 0.7 + 0.3; 
+            content = '🌹';
+            particle.style.filter = 'sepia(1) saturate(8) hue-rotate(330deg) brightness(0.7) drop-shadow(0 0 3px rgba(255,0,0,0.8))';
+            particle.style.transform = 'scaleX(0.6) scaleY(0.8)';
+        } else {
+            size = Math.random() * 10 + 15 + 'px'; 
+            duration = Math.random() * 3 + 3 + 's'; 
+            opacity = 1; 
+            content = '🌹';
+            particle.style.filter = 'drop-shadow(0 0 6px rgba(255,0,0,0.8))';
+        }
+        
+        particle.style.cssText += `width:${size}; height:${size}; left:${Math.random() * 100}vw; opacity:${opacity}; animation-duration:${duration}, ${Math.random() * 2 + 2}s, ${Math.random() * 3 + 2}s; font-size:${size};`;
+        particle.innerText = content;
+        document.body.appendChild(particle); setTimeout(() => { particle.remove(); }, parseFloat(duration) * 1000);
+    }, 150);
+};
+
+// --- AUTO TRIGGER ---
 window.addEventListener('DOMContentLoaded', () => {
     if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
+    
+    if (sessionStorage.getItem('rani_entry_shown') !== 'true') {
+        sessionStorage.setItem('rani_entry_shown', 'true');
+        setTimeout(() => {
+            window.startRoseShower(() => {
+                if(localStorage.getItem('chmat_active_theme') === 'white_queen') startSnowfall();
+            });
+        }, 1000);
+    }
 });
 
 window.themesData = themes;
