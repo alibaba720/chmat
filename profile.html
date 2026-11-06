@@ -97,11 +97,19 @@
           let isRequested = false;
           let reqId = null;
           if(currentUser.uid !== targetUid && !isFriend) {
-              const qReq = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid), where("receiverId", "==", targetUid), where("status", "==", "pending"));
-              const reqSnap = await getDocs(qReq);
-              if(!reqSnap.empty) {
-                  isRequested = true;
-                  reqId = reqSnap.docs[0].id;
+              try {
+                  // Firebase Index error se bachne ke liye sirf senderId se fetch karein
+                  const qReq = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid));
+                  const reqSnap = await getDocs(qReq);
+                  reqSnap.forEach(doc => {
+                      const reqData = doc.data();
+                      if (reqData.receiverId === targetUid && reqData.status === 'pending') {
+                          isRequested = true;
+                          reqId = doc.id;
+                      }
+                  });
+              } catch(e) {
+                  console.error("Request check error:", e);
               }
           }
 
