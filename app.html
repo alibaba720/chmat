@@ -132,6 +132,56 @@
     }
     body.theme-white-queen .logo { color: #111111 !important; text-shadow: none !important; }
 
+
+    /* --- GLOBAL BUTTON STYLING (The Real Fix) --- */
+    
+    /* 1. General Buttons (Dark Themes) */
+    .ig-btn, .btn-primary, .action-btn, .save-btn, .add-friend-btn {
+        background: var(--theme-primary) !important;
+        color: #ffffff !important;
+        border: 1px solid var(--theme-primary) !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+
+    /* 2. White Queen Specific (White Background + Gold Border) */
+    body.theme-white-queen .ig-btn, 
+    body.theme-white-queen .btn-primary, 
+    body.theme-white-queen .action-btn, 
+    body.theme-white-queen .save-btn,
+    body.theme-white-queen .add-friend-btn {
+        background: #ffffff !important;
+        color: var(--theme-primary) !important; /* Gold Text */
+        border: 2px solid var(--theme-primary) !important; /* Gold Border */
+        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2) !important;
+    }
+
+    /* 3. Click/Touch Effect */
+    .ig-btn:active, .btn-primary:active, .action-btn:active {
+        transform: scale(0.95);
+    }
+    body.theme-white-queen .ig-btn:active {
+        background: var(--theme-primary) !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 15px var(--theme-primary) !important;
+    }
+
+    /* 4. Bottom Nav Icons Visibility */
+    body.theme-white-queen .nav-item svg {
+        stroke: #333333 !important;
+    }
+    body.theme-white-queen .nav-item.active svg {
+        stroke: var(--theme-primary) !important;
+        fill: var(--theme-primary) !important;
+        filter: drop-shadow(0 0 5px var(--theme-primary));
+    }
+    
+    /* 5. Fix Logo Text */
+    body.theme-white-queen .logo {
+        color: #111111 !important;
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.5) !important;
+    }
+
 </style>
 </head>
 <body>
@@ -295,7 +345,7 @@
   <!-- Post Options Modal -->
   <div id="postOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: rgba(0,0,0,0.7); align-items: flex-end;"><div onclick="closePostOptions()" style="position: absolute; width: 100%; height: 100%;"></div><div style="background: #1c1c1e; width: 100%; border-radius: 20px 20px 0 0; padding: 20px 0; position: relative; display: flex; flex-direction: column;"><div style="text-align:center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 10px; color: #888; font-size: 13px; font-weight: bold;">Post Options</div><div onclick="changePrivacyAction('Public')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🌍</span> Public</div><div onclick="changePrivacyAction('Friends')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">👥</span> Friends</div><div onclick="changePrivacyAction('Only Me')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🔒</span> Only Me</div><div style="height: 8px; background: #000; margin: 10px 0;"></div><div onclick="deletePostAction()" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #ff3b30; font-size: 15px; font-weight: bold;"><span style="font-size:20px;">🗑️</span> Delete Post</div><div onclick="closePostOptions()" style="padding: 16px 20px; text-align: center; color: #aaa; cursor: pointer; border-top: 1px solid #333; margin-top: 10px;">Cancel</div></div></div>
 
-  <script src="js/themes.js?v=3030"></script>
+  <script src="js/themes.js?v=9999"></script>
   <script type="module" src="js/app.js?v=999"></script>
 
   <div id="viewPostModal" class="modal-overlay hidden" style="z-index: 10005; background: rgba(0,0,0,0.95); display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
