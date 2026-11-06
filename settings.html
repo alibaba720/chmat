@@ -85,114 +85,18 @@
     .input-group input { background: transparent !important; color: var(--theme-text) !important; }
 
 
-    /* --- V4: ULTIMATE THEME VISUALS & ICONS --- */
     
-    /* 1. Fix Backgrounds: Make all containers transparent so the gradient shows */
-    body, .app-container, .settings-container, .chat-container, .post-card, .ig-grid-item, .settings-group, .input-group, .dropdown-menu, .comment-sheet, .modal-content {
-        background: transparent !important;
-    }
-    
-    /* Create a glass effect for cards */
-    .post-card, .settings-group, .dropdown-menu, .theme-card {
-        background: rgba(10, 10, 10, 0.5) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-    }
-
-    /* 2. Top Header & Notification Heart */
-    .app-header, .settings-header, .chat-header {
-        background: rgba(0, 0, 0, 0.6) !important;
-        backdrop-filter: blur(10px) !important;
-        border-bottom: 1px solid var(--theme-primary) !important; /* Glowing bottom border */
-    }
-    
-    /* Change Heart Icon Color & Glow */
-    .header-icons svg, #notiBtn svg {
-        stroke: var(--theme-primary) !important;
-        fill: var(--theme-primary) !important;
-        filter: drop-shadow(0 0 8px var(--theme-primary));
-        transition: 0.3s;
-    }
-
-    /* 3. Bottom Navigation Icons (Home, Search, Post, Chat, Profile) */
-    .bottom-nav {
-        background: rgba(0, 0, 0, 0.8) !important;
-        backdrop-filter: blur(15px) !important;
-        border-top: 1px solid var(--theme-primary) !important;
-    }
-    
-    .nav-item svg {
-        stroke: var(--theme-text) !important;
-        fill: none !important;
-        transition: all 0.3s ease;
-    }
-    
-    /* Active Button: Give it the Theme Primary Color and a Neon Glow */
-    .nav-item.active svg {
-        stroke: var(--theme-primary) !important;
-        fill: var(--theme-primary) !important;
-        filter: drop-shadow(0 0 10px var(--theme-primary));
-        transform: scale(1.1);
-    }
-
-    /* 4. Buttons (Like, Comment, Edit Profile, etc) */
-    .action-btn, .ig-btn, .save-btn, .btn-primary, .add-friend-btn {
-        background: transparent !important;
-        color: var(--theme-primary) !important;
-        border: 1px solid var(--theme-primary) !important;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5) inset !important;
-        text-shadow: 0 0 5px var(--theme-primary) !important;
-        transition: 0.3s;
-    }
-    
-    .action-btn:active, .ig-btn:active, .btn-primary:active {
-        background: var(--theme-primary) !important;
-        color: #000 !important; /* Dark text on bright button click */
-        box-shadow: 0 0 20px var(--theme-primary) !important;
-    }
-    
-    /* Like button specific */
-    .action-btn.liked {
-        color: #ff3b30 !important;
-        border-color: #ff3b30 !important;
-        text-shadow: 0 0 10px #ff3b30 !important;
-    }
-
-    /* 5. Text Colors and Tabs */
-    .ig-username, .ig-name, .post-display-name, h2, h3 {
-        color: var(--theme-text) !important;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    }
-    
-    .ig-tab.active {
-        color: var(--theme-primary) !important;
-        border-bottom: 2px solid var(--theme-primary) !important;
-        text-shadow: 0 0 8px var(--theme-primary);
-    }
-    
-    .ig-tab {
-        color: #888 !important;
-    }
-
-    /* 6. Input Fields */
-    input, textarea, #messageInput, #commentInput {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid var(--theme-border) !important;
-        color: var(--theme-text) !important;
-    }
-    
-    input:focus, textarea:focus {
-        border-color: var(--theme-primary) !important;
-        box-shadow: 0 0 8px var(--theme-primary) !important;
-    }
-    
-    /* Logo Glow */
-    .logo {
-        color: var(--theme-primary) !important;
-        text-shadow: 0 0 15px var(--theme-primary), 0 0 30px var(--theme-primary) !important;
-    }
+    body { background: var(--theme-bg-grad) !important; color: var(--theme-text) !important; }
+    .settings-container { background: transparent !important; }
+    .settings-header { background: rgba(0,0,0,0.5) !important; backdrop-filter: blur(10px); border-bottom: 1px solid var(--theme-border); }
+    .settings-group { background: rgba(20,20,20,0.6) !important; backdrop-filter: blur(10px); border: 1px solid var(--theme-border) !important; border-radius: 12px; margin: 16px; overflow: hidden; }
+    .settings-item { border-bottom: 1px solid var(--theme-border) !important; color: var(--theme-text) !important; }
+    .settings-item:last-child { border-bottom: none !important; }
+    .input-group { background: transparent !important; border-bottom: 1px solid var(--theme-border) !important; }
+    .input-group label { color: var(--theme-text) !important; opacity: 0.7; }
+    .input-group input { color: var(--theme-text) !important; background: transparent !important; }
+    .save-btn { background: var(--theme-primary) !important; color: #fff !important; border-radius: 8px; }
+    .back-btn { color: var(--theme-text) !important; }
 
 </style>
 </head>

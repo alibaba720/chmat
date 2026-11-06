@@ -1,18 +1,50 @@
-// Theme UI Logic V4
+// Theme UI Logic V5
+let currentListType = 'angel';
+
+window.showThemeList = function(type) {
+    currentListType = type;
+    document.getElementById('categoryView').style.display = 'none';
+    document.getElementById('listView').style.display = 'flex';
+    document.getElementById('mainBackBtn').style.display = 'none';
+    document.getElementById('listBackBtn').style.display = 'block';
+    document.getElementById('pageTitle').innerText = type === 'angel' ? "Hero's Themes" : "Villains Themes";
+    
+    renderThemes();
+};
+
+window.showCategoryView = function() {
+    document.getElementById('categoryView').style.display = 'flex';
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('mainBackBtn').style.display = 'block';
+    document.getElementById('listBackBtn').style.display = 'none';
+    document.getElementById('pageTitle').innerText = "Themes";
+};
+
 function renderThemes() {
-    const angelsGrid = document.getElementById('angelsGrid');
-    const demonsGrid = document.getElementById('demonsGrid');
-    if(!angelsGrid || !demonsGrid || !window.themesData) return;
+    const grid = document.getElementById('themeGrid');
+    if(!grid || !window.themesData) return;
 
     const data = window.themesData;
-    let angelsHtml = '';
-    let demonsHtml = '';
+    let themesArray = [];
 
     for (const id in data) {
-        const theme = data[id];
-        const cardHtml = `
-            <div class="theme-card" onclick="openPreview('${id}')">
-                <img src="${theme.image}" class="theme-bg-img" alt="${theme.name}">
+        if (data[id].type === currentListType) {
+            themesArray.push({ id: id, ...data[id] });
+        }
+    }
+
+    // SORTING: Put White Queen and Victor Doom at the top
+    themesArray.sort((a, b) => {
+        if (a.id === 'white_queen' || a.id === 'victor_doom') return -1;
+        if (b.id === 'white_queen' || b.id === 'victor_doom') return 1;
+        return 0;
+    });
+
+    let html = '';
+    themesArray.forEach(theme => {
+        html += `
+            <div class="theme-card" onclick="handleThemeClick('${theme.id}')">
+                <img src="${theme.image}" class="theme-bg-img" alt="${theme.name}" onerror="this.src='https://via.placeholder.com/600x400/111/fff?text=${theme.name}'">
                 <div class="theme-overlay"></div>
                 ${theme.isReserved ? '<div class="theme-badge">👑</div>' : ''}
                 <div class="theme-content">
@@ -21,65 +53,19 @@ function renderThemes() {
                 </div>
             </div>
         `;
-        
-        if (theme.type === 'demon') {
-            demonsHtml += cardHtml;
-        } else {
-            angelsHtml += cardHtml;
-        }
-    }
-
-    angelsGrid.innerHTML = angelsHtml;
-    demonsGrid.innerHTML = demonsHtml;
+    });
+    grid.innerHTML = html;
 }
 
-let selectedThemeId = null;
-
-window.openPreview = function(id) {
+window.handleThemeClick = function(id) {
     const theme = window.themesData[id];
     if(!theme) return;
 
     if(theme.isReserved) {
-        // Agar reserved hai toh direct popup (assuming yeh function pehle se hai ya alert use kar lein)
         alert("Access Denied!\n\n" + theme.reservedText);
-        return;
-    }
-
-    selectedThemeId = id;
-    
-    // Set Modal Title
-    document.getElementById('previewThemeName').innerText = theme.name + " Preview";
-    
-    // Apply Theme to Modal temporarily
-    const root = document.documentElement.style;
-    root.setProperty('--theme-bg-grad', theme.bgGradient);
-    root.setProperty('--theme-primary', theme.primary);
-    root.setProperty('--theme-text', theme.text);
-    root.setProperty('--theme-border', theme.border);
-
-    // Show Modal
-    document.getElementById('previewModal').style.display = 'flex';
-    
-    // Reset slider to first slide
-    document.getElementById('previewSlider').scrollLeft = 0;
-};
-
-window.closePreview = function() {
-    document.getElementById('previewModal').style.display = 'none';
-    // Revert to actual applied theme
-    if(window.applyTheme) {
-        const appliedTheme = localStorage.getItem('chmat_active_theme') || 'iron_man';
-        window.applyTheme(appliedTheme);
+    } else {
+        window.applyTheme(id);
+        if(navigator.vibrate) navigator.vibrate(50);
+        alert(theme.name + " Theme Applied!");
     }
 };
-
-document.getElementById('finalApplyBtn')?.addEventListener('click', () => {
-    if(selectedThemeId && window.applyTheme) {
-        window.applyTheme(selectedThemeId);
-        if(navigator.vibrate) navigator.vibrate(100);
-        alert("Theme Applied Successfully!");
-        closePreview();
-    }
-});
-
-window.addEventListener('DOMContentLoaded', renderThemes);
