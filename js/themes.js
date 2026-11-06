@@ -188,15 +188,18 @@ window.startRoseShower = function(callback) {
         let size, duration, opacity, content;
 
         if (isPetal) {
-            size = Math.random() * 15 + 10 + 'px';
+            size = Math.random() * 12 + 8 + 'px';
             duration = Math.random() * 6 + 6 + 's'; // Slow falling
-            opacity = Math.random() * 0.6 + 0.4;
-            content = '🌸'; // Petal representation (or 🌺)
+            opacity = Math.random() * 0.7 + 0.3;
+            content = '🌹';
+            particle.style.filter = 'sepia(1) saturate(8) hue-rotate(330deg) brightness(0.7) drop-shadow(0 0 3px rgba(255,0,0,0.8))';
+            particle.style.transform = 'scaleX(0.6) scaleY(0.8)';
         } else {
             size = Math.random() * 10 + 15 + 'px';
             duration = Math.random() * 3 + 3 + 's'; // Fast falling
             opacity = 1;
-            content = '🌹'; // Full rose
+            content = '🌹';
+            particle.style.filter = 'drop-shadow(0 0 6px rgba(255,0,0,0.8))';
         }
 
         particle.style.fontSize = size;
