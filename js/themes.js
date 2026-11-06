@@ -1,55 +1,45 @@
-// CHMAT Advanced Theme Engine
+// CHMAT Advanced Theme Engine V2
 
 const themes = {
-    // --- MR TIGER & QUEEN (Reserved) ---
+    // --- RESERVED (MR TIGER & QUEEN) ---
     "victor_doom": {
-        name: "Victor Von Doom",
-        bg: "#0a0a0a", text: "#ffffff", primary: "#00ff00", border: "#1a1a1a",
-        btnBg: "#004400", btnText: "#00ff00",
-        font: "'Times New Roman', serif", logoFont: "'Cinzel', serif", logoColor: "#00ff00",
-        isReserved: true, reservedText: "This legendary theme is permanently reserved for Mr. Tiger."
+        name: "Victor Von Doom", type: "demon", isReserved: true,
+        bgGradient: "linear-gradient(135deg, #050505, #002200, #050505)",
+        primary: "#00ff00", text: "#ffffff", border: "#004400",
+        reservedText: "This legendary theme is permanently reserved for Mr. Tiger."
     },
     "white_queen": {
-        name: "White Queen",
-        bg: "#f4f4f4", text: "#111111", primary: "#c0c0c0", border: "#dddddd",
-        btnBg: "#111111", btnText: "#ffffff",
-        font: "'Georgia', serif", logoFont: "'Playfair Display', serif", logoColor: "#000000",
-        isReserved: true, reservedText: "This celestial theme is eternally reserved for the Queen of the CHMAT Universe."
+        name: "White Queen", type: "angel", isReserved: true,
+        bgGradient: "linear-gradient(135deg, #ffffff, #e0e0e0, #ffffff)",
+        primary: "#888888", text: "#111111", border: "#cccccc",
+        reservedText: "This celestial theme is eternally reserved for the Queen of the CHMAT Universe."
     },
 
-    // --- ANGELS (Superheroes) ---
-    "iron_man": { 
-        name: "Iron Man", 
-        bg: "#050505", text: "#ffffff", primary: "#ff0000", border: "#331111",
-        btnBg: "#ff0000", btnText: "#ffffff",
-        font: "'Orbitron', sans-serif", logoFont: "'Orbitron', sans-serif", logoColor: "#ffd700"
-    },
-    "thor": { 
-        name: "Thor", 
-        bg: "#0b1320", text: "#ffffff", primary: "#00bfff", border: "#1a2a40",
-        btnBg: "#0055ff", btnText: "#ffffff",
-        font: "'Trebuchet MS', sans-serif", logoFont: "'Impact', sans-serif", logoColor: "#00bfff"
-    },
-    "captain_america": { 
-        name: "Captain America", 
-        bg: "#0a1128", text: "#ffffff", primary: "#1e3a8a", border: "#1a2547",
-        btnBg: "#1e3a8a", btnText: "#ffffff",
-        font: "'Arial', sans-serif", logoFont: "'Impact', sans-serif", logoColor: "#ff0000"
-    },
+    // --- ANGELS (HEROES) ---
+    "iron_man": { name: "Iron Man", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #3a0000, #000000)", primary: "#ff0000", text: "#ffffff", border: "#550000" },
+    "thor": { name: "Thor", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #001a33, #000000)", primary: "#00bfff", text: "#ffffff", border: "#003366" },
+    "captain_america": { name: "Captain America", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #0a1b3a, #000000)", primary: "#1e3a8a", text: "#ffffff", border: "#112a5c" },
+    "spiderman": { name: "Spider-Man", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #330000, #000033)", primary: "#e62429", text: "#ffffff", border: "#660000" },
+    "doctor_strange": { name: "Doctor Strange", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", primary: "#4a148c", text: "#ffffff", border: "#330066" },
+    "hulk": { name: "Hulk", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #003300, #000000)", primary: "#00ff00", text: "#ffffff", border: "#005500" },
+    "captain_marvel": { name: "Captain Marvel", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #330000, #000033)", primary: "#ffcc00", text: "#ffffff", border: "#664400" },
+    "scarlet_witch": { name: "Scarlet Witch", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #4a0000, #000000)", primary: "#e60000", text: "#ffffff", border: "#800000" },
+    "black_widow": { name: "Black Widow", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #1a1a1a, #000000)", primary: "#ff0000", text: "#ffffff", border: "#333333" },
+    "black_panther": { name: "Black Panther", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", primary: "#6600cc", text: "#ffffff", border: "#330066" },
+    "ant_man": { name: "Ant-Man", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #330000, #000000)", primary: "#ff0000", text: "#ffffff", border: "#660000" },
+    "star_lord": { name: "Star-Lord", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #331a00, #000000)", primary: "#ff6600", text: "#ffffff", border: "#663300" },
+    "hawkeye": { name: "Hawkeye", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #1a0033, #000000)", primary: "#8000ff", text: "#ffffff", border: "#330066" },
+    "winter_soldier": { name: "Winter Soldier", type: "angel", bgGradient: "linear-gradient(135deg, #000000, #1a1a1a, #000000)", primary: "#cc0000", text: "#ffffff", border: "#333333" },
 
-    // --- DEMONS (Villains) ---
-    "thanos": { 
-        name: "Thanos", 
-        bg: "#110b1a", text: "#ffffff", primary: "#9c27b0", border: "#2e1a47",
-        btnBg: "#6a1b9a", btnText: "#ffffff",
-        font: "'Verdana', sans-serif", logoFont: "'Impact', sans-serif", logoColor: "#9c27b0"
-    },
-    "venom": { 
-        name: "Venom", 
-        bg: "#000000", text: "#ffffff", primary: "#ff003c", border: "#222222",
-        btnBg: "#ff003c", btnText: "#ffffff",
-        font: "'Comic Sans MS', cursive", logoFont: "'Comic Sans MS', cursive", logoColor: "#ff003c"
-    }
+    // --- DEMONS (VILLAINS) ---
+    "thanos": { name: "Thanos", type: "demon", bgGradient: "linear-gradient(135deg, #050505, #1a0033, #050505)", primary: "#9c27b0", text: "#ffffff", border: "#330066" },
+    "venom": { name: "Venom", type: "demon", bgGradient: "linear-gradient(135deg, #000000, #111111, #000000)", primary: "#ff003c", text: "#ffffff", border: "#333333" },
+    "loki": { name: "Loki", type: "demon", bgGradient: "linear-gradient(135deg, #000000, #003300, #000000)", primary: "#2e7d32", text: "#ffffff", border: "#004400" },
+    "ultron": { name: "Ultron", type: "demon", bgGradient: "linear-gradient(135deg, #000000, #330000, #000000)", primary: "#d32f2f", text: "#ffffff", border: "#660000" },
+    "hela": { name: "Hela", type: "demon", bgGradient: "linear-gradient(135deg, #000000, #003333, #000000)", primary: "#00cccc", text: "#ffffff", border: "#006666" },
+    "green_goblin": { name: "Green Goblin", type: "demon", bgGradient: "linear-gradient(135deg, #000000, #003300, #000000)", primary: "#33cc33", text: "#ffffff", border: "#006600" },
+    "kang": { name: "Kang", type: "demon", bgGradient: "linear-gradient(135deg, #000000, #330033, #000000)", primary: "#00ffcc", text: "#ffffff", border: "#660066" },
+    "deadpool": { name: "Deadpool", type: "demon", bgGradient: "linear-gradient(135deg, #000000, #330000, #000000)", primary: "#ff0000", text: "#ffffff", border: "#660000" }
 };
 
 window.applyTheme = function(themeId) {
@@ -57,18 +47,13 @@ window.applyTheme = function(themeId) {
     if (!theme) return;
 
     const root = document.documentElement.style;
-    root.setProperty('--theme-bg', theme.bg);
-    root.setProperty('--theme-text', theme.text);
+    root.setProperty('--theme-bg-grad', theme.bgGradient);
     root.setProperty('--theme-primary', theme.primary);
+    root.setProperty('--theme-text', theme.text);
     root.setProperty('--theme-border', theme.border);
-    root.setProperty('--theme-btn-bg', theme.btnBg);
-    root.setProperty('--theme-btn-text', theme.btnText);
-    root.setProperty('--theme-font', theme.font);
-    root.setProperty('--theme-logo-font', theme.logoFont);
-    root.setProperty('--theme-logo-color', theme.logoColor);
     
     localStorage.setItem('chmat_active_theme', themeId);
-    console.log("Advanced Theme applied:", theme.name);
+    console.log("V2 Theme applied:", theme.name);
 };
 
 window.addEventListener('DOMContentLoaded', () => {

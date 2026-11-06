@@ -68,17 +68,7 @@
 
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Cinzel:wght@700&family=Playfair+Display:wght@700&display=swap');
 
-    :root {
-        --theme-bg: #050505;
-        --theme-text: #ffffff;
-        --theme-primary: #ff0000;
-        --theme-border: #331111;
-        --theme-btn-bg: #ff0000;
-        --theme-btn-text: #ffffff;
-        --theme-font: sans-serif;
-        --theme-logo-font: 'Orbitron', sans-serif;
-        --theme-logo-color: #ffd700;
-    }
+    
 
     body { background: var(--theme-bg) !important; color: var(--theme-text) !important; font-family: var(--theme-font) !important; transition: background 0.4s, color 0.4s; }
     
@@ -92,6 +82,42 @@
     .ig-tab.active { border-bottom-color: var(--theme-text) !important; color: var(--theme-text) !important; }
     
     /* Nav icons color */
+    .nav-item svg { stroke: var(--theme-text) !important; }
+    .nav-item.active svg { fill: var(--theme-text) !important; }
+
+    :root {
+        --theme-bg-grad: linear-gradient(135deg, #000000, #3a0000, #000000);
+        --theme-primary: #ff0000;
+        --theme-text: #ffffff;
+        --theme-border: #550000;
+    }
+
+    /* Apply Gradient to Body and Fix Scrolling */
+    body { 
+        background: var(--theme-bg-grad) !important; 
+        background-attachment: fixed !important;
+        color: var(--theme-text) !important; 
+        transition: background 0.5s, color 0.5s; 
+    }
+    
+    /* Glassmorphism effect for Headers and Nav */
+    .app-header, .bottom-nav { 
+        background: rgba(0, 0, 0, 0.6) !important; 
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border-color: var(--theme-border) !important; 
+    }
+    
+    .logo { color: var(--theme-primary) !important; text-shadow: 0 0 15px var(--theme-primary); }
+    
+    .post-card, .ig-grid-item, .dropdown-menu { 
+        background: rgba(20, 20, 20, 0.7) !important; 
+        backdrop-filter: blur(5px) !important;
+        border: 1px solid var(--theme-border) !important; 
+    }
+    
+    .ig-btn-blue, .btn-primary { background: var(--theme-primary) !important; color: #fff !important; }
+    
     .nav-item svg { stroke: var(--theme-text) !important; }
     .nav-item.active svg { fill: var(--theme-text) !important; }
 </style>

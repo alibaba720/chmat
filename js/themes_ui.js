@@ -1,28 +1,26 @@
-// Theme UI Logic
-const angels = ['white_queen', 'iron_man', 'thor', 'captain_america', 'spiderman', 'doctor_strange'];
-const demons = ['victor_doom', 'thanos', 'venom', 'loki', 'ultron', 'evil_cap'];
-
+// Theme UI Logic V2 (Split Layout)
 function renderThemes() {
-    const container = document.getElementById('themesContainer');
-    if(!container || !window.themesData) return;
+    const demonsCol = document.getElementById('demonsColumn');
+    const angelsCol = document.getElementById('angelsColumn');
+    if(!demonsCol || !angelsCol || !window.themesData) return;
 
     const data = window.themesData;
+    let demonsHtml = '<div class="column-title">🌑 Demons</div>';
+    let angelsHtml = '<div class="column-title">☀️ Angels</div>';
 
-    // Render Angels
-    let angelsHtml = '<div class="section-title">☀️ Angels (Superheroes)</div><div class="theme-grid">';
-    angels.forEach(id => {
-        if(data[id]) angelsHtml += createCardHtml(id, data[id]);
-    });
-    angelsHtml += '</div>';
+    for (const id in data) {
+        const theme = data[id];
+        const cardHtml = createCardHtml(id, theme);
+        
+        if (theme.type === 'demon') {
+            demonsHtml += cardHtml;
+        } else {
+            angelsHtml += cardHtml;
+        }
+    }
 
-    // Render Demons
-    let demonsHtml = '<div class="section-title">🌑 Demons (Villains Aura)</div><div class="theme-grid">';
-    demons.forEach(id => {
-        if(data[id]) demonsHtml += createCardHtml(id, data[id]);
-    });
-    demonsHtml += '</div>';
-
-    container.innerHTML = angelsHtml + demonsHtml;
+    demonsCol.innerHTML = demonsHtml;
+    angelsCol.innerHTML = angelsHtml;
 }
 
 function createCardHtml(id, theme) {
@@ -30,13 +28,8 @@ function createCardHtml(id, theme) {
     const badge = theme.isReserved ? '<div class="theme-badge">👑</div>' : '';
     
     return `
-        <div class="theme-card ${isReserved}" onclick="handleThemeClick('${id}')">
+        <div class="theme-card ${isReserved}" style="background: ${theme.bgGradient};" onclick="handleThemeClick('${id}')">
             ${badge}
-            <div class="color-preview">
-                <div class="color-dot" style="background:${theme.bg}; border-color:${theme.border};"></div>
-                <div class="color-dot" style="background:${theme.primary};"></div>
-                <div class="color-dot" style="background:${theme.text};"></div>
-            </div>
             <div class="theme-name">${theme.name}</div>
         </div>
     `;
@@ -47,18 +40,18 @@ window.handleThemeClick = function(id) {
     if(!theme) return;
 
     if(theme.isReserved) {
-        // Show Professional Popup
         document.getElementById('reservedTitle').innerText = "Access Denied";
         document.getElementById('reservedText').innerText = theme.reservedText;
         document.getElementById('reservedPopup').style.display = 'flex';
     } else {
-        // Apply Theme
         window.applyTheme(id);
-        // Give a small haptic feedback
         if(navigator.vibrate) navigator.vibrate(50);
         
-        // Optional: Show a quick toast
-        alert(theme.name + " Theme Applied!");
+        // Small visual feedback
+        const card = event.currentTarget;
+        const originalBorder = card.style.borderColor;
+        card.style.borderColor = '#fff';
+        setTimeout(() => { card.style.borderColor = originalBorder; }, 300);
     }
 };
 
