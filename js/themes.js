@@ -14,8 +14,8 @@ const themes = {
         name: "White Queen", type: "angel", isReserved: true,
         image: "assets/themes/white_queen.png",
         caption: "Elegance, purity, and unmatched power. The Queen's aura.",
-        bgGradient: "linear-gradient(135deg, #ffffff, #e0e0e0, #ffffff)",
-        primary: "#888888", text: "#111111", border: "#cccccc",
+        bgGradient: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
+        primary: "#d4af37", text: "#111111", border: "#d4af37",
         reservedText: "This celestial theme is eternally reserved for the Queen of the CHMAT Universe."
     },
 
@@ -59,3 +59,72 @@ window.applyTheme = function(themeId) {
 })();
 
 window.themesData = themes;
+
+// --- ROYAL SNOWFALL ANIMATION ---
+let snowInterval = null;
+const snowCSS = `
+.snowflake {
+  position: fixed;
+  top: -10px;
+  background: #ffffff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 1), 0 0 12px #d4af37; /* White with Gold Glow */
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  0% { transform: translateY(-10vh) translateX(0); }
+  100% { transform: translateY(110vh) translateX(var(--start-x)); }
+}
+`;
+const styleSheet = document.createElement("style");
+styleSheet.innerText = snowCSS;
+document.head.appendChild(styleSheet);
+
+function startSnowfall() {
+    if (snowInterval) return;
+    snowInterval = setInterval(() => {
+        const flake = document.createElement('div');
+        flake.classList.add('snowflake');
+        const size = Math.random() * 4 + 2 + 'px';
+        const left = Math.random() * 100 + 'vw';
+        const duration = Math.random() * 4 + 3 + 's';
+        const opacity = Math.random() * 0.7 + 0.3;
+        const startX = (Math.random() - 0.5) * 150 + 'px';
+        
+        flake.style.width = size;
+        flake.style.height = size;
+        flake.style.left = left;
+        flake.style.opacity = opacity;
+        flake.style.animationDuration = duration;
+        flake.style.setProperty('--start-x', startX);
+        
+        document.body.appendChild(flake);
+        setTimeout(() => { flake.remove(); }, parseFloat(duration) * 1000);
+    }, 150);
+}
+
+function stopSnowfall() {
+    if (snowInterval) {
+        clearInterval(snowInterval);
+        snowInterval = null;
+    }
+    document.querySelectorAll('.snowflake').forEach(el => el.remove());
+}
+
+// Overwrite applyTheme to trigger snow
+const originalApplyTheme = window.applyTheme;
+window.applyTheme = function(themeId) {
+    if(originalApplyTheme) originalApplyTheme(themeId);
+    if (themeId === 'white_queen') {
+        startSnowfall();
+    } else {
+        stopSnowfall();
+    }
+};
+
+// Start snow on load if white_queen is active
+if (localStorage.getItem('chmat_active_theme') === 'white_queen') {
+    document.addEventListener('DOMContentLoaded', startSnowfall);
+}
