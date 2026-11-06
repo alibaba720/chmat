@@ -750,7 +750,15 @@ async function loadFriendsPageData() {
     if(reqList) reqList.innerHTML = '<p style="color:#888;">Loading...</p>';
     if(sugList) sugList.innerHTML = '<p style="color:#888;">Loading...</p>';
 
-    // Listen to Requests
+    // 1. Fetch Sent Requests directly from DB for accuracy
+    let sentReqs = [];
+    try {
+        const qSent = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid), where("status", "==", "pending"));
+        const sentSnap = await getDocs(qSent);
+        sentSnap.forEach(doc => sentReqs.push({ id: doc.id, receiverId: doc.data().receiverId }));
+    } catch(e) { console.log("Error fetching sent reqs", e); }
+
+    // 2. Listen to Incoming Requests
     const qReq = query(collection(db, "friend_requests"), where("receiverId", "==", currentUser.uid), where("status", "==", "pending"));
     onSnapshot(qReq, async (snapshot) => {
         if(snapshot.empty) {
@@ -782,7 +790,7 @@ async function loadFriendsPageData() {
         if(reqList) reqList.innerHTML = html;
     });
 
-    // Load Suggestions (Users not in friends list)
+    // 3. Load Suggestions (Users not in friends list)
     try {
         const usersSnap = await getDocs(collection(db, "users"));
         let sugHtml = '';
@@ -791,11 +799,12 @@ async function loadFriendsPageData() {
             if(u.uid !== currentUser.uid && !myFriendsList.includes(u.uid)) {
                 const avatar = u.profilePicUrl ? `<img src="${u.profilePicUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#333;font-weight:bold;color:#fff;">${(u.username||'U').charAt(0).toUpperCase()}</div>`;
                 
-                // CHECK KAREIN KE REQUEST PEHLE SE BHEJI HUI HAI YA NAHI
-                const existingReq = mySentRequests.find(r => r.receiverId === u.uid);
+                // Check if request is already sent
+                const existingReq = sentReqs.find(r => r.receiverId === u.uid);
                 let btnHtml = '';
+                
                 if (existingReq) {
-                    btnHtml = `<button onclick="promptCancelFriendRequest('${existingReq.id}', this)" style="background:#262626; color:#ff3b30; border:1px solid #333; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Cancel</button>`;
+                    btnHtml = `<button onclick="promptCancelFriendRequest('${existingReq.id}', this)" style="background:#262626; color:#ff3b30; border:1px solid #333; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Cancel Request</button>`;
                 } else {
                     btnHtml = `<button onclick="sendRequest('${u.uid}', '${u.username}', this)" style="background:#0095f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Add Friend</button>`;
                 }
