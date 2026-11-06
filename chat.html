@@ -166,6 +166,57 @@
         text-shadow: 0 0 15px var(--theme-primary), 0 0 30px var(--theme-primary) !important;
     }
 
+
+    /* --- WHITE QUEEN SPECIFIC UI FIXES --- */
+    body.theme-white-queen button, 
+    body.theme-white-queen .ig-btn, 
+    body.theme-white-queen .btn-primary, 
+    body.theme-white-queen .action-btn,
+    body.theme-white-queen .add-friend-btn {
+        background: #ffffff !important;
+        color: #111111 !important;
+        border: 2px solid #d4af37 !important; /* Gold Border */
+        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2) !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    body.theme-white-queen button:active, 
+    body.theme-white-queen .ig-btn:active {
+        background: #fffdf5 !important;
+        box-shadow: 0 0 20px #d4af37, 0 0 40px #d4af37 !important; /* Gold Blink/Glow */
+        transform: scale(0.95);
+    }
+
+    /* Fix Bottom Nav visibility */
+    body.theme-white-queen .bottom-nav {
+        background: rgba(255, 255, 255, 0.9) !important;
+        border-top: 2px solid #d4af37 !important;
+    }
+    body.theme-white-queen .nav-item svg {
+        stroke: #111111 !important; /* Dark icons for visibility */
+    }
+    body.theme-white-queen .nav-item.active svg {
+        stroke: #d4af37 !important; /* Gold when active */
+        fill: #d4af37 !important;
+    }
+    
+    /* Fix Text Visibility */
+    body.theme-white-queen .post-card, 
+    body.theme-white-queen .ig-top-bar,
+    body.theme-white-queen .app-header {
+        background: rgba(255, 255, 255, 0.8) !important;
+        border-bottom: 1px solid #d4af37 !important;
+    }
+    body.theme-white-queen .ig-username,
+    body.theme-white-queen .post-display-name,
+    body.theme-white-queen .logo {
+        color: #111111 !important;
+        text-shadow: none !important;
+    }
+    body.theme-white-queen .ig-dp-img {
+        border: 2px solid #d4af37 !important;
+    }
+
 </style>
 </head>
 <body>

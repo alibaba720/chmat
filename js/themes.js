@@ -44,11 +44,13 @@ window.applyTheme = function(themeId) {
     root.setProperty('--theme-text', theme.text);
     root.setProperty('--theme-border', theme.border);
     localStorage.setItem('chmat_active_theme', themeId);
+    if(themeId === 'white_queen') { document.body.classList.add('theme-white-queen'); } else { document.body.classList.remove('theme-white-queen'); }
 };
 
 (function applyGlobalTheme() {
     const savedTheme = localStorage.getItem('chmat_active_theme') || 'iron_man';
     if (themes[savedTheme]) {
+        if(savedTheme === 'white_queen') document.body.classList.add('theme-white-queen');
         const theme = themes[savedTheme];
         const root = document.documentElement.style;
         root.setProperty('--theme-bg-grad', theme.bgGradient);
@@ -70,12 +72,17 @@ const snowCSS = `
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 1), 0 0 12px #d4af37; /* White with Gold Glow */
-  animation: fall linear forwards;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 1), 0 0 15px #d4af37;
+  animation: fall linear forwards, sway ease-in-out infinite alternate;
+  filter: blur(0.5px);
 }
 @keyframes fall {
-  0% { transform: translateY(-10vh) translateX(0); }
-  100% { transform: translateY(110vh) translateX(var(--start-x)); }
+  0% { transform: translateY(-10vh); }
+  100% { transform: translateY(110vh); }
+}
+@keyframes sway {
+  0% { margin-left: -20px; }
+  100% { margin-left: 20px; }
 }
 `;
 const styleSheet = document.createElement("style");
