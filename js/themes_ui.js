@@ -5,8 +5,8 @@ function renderThemes() {
     if(!demonsCol || !angelsCol || !window.themesData) return;
 
     const data = window.themesData;
-    let demonsHtml = '<div class="column-title">🌑 Demons</div>';
-    let angelsHtml = '<div class="column-title">☀️ Angels</div>';
+    let demonsHtml = '<div class="column-title">🌑 Villain's Aura</div>';
+    let angelsHtml = '<div class="column-title">☀️ Superheroes</div>';
 
     for (const id in data) {
         const theme = data[id];
