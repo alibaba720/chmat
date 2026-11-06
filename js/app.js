@@ -623,7 +623,14 @@ window.sendRequest = async function(receiverId, receiverUsername, btnElement) {
     btnElement.innerText = "Sending..."; btnElement.disabled = true;
     try { await addDoc(collection(db, "friend_requests"), { senderId: currentUser.uid, senderUsername: currentUserData.username, receiverId: receiverId, receiverUsername: receiverUsername, status: "pending", createdAt: serverTimestamp() }); btnElement.innerText = "Requested"; btnElement.style.background = "#333"; } catch (error) { btnElement.innerText = "Add Friend"; btnElement.disabled = false; }
 }
-window.cancelFriendRequest = async function(requestId, btnElement) {
+
+window.promptCancelFriendRequest = function(requestId, btnElement) {
+    if(confirm("Are you sure you want to cancel this friend request?")) {
+        cancelFriendRequest(requestId, btnElement);
+    }
+};
+
+    window.cancelFriendRequest = async function(requestId, btnElement) {
     if(!confirm("Cancel this friend request?")) return;
     btnElement.innerText = "Cancelling...";
     try { await deleteDoc(doc(db, "friend_requests", requestId)); btnElement.innerText = "Add Friend"; btnElement.style.background = "#0095f6"; } catch(e) { alert("Error: " + e.message); btnElement.innerText = "Cancel"; }

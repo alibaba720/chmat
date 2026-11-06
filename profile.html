@@ -62,7 +62,7 @@
   <script type="module">
     import { auth, db, authReady } from './js/firebase-config.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-    import { doc, getDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import { doc, getDoc, getDocs, deleteDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetUid = urlParams.get('uid');
@@ -93,6 +93,17 @@
           const myDoc = await getDoc(doc(db, "users", currentUser.uid));
           const myData = myDoc.data() || {};
           const isFriend = myData.friends && myData.friends.includes(targetUid);
+          
+          let isRequested = false;
+          let reqId = null;
+          if(currentUser.uid !== targetUid && !isFriend) {
+              const qReq = query(collection(db, "friend_requests"), where("senderId", "==", currentUser.uid), where("receiverId", "==", targetUid), where("status", "==", "pending"));
+              const reqSnap = await getDocs(qReq);
+              if(!reqSnap.empty) {
+                  isRequested = true;
+                  reqId = reqSnap.docs[0].id;
+              }
+          }
 
           let btnHtml = '';
           if(currentUser.uid === targetUid) {
@@ -100,6 +111,8 @@
                         <button class="ig-btn">Share profile</button>`;
           } else if(isFriend) {
               btnHtml = `<button class="ig-btn ig-btn-blue" onclick="window.location.href='chat.html?uid=${targetUid}&name=${data.username}'">Message</button>`;
+          } else if (isRequested) {
+              btnHtml = `<button class="ig-btn" style="background:#262626; color:#ff3b30; border:1px solid #333;" onclick="promptCancelReq('${reqId}')">Cancel Request</button>`;
           } else {
               btnHtml = `<button class="ig-btn ig-btn-blue" onclick="sendReq(this)">Add Friend</button>`;
           }
@@ -168,6 +181,19 @@
       } catch(e) { content.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error: ${e.message}</p>`; }
     }
 
+    
+window.promptCancelReq = function(reqId) {
+    const modal = document.getElementById('cancelReqModal');
+    modal.style.display = 'flex';
+    document.getElementById('confirmCancelReqBtn').onclick = async () => {
+        try {
+            await deleteDoc(doc(db, "friend_requests", reqId));
+            modal.style.display = 'none';
+            window.location.reload();
+        } catch(e) { alert("Error: " + e.message); }
+    };
+};
+
     window.sendReq = async function(btn) {
         btn.innerText = "Sending..."; btn.disabled = true;
         try {
@@ -200,5 +226,17 @@
       });
     }
   </script>
+
+<div id="cancelReqModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; justify-content:center; align-items:center;">
+  <div style="background:#1c1c1e; padding:20px; border-radius:12px; width:80%; max-width:300px; text-align:center; border: 1px solid #333;">
+    <h3 style="color:#fff; margin-top:0; font-size:18px;">Cancel Request</h3>
+    <p style="color:#aaa; font-size:14px; margin-bottom:20px;">Are you sure you want to cancel this friend request?</p>
+    <div style="display:flex; gap:10px;">
+      <button onclick="document.getElementById('cancelReqModal').style.display='none'" style="flex:1; background:#262626; color:#fff; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">No</button>
+      <button id="confirmCancelReqBtn" style="flex:1; background:#ff3b30; color:#fff; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">Yes</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
