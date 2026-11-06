@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { collection, query, orderBy, getDocs, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc, arrayRemove, arrayUnion, arrayUnion } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, getDocs, updateDoc, arrayUnion, arrayRemove, where } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const groupId = urlParams.get('gid');
@@ -24,7 +24,7 @@ if (!groupId || !groupName) {
 chatName.innerText = groupName;
 chatAvatar.innerText = groupName.charAt(0).toUpperCase();
 
-// --- 1. FIX HEADER CLICK (Direct JS) ---
+// --- HEADER CLICK ---
 const headerInfo = document.querySelector('.chat-user-info');
 if (headerInfo) {
     headerInfo.addEventListener('click', () => {
@@ -32,7 +32,7 @@ if (headerInfo) {
     });
 }
 
-// --- 2. FIX MIC/SEND TOGGLE ---
+// --- MIC/SEND TOGGLE ---
 if (messageInput && micBtn && sendBtn) {
     messageInput.addEventListener('input', () => {
         if (messageInput.value.trim().length > 0) {
@@ -64,6 +64,18 @@ async function loadGroupData() {
     const groupSnap = await getDoc(groupRef);
     if(groupSnap.exists()) {
         groupData = groupSnap.data();
+        
+        // Auto-migration for owner and admins
+        if (!groupData.owner && groupData.admin) {
+            groupData.owner = groupData.admin;
+            groupData.admins = [groupData.admin];
+            try {
+                await updateDoc(groupRef, {
+                    owner: groupData.owner,
+                    admins: groupData.admins
+                });
+            } catch(e) { console.error("Migration error:", e); }
+        }
     }
 }
 
@@ -77,11 +89,10 @@ function loadMessages() {
         snapshot.forEach((doc) => {
             const msg = doc.data();
             
-            // System Message Handler
             if (msg.type === 'system') {
                 const sysDiv = document.createElement('div');
                 sysDiv.style.cssText = 'text-align:center; font-size:12px; color:#888; margin:10px 0; background:#1a1a1a; padding:6px; border-radius:8px; display:inline-block; width:100%;';
-                let actionText = msg.text === 'kicked' ? 'removed' : (msg.text === 'promoted' ? 'promoted to admin' : 'demoted to member');
+                let actionText = msg.text === 'kicked' ? 'removed' : (msg.text === 'promoted' ? 'promoted to admin' : (msg.text === 'added' ? 'added' : 'demoted to member'));
                 
                 sysDiv.innerHTML = `<span style="color:#0095f6; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${msg.senderId}'">@${msg.senderName}</span> ${actionText} <span style="color:#ffd700; font-weight:bold; cursor:pointer;" onclick="window.location.href='profile.html?uid=${msg.targetId}'">@${msg.targetName}</span>`;
                 messagesContainer.appendChild(sysDiv);
@@ -120,8 +131,6 @@ async function sendMessage() {
     if (text === "" || !currentUser || !currentUserData) return;
 
     messageInput.value = "";
-    
-    // Reset toggle
     if (micBtn && sendBtn) {
         micBtn.style.display = 'flex';
         sendBtn.style.display = 'none';
@@ -135,7 +144,6 @@ async function sendMessage() {
             createdAt: serverTimestamp()
         });
         
-        // Update group last message
         await updateDoc(doc(db, "groups", groupId), {
             lastMessage: `${currentUserData.displayName || currentUserData.username}: ${text}`,
             lastTime: serverTimestamp()
@@ -157,12 +165,11 @@ if(messageInput) {
     });
 }
 
-// --- 3. GROUP INFO MODAL (WITH ADMIN RULES) ---
+// --- GROUP INFO MODAL ---
 window.openGroupInfo = async function() {
     if(!groupData) await loadGroupData();
     if(!groupData) return;
 
-    // Support old data and new data
     const ownerUid = groupData.owner || groupData.admin;
     const adminsList = groupData.admins || (groupData.admin ? [groupData.admin] : []);
     
@@ -190,20 +197,26 @@ window.openGroupInfo = async function() {
             const isMemberAdmin = adminsList.includes(uid);
             
             let badge = '';
-            if (isMemberOwner) badge = `<span style="background:#ffd700; color:#000; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; margin-left:5px;">OWNER</span>`;
-            else if (isMemberAdmin) badge = `<span style="background:#0095f6; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; margin-left:5px;">ADMIN</span>`;
+            if (isMemberOwner) {
+                badge = `<span style="background:#ffd700; color:#000; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; margin-left:5px;">OWNER</span>`;
+            } else if (isMemberAdmin) {
+                badge = `<span style="background:#0095f6; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; margin-left:5px;">ADMIN</span>`;
+            }
 
             let actionBtns = '';
-            if (!isMemberOwner && isAdmin && uid !== currentUser.uid) {
-                // Admins can kick members
-                actionBtns += `<button onclick="kickMember('${uid}', '${uData.username}')" style="background:#ff3b30; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; margin-left:5px; cursor:pointer;">Kick</button>`;
-
-                // Only Owner can promote/demote
+            if (uid !== currentUser.uid) {
                 if (isOwner) {
-                    if (isMemberAdmin) {
-                        actionBtns += `<button onclick="demoteAdmin('${uid}', '${uData.username}')" style="background:#444; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; margin-left:5px; cursor:pointer;">Demote</button>`;
-                    } else {
-                        actionBtns += `<button onclick="makeAdmin('${uid}', '${uData.username}')" style="background:#0095f6; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; margin-left:5px; cursor:pointer;">Admin</button>`;
+                    if (!isMemberOwner) {
+                        actionBtns += `<button onclick="kickMember('${uid}', '${uData.username}')" style="background:#ff3b30; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; margin-left:5px; cursor:pointer;">Kick</button>`;
+                        if (isMemberAdmin) {
+                            actionBtns += `<button onclick="demoteAdmin('${uid}', '${uData.username}')" style="background:#444; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; margin-left:5px; cursor:pointer;">Demote</button>`;
+                        } else {
+                            actionBtns += `<button onclick="makeAdmin('${uid}', '${uData.username}')" style="background:#0095f6; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; margin-left:5px; cursor:pointer;">Admin</button>`;
+                        }
+                    }
+                } else if (isAdmin) {
+                    if (!isMemberAdmin && !isMemberOwner) {
+                        actionBtns += `<button onclick="kickMember('${uid}', '${uData.username}')" style="background:#ff3b30; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; margin-left:5px; cursor:pointer;">Kick</button>`;
                     }
                 }
             }
@@ -225,7 +238,6 @@ window.openGroupInfo = async function() {
 
     let adminSettingsBtn = '';
     if (isAdmin) {
-        // Privacy toggle (Only Owner can change, Admins can see status)
         let isPrivacyOn = groupData.adminApproval === true;
         let privacyBtn = isOwner ? 
             `<button onclick="toggleAdminApproval()" style="background:#262626; color:${isPrivacyOn ? '#0095f6' : '#888'}; border:1px solid #444; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:bold; margin-left:5px;">Approval: ${isPrivacyOn ? 'ON' : 'OFF'}</button>` : 
@@ -360,7 +372,6 @@ window.openAdminActivity = async function() {
 };
 
 // --- PHASE 2: ADD MEMBER & APPROVAL LOGIC ---
-
 window.toggleAdminApproval = async function() {
     if(!confirm("Change Admin Approval setting for this group?")) return;
     try {
@@ -368,7 +379,7 @@ window.toggleAdminApproval = async function() {
         const currentStatus = groupSnap.data().adminApproval || false;
         await updateDoc(doc(db, "groups", groupId), { adminApproval: !currentStatus });
         await loadGroupData();
-        openGroupInfo(); // Refresh UI
+        openGroupInfo();
     } catch(e) { alert("Error: " + e.message); }
 };
 
@@ -396,7 +407,6 @@ window.openAddMemberModal = async function() {
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         const myFriends = userDoc.data().friends || [];
         
-        // Filter friends who are NOT already in the group
         const availableFriends = myFriends.filter(fid => !groupData.members.includes(fid));
         
         if (availableFriends.length === 0) {
@@ -432,23 +442,25 @@ window.openAddMemberModal = async function() {
 };
 
 window.handleAddMember = async function(fid, fname) {
-    const isAdmin = groupData.owner === currentUser.uid || (groupData.admins && groupData.admins.includes(currentUser.uid));
+    const ownerUid = groupData.owner || groupData.admin;
+    const adminsList = groupData.admins || (groupData.admin ? [groupData.admin] : []);
+    const isAdmin = (ownerUid === currentUser.uid) || adminsList.includes(currentUser.uid);
     const isApprovalRequired = groupData.adminApproval === true;
 
     if (isAdmin || !isApprovalRequired) {
-        // Directly add
         try {
             await updateDoc(doc(db, "groups", groupId), { members: arrayUnion(fid) });
             await logActivity("Added to group", fname);
+            await addDoc(collection(db, "groups", groupId, "messages"), {
+                type: 'system', text: 'added', senderId: currentUser.uid, senderName: currentUserData.username, targetId: fid, targetName: fname, createdAt: serverTimestamp()
+            });
             alert(fname + " added successfully!");
             await loadGroupData();
             openGroupInfo();
             document.getElementById('addMemberModal').style.display = 'none';
         } catch(e) { alert("Error: " + e.message); }
     } else {
-        // Send approval request to Admin/Owner
         try {
-            const ownerUid = groupData.owner || groupData.admin;
             await addDoc(collection(db, "groups", groupId, "approvals"), {
                 targetUid: fid,
                 targetUsername: fname,
