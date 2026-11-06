@@ -135,105 +135,79 @@
 
     
     
-    /* --- STRICT WHITE QUEEN OVERRIDE (DO NOT REMOVE) --- */
-    body.theme-white-queen { 
-        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%) !important; 
-        color: #111111 !important; 
-    }
-    body.theme-white-queen .app-header, 
-    body.theme-white-queen .bottom-nav,
-    body.theme-white-queen .post-card,
-    body.theme-white-queen .ig-top-bar,
-    body.theme-white-queen .settings-group {
-        background: rgba(255, 255, 255, 0.8) !important; 
-        backdrop-filter: blur(10px) !important;
-        border-color: #d4af37 !important; /* Gold Border */
-    }
-    body.theme-white-queen .logo { 
-        color: #00e5ff !important; /* Icy Blue */
-        text-shadow: 0 0 15px #00e5ff !important; 
-    }
-    body.theme-white-queen .nav-item svg { stroke: #b8860b !important; } /* Dark Gold */
-    body.theme-white-queen .nav-item.active svg { 
-        stroke: #00e5ff !important; 
-        fill: #00e5ff !important; 
-        filter: drop-shadow(0 0 5px #00e5ff) !important;
-    }
-    body.theme-white-queen .ig-btn, 
-    body.theme-white-queen .btn-primary, 
-    body.theme-white-queen .action-btn,
-    body.theme-white-queen .edit-profile-btn {
-        background: #ffffff !important;
-        color: #b8860b !important; /* Dark Gold Text */
-        border: 1px solid #d4af37 !important; /* Gold Border */
-    }
-    body.theme-white-queen .ig-btn:active {
-        background: #d4af37 !important;
-        color: #ffffff !important;
-    }
-    /* Force text colors to be dark on ice background */
-    body.theme-white-queen .display-name,
-    body.theme-white-queen .ig-username,
-    body.theme-white-queen .post-display-name,
-    body.theme-white-queen .post-text,
-    body.theme-white-queen .settings-item {
-        color: #111111 !important;
-    }
-
-
-    /* --- FORCE ICE & GOLD (NO RED, NO BLACK) --- */
     
-    /* 1. Background Ice White */
-    body, .app-container, .post-card, .settings-group, .dropdown-menu, .bottom-nav, .app-header {
+    /* --- FORCE FULL ICE BACKGROUND & GOLD NAV --- */
+    
+    /* 1. Force ALL main containers to be Ice White, kill the black */
+    body.theme-white-queen, 
+    body.theme-white-queen .app-container, 
+    body.theme-white-queen .app-content,
+    body.theme-white-queen #mainContent,
+    body.theme-white-queen .tab-content,
+    body.theme-white-queen .post-card,
+    body.theme-white-queen .profile-container,
+    body.theme-white-queen .settings-group,
+    body.theme-white-queen .ig-grid-item {
+        background: transparent !important; /* Make containers transparent so body gradient shows */
+        background-color: transparent !important;
+    }
+
+    /* 2. Set Body Background to Ice */
+    body.theme-white-queen {
         background: linear-gradient(135deg, #f4f9ff 0%, #dbe9f4 100%) !important;
         background-color: #f4f9ff !important;
-        color: #111111 !important;
     }
 
-    /* 2. Kill all Red Borders/Lines, make them Gold */
-    * {
-        border-color: #d4af37 !important; /* Force Gold */
-    }
-    .bottom-nav { border-top: 2px solid #d4af37 !important; }
-    .app-header, .ig-top-bar { border-bottom: 1px solid #d4af37 !important; }
-    .post-card, .settings-group { border: 1px solid #d4af37 !important; }
-
-    /* 3. Logo Icy Blue */
-    .logo { 
-        color: #00e5ff !important; 
-        text-shadow: 0 0 15px #00e5ff !important; 
-    }
-
-    /* 4. Text Colors */
-    h1, h2, h3, span, p, .display-name, .ig-username, .post-text, .settings-item {
-        color: #111111 !important;
+    /* 3. Make sure ALL text is dark and visible */
+    body.theme-white-queen h1, 
+    body.theme-white-queen h2, 
+    body.theme-white-queen h3, 
+    body.theme-white-queen p, 
+    body.theme-white-queen span, 
+    body.theme-white-queen .display-name, 
+    body.theme-white-queen .ig-username, 
+    body.theme-white-queen .post-display-name,
+    body.theme-white-queen .post-text,
+    body.theme-white-queen .stat-item,
+    body.theme-white-queen .ig-text {
+        color: #111111 !important; /* Dark Black text */
     }
 
-    /* 5. Icons */
-    .nav-item svg { stroke: #b8860b !important; } /* Dark Gold */
-    .nav-item.active svg { 
-        stroke: #00e5ff !important; 
-        fill: #00e5ff !important; 
-        filter: drop-shadow(0 0 5px #00e5ff) !important;
-    }
-    .header-icons svg { stroke: #d4af37 !important; fill: #d4af37 !important; } /* Heart icon Gold */
-
-    /* 6. Buttons */
-    button, .ig-btn, .btn-primary, .action-btn {
+    /* 4. Bottom Nav - White Background, Gold Icons */
+    body.theme-white-queen .bottom-nav {
         background: #ffffff !important;
-        color: #b8860b !important;
-        border: 1px solid #d4af37 !important;
+        border-top: 2px solid #d4af37 !important;
     }
-    button:active, .ig-btn:active {
-        background: #d4af37 !important;
-        color: #ffffff !important;
+    
+    /* Inactive Icons - Gold */
+    body.theme-white-queen .nav-item svg {
+        stroke: #d4af37 !important; 
+        fill: none !important;
+    }
+    
+    /* Active Icon - Gold (Not Cyan) */
+    body.theme-white-queen .nav-item.active svg {
+        stroke: #d4af37 !important; 
+        fill: #d4af37 !important;
+        filter: drop-shadow(0 0 8px #d4af37) !important;
     }
 
-    /* 7. Input Fields */
-    input, textarea, .comment-input-area {
-        background: rgba(255, 255, 255, 0.7) !important;
-        color: #111111 !important;
+    /* 5. Fix Buttons Contrast */
+    body.theme-white-queen .ig-btn, 
+    body.theme-white-queen .btn-primary, 
+    body.theme-white-queen .action-btn {
+        background: #ffffff !important;
+        color: #b8860b !important; /* Dark Gold text */
         border: 1px solid #d4af37 !important;
+    }
+
+    /* 6. Tab Text (STATUS / PHOTOS) */
+    body.theme-white-queen .ig-tab {
+        color: #666666 !important;
+    }
+    body.theme-white-queen .ig-tab.active {
+        color: #111111 !important;
+        border-bottom: 2px solid #d4af37 !important;
     }
 
 </style>
@@ -399,7 +373,7 @@
   <!-- Post Options Modal -->
   <div id="postOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: rgba(0,0,0,0.7); align-items: flex-end;"><div onclick="closePostOptions()" style="position: absolute; width: 100%; height: 100%;"></div><div style="background: #1c1c1e; width: 100%; border-radius: 20px 20px 0 0; padding: 20px 0; position: relative; display: flex; flex-direction: column;"><div style="text-align:center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 10px; color: #888; font-size: 13px; font-weight: bold;">Post Options</div><div onclick="changePrivacyAction('Public')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🌍</span> Public</div><div onclick="changePrivacyAction('Friends')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">👥</span> Friends</div><div onclick="changePrivacyAction('Only Me')" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #fff; font-size: 15px;"><span style="font-size:20px;">🔒</span> Only Me</div><div style="height: 8px; background: #000; margin: 10px 0;"></div><div onclick="deletePostAction()" style="padding: 16px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #ff3b30; font-size: 15px; font-weight: bold;"><span style="font-size:20px;">🗑️</span> Delete Post</div><div onclick="closePostOptions()" style="padding: 16px 20px; text-align: center; color: #aaa; cursor: pointer; border-top: 1px solid #333; margin-top: 10px;">Cancel</div></div></div>
 
-  <script src="js/themes.js?v=777777"></script>
+  <script src="js/themes.js?v=888888"></script>
   <script type="module" src="js/app.js?v=999"></script>
 
   <div id="viewPostModal" class="modal-overlay hidden" style="z-index: 10005; background: rgba(0,0,0,0.95); display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
