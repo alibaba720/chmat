@@ -3,17 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Chat</title>
+  <title>Messages</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <script>
-    // Agar browser se khula hai (App nahi hai), toh direct login par bhej dein
-    if (!navigator.userAgent.includes("CHMAT_APP")) {
+    // Check karein ke user APK (WebView) mein hai ya normal browser mein
+    const isApp = navigator.userAgent.toLowerCase().includes('wv') || navigator.userAgent.includes('CHMAT_APP');
+    
+    if (!isApp) {
+      // Agar normal browser (Vercel) hai, toh direct login par bhej dein
       window.location.href = "login.html";
     }
   </script>
-  
+
+  <!-- Decoy Screen (Yeh sirf APK mein nazar aayegi) -->
   <div class="decoy-app">
     <header class="decoy-header">
       <span class="back-arrow">←</span>
