@@ -23,16 +23,48 @@ authReady.then(() => {
     });
 });
 
+// --- IMAGE COMPRESSION FUNCTION ---
+function compressImage(file, maxWidth, maxHeight, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            // Compress to JPEG at 70% quality
+            callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+    };
+}
+
 document.getElementById('dpInput')?.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
+        // Compress image to max 800x800 before showing and uploading
+        compressImage(file, 800, 800, function(compressedBase64) {
             const preview = document.getElementById('dpPreviewImg');
-            preview.innerHTML = `<img src="${event.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
-            preview.dataset.base64 = event.target.result;
-        };
-        reader.readAsDataURL(file);
+            preview.innerHTML = `<img src="${compressedBase64}" style="width:100%; height:100%; object-fit:cover;">`;
+            preview.dataset.base64 = compressedBase64;
+        });
     }
 });
 
@@ -67,11 +99,11 @@ window.saveDPAndNext = async function() {
             currentUserData.profilePicUrl = imageUrl;
             goToStep2();
         } else {
-            alert("Image upload failed. Try again or skip.");
+            alert("Image upload failed. Please try again or skip.");
         }
     } catch (e) {
         console.error(e);
-        alert("Error: " + e.message);
+        alert("Network error: Image upload failed. Try again or skip.");
     } finally {
         btn.disabled = false;
         btn.innerText = "Next";
