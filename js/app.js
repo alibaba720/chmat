@@ -1043,19 +1043,49 @@ async function renderTopFriends() {
 }
 
 // ==========================================
-// PULL TO REFRESH LOGIC (Insta/FB Style)
+// ULTIMATE PULL TO REFRESH & SHUFFLE LOGIC
 // ==========================================
+
+// Function to manually shuffle the currently loaded posts
+window.forceShuffleFeed = function() {
+    if (typeof globalPosts !== 'undefined' && globalPosts.length > 0) {
+        // Shuffle the array
+        globalPosts.sort(() => Math.random() - 0.5);
+        
+        // Re-render HTML
+        const feedContainer = document.getElementById('feedContainer');
+        let html = '';
+        globalPosts.forEach((post) => {
+            let canSee = false;
+            if (post.privacy === "Public") canSee = true;
+            else if (post.uid === currentUser.uid) canSee = true;
+            else if (post.privacy === "Friends" && (myFriendsList || []).includes(post.uid)) canSee = true;
+            if (canSee) { html += createPostHTML(post, post.id); }
+        });
+        if (feedContainer) {
+            feedContainer.innerHTML = html !== '' ? html : '<div class="empty-feed">No posts to show.</div>';
+        }
+        
+        // Also update profile grid if visible
+        if (typeof loadMyPosts === 'function') loadMyPosts();
+    }
+};
+
+// Pull to Refresh Variables
 let ptrStartY = 0;
 let ptrCurrentY = 0;
 let isPulling = false;
-const ptrThreshold = 80; // Kitna neeche khynchna hai refresh ke liye
+const ptrThreshold = 70; 
 const ptrSpinner = document.getElementById('ptr-spinner');
+const mainContent = document.getElementById('mainContent'); 
+
+if(mainContent) mainContent.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
 
 document.body.addEventListener('touchstart', (e) => {
-    // Sirf tab jab page bilkul top par ho
     if (window.scrollY <= 0) {
         ptrStartY = e.touches[0].clientY;
         isPulling = true;
+        if(mainContent) mainContent.style.transition = 'none'; 
     }
 }, { passive: true });
 
@@ -1064,12 +1094,16 @@ document.body.addEventListener('touchmove', (e) => {
     ptrCurrentY = e.touches[0].clientY;
     let diff = ptrCurrentY - ptrStartY;
 
-    // Agar neeche kheencha ja raha hai
-    if (diff > 0) {
+    if (diff > 0 && window.scrollY <= 0) {
+        let pullDistance = diff * 0.4; 
+        if(pullDistance > 100) pullDistance = 100; 
+        
+        if(mainContent) mainContent.style.transform = `translateY(${pullDistance}px)`;
+        
         if (ptrSpinner) {
             ptrSpinner.style.display = 'flex';
-            let translateY = Math.min(diff, 100);
-            ptrSpinner.style.top = `calc(${translateY - 50}px + 10px)`; 
+            ptrSpinner.style.top = `calc(${pullDistance - 50}px + 10px)`;
+            ptrSpinner.style.opacity = Math.min(pullDistance / 50, 1);
         }
     }
 }, { passive: true });
@@ -1078,35 +1112,43 @@ document.body.addEventListener('touchend', (e) => {
     if (!isPulling) return;
     let diff = ptrCurrentY - ptrStartY;
 
-    if (diff > ptrThreshold) {
-        // Trigger Refresh
-        if (ptrSpinner) ptrSpinner.style.top = '70px'; // Lock at top
+    if (diff * 0.4 > ptrThreshold) {
+        // Lock spinner at top
+        if (ptrSpinner) {
+            ptrSpinner.style.top = '20px'; 
+            ptrSpinner.style.opacity = '1';
+        }
         
-        // Current active tab ka data refresh karein (Hard reload ke bina)
+        // SHUFFLE POSTS HERE
+        if (typeof window.forceShuffleFeed === 'function') window.forceShuffleFeed();
+        
+        // Move page back up smoothly
         setTimeout(() => {
-            const activeTab = document.querySelector('.nav-item.active').getAttribute('data-tab');
-            if (activeTab === 'homeTab') loadFeed();
-            if (activeTab === 'chatTab') loadChatList();
-            if (activeTab === 'searchTab' && typeof initFriendsPage === 'function') initFriendsPage();
-            
-            // Fallback: Agar data load nahi hota to page reload karein
-            if (!activeTab || activeTab === 'profileTab') {
-                window.location.reload();
+            if(mainContent) {
+                mainContent.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+                mainContent.style.transform = 'translateY(0)';
             }
             
-            // Hide Spinner
+            // Hide spinner
             setTimeout(() => {
                 if (ptrSpinner) {
                     ptrSpinner.style.top = '-50px';
+                    ptrSpinner.style.opacity = '0';
                     setTimeout(() => { ptrSpinner.style.display = 'none'; }, 300);
                 }
-            }, 1000); // 1 second ka gap
-            
+            }, 800);
         }, 500);
+        
     } else {
-        // Reset if threshold not met
+        // Snap back if threshold not met
+        if(mainContent) {
+            mainContent.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+            mainContent.style.transform = 'translateY(0)';
+        }
+        
         if (ptrSpinner) {
             ptrSpinner.style.top = '-50px';
+            ptrSpinner.style.opacity = '0';
             setTimeout(() => { ptrSpinner.style.display = 'none'; }, 300);
         }
     }
@@ -1115,4 +1157,3 @@ document.body.addEventListener('touchend', (e) => {
     ptrStartY = 0;
     ptrCurrentY = 0;
 }, { passive: true });
-
