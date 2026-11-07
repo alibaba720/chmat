@@ -59,6 +59,33 @@
 
     
     </style>
+
+    <style>
+        .apk-download-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981; /* Green Color */
+            color: #ffffff !important;
+            padding: 14px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
+            z-index: 9999;
+            font-family: sans-serif;
+            transition: all 0.2s;
+        }
+        .apk-download-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+    </style>
+    
 </head>
 <body>
   <div class="auth-container">
@@ -141,5 +168,6 @@
   </script>
   <script type="module" src="js/auth.js"></script>
   <script src="js/themes.js"></script>
+<a href="https://drive.google.com/file/d/1eMF3o_0OX5vEz0N8VCK3g-536auZopJE/view?usp=drivesdk" target="_blank" class="apk-download-btn">📥 Download CHMAT App</a>
 </body>
 </html>
