@@ -1041,3 +1041,78 @@ async function renderTopFriends() {
     }
     topList.innerHTML = html;
 }
+
+// ==========================================
+// PULL TO REFRESH LOGIC (Insta/FB Style)
+// ==========================================
+let ptrStartY = 0;
+let ptrCurrentY = 0;
+let isPulling = false;
+const ptrThreshold = 80; // Kitna neeche khynchna hai refresh ke liye
+const ptrSpinner = document.getElementById('ptr-spinner');
+
+document.body.addEventListener('touchstart', (e) => {
+    // Sirf tab jab page bilkul top par ho
+    if (window.scrollY <= 0) {
+        ptrStartY = e.touches[0].clientY;
+        isPulling = true;
+    }
+}, { passive: true });
+
+document.body.addEventListener('touchmove', (e) => {
+    if (!isPulling) return;
+    ptrCurrentY = e.touches[0].clientY;
+    let diff = ptrCurrentY - ptrStartY;
+
+    // Agar neeche kheencha ja raha hai
+    if (diff > 0) {
+        if (ptrSpinner) {
+            ptrSpinner.style.display = 'flex';
+            let translateY = Math.min(diff, 100);
+            ptrSpinner.style.top = `calc(${translateY - 50}px + 10px)`; 
+        }
+    }
+}, { passive: true });
+
+document.body.addEventListener('touchend', (e) => {
+    if (!isPulling) return;
+    let diff = ptrCurrentY - ptrStartY;
+
+    if (diff > ptrThreshold) {
+        // Trigger Refresh
+        if (ptrSpinner) ptrSpinner.style.top = '70px'; // Lock at top
+        
+        // Current active tab ka data refresh karein (Hard reload ke bina)
+        setTimeout(() => {
+            const activeTab = document.querySelector('.nav-item.active').getAttribute('data-tab');
+            if (activeTab === 'homeTab') loadFeed();
+            if (activeTab === 'chatTab') loadChatList();
+            if (activeTab === 'searchTab' && typeof initFriendsPage === 'function') initFriendsPage();
+            
+            // Fallback: Agar data load nahi hota to page reload karein
+            if (!activeTab || activeTab === 'profileTab') {
+                window.location.reload();
+            }
+            
+            // Hide Spinner
+            setTimeout(() => {
+                if (ptrSpinner) {
+                    ptrSpinner.style.top = '-50px';
+                    setTimeout(() => { ptrSpinner.style.display = 'none'; }, 300);
+                }
+            }, 1000); // 1 second ka gap
+            
+        }, 500);
+    } else {
+        // Reset if threshold not met
+        if (ptrSpinner) {
+            ptrSpinner.style.top = '-50px';
+            setTimeout(() => { ptrSpinner.style.display = 'none'; }, 300);
+        }
+    }
+    
+    isPulling = false;
+    ptrStartY = 0;
+    ptrCurrentY = 0;
+}, { passive: true });
+
