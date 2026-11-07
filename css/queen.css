@@ -1,0 +1,43 @@
+
+/* White Queen: Castle & Glassmorphism */
+body.theme-white-queen { 
+    background-image: url('https://images.unsplash.com/photo-1543794114-67110a3f9e79?q=80&w=1000&auto=format&fit=crop') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    background-color: #f4f9ff !important;
+    color: #111111 !important;
+}
+
+body.theme-white-queen .app-header, 
+body.theme-white-queen .bottom-nav,
+body.theme-white-queen .post-card,
+body.theme-white-queen .profile-container,
+body.theme-white-queen .settings-group,
+body.theme-white-queen .ig-grid-item,
+body.theme-white-queen .app-content {
+    background: rgba(255, 255, 255, 0.7) !important; /* Transparent Glass */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(212, 175, 55, 0.5) !important; /* Gold Border */
+}
+
+body.theme-white-queen .logo { 
+    color: #d4af37 !important; /* Gold */
+    text-shadow: 0 0 15px #d4af37 !important; 
+}
+
+body.theme-white-queen h1, body.theme-white-queen h2, body.theme-white-queen h3, 
+body.theme-white-queen p, body.theme-white-queen span, 
+body.theme-white-queen .display-name, body.theme-white-queen .ig-username, 
+body.theme-white-queen .post-display-name, body.theme-white-queen .post-text {
+    color: #111111 !important;
+}
+
+body.theme-white-queen .bottom-nav { border-top: 2px solid #d4af37 !important; }
+body.theme-white-queen .nav-item svg { stroke: #d4af37 !important; fill: none !important; }
+body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
+
+body.theme-white-queen .ig-btn, body.theme-white-queen .btn-primary, body.theme-white-queen .action-btn {
+    background: #ffffff !important; color: #b8860b !important; border: 1px solid #d4af37 !important;
+}
