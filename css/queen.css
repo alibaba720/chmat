@@ -63,36 +63,39 @@ body.theme-white-queen .bottom-nav {
 body.theme-white-queen .nav-item svg { stroke: #b8860b !important; fill: none !important; }
 body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
 
-/* ========================================= */
-/* --- THE ULTIMATE PROFILE FRAME (3D GOLD) --- */
-/* ========================================= */
+
+
+/* --- STRICT PROFILE FRAME OVERLAY --- */
 body.theme-white-queen .ig-dp-container {
     position: relative !important;
-    width: 90px !important; 
-    height: 90px !important;
-    margin: 10px auto !important;
+    width: 86px !important; 
+    height: 86px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 body.theme-white-queen .ig-dp-img {
-    border: none !important; 
     width: 100% !important;
     height: 100% !important;
     border-radius: 50% !important;
-    object-fit: cover !important;
+    border: none !important;
+    z-index: 1 !important;
 }
 
-/* The Gold Frame Overlay */
+/* The Frame Overlay */
 body.theme-white-queen .ig-dp-container::after {
     content: "" !important;
     position: absolute !important;
-    top: -20px !important; 
-    left: -20px !important;
-    width: calc(100% + 40px) !important;
-    height: calc(100% + 40px) !important;
-    background-image: url('/assets/themes/profile_frame.png') !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important; /* Perfectly center */
+    width: 130px !important; /* Slightly larger than DP */
+    height: 130px !important;
+    background-image: url('assets/themes/profile_frame.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    z-index: 99 !important; 
+    z-index: 10 !important; 
     pointer-events: none !important; 
 }
