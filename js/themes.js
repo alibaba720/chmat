@@ -22,26 +22,32 @@ const themes = {
 };
 
 // Apply Theme Logic
+
 window.applyTheme = function(themeId) {
     const theme = themes[themeId];
     if (!theme) return;
     
-    const root = document.documentElement.style;
-    root.setProperty('--theme-bg-grad', theme.bgGradient);
-    root.setProperty('--theme-primary', theme.primary);
-    root.setProperty('--theme-text', theme.text);
-    root.setProperty('--theme-border', theme.border);
+    // Set CSS Variables for Global Use
+    const root = document.documentElement;
+    root.style.setProperty('--theme-bg-grad', theme.bgGradient);
+    root.style.setProperty('--theme-primary', theme.primary);
+    root.style.setProperty('--theme-text', theme.text);
+    root.style.setProperty('--theme-border', theme.border);
+    
+    // Set body class for specific overrides (like White Queen castle)
+    document.body.className = ''; // Reset classes
+    document.body.classList.add('theme-' + themeId);
     
     localStorage.setItem('chmat_active_theme', themeId);
     
+    // Trigger specific animations
     if(themeId === 'white_queen') { 
-        document.body.classList.add('theme-white-queen'); 
         if(typeof startSnowfall === 'function') startSnowfall();
     } else { 
-        document.body.classList.remove('theme-white-queen'); 
-        if(typeof stopSnowfall === 'function') stopSnowfall();
+        if(typeof stopSnowfall === 'function') stopSnowfall(); 
     }
 };
+
 
 // --- SNOWFALL ---
 let snowInterval = null;
@@ -97,7 +103,7 @@ window.startRoseShower = function(callback) {
 
 // --- AUTO TRIGGER ON LOAD ---
 window.addEventListener('DOMContentLoaded', () => {
-    let active = localStorage.getItem('chmat_active_theme') || 'white_queen';
+    let active = localStorage.getItem('chmat_active_theme') || 'iron_man';
     
     if(active === 'white_queen') {
         document.body.classList.add('theme-white-queen');
