@@ -81,7 +81,13 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
     const userCredential = await createUserWithEmailAndPassword(auth, authEmail, password);
     const user = userCredential.user;
 
+    
+    const availableThemes = ['iron_man', 'thor', 'spiderman', 'captain_america', 'doctor_strange', 'hulk', 'black_widow', 'hawkeye', 'thanos', 'venom', 'loki'];
+    const randomTheme = availableThemes[Math.floor(Math.random() * availableThemes.length)];
+    localStorage.setItem('chmat_active_theme', randomTheme);
+
     await setDoc(doc(db, "users", user.uid), {
+      assignedTheme: randomTheme,
       uid: user.uid, mobile: mobile, username: username, email: realEmail,
       displayName: username, friends: [], bio: "Hello, I am using CHMAT!", gender: gender, 
       security: { q1, a1, q2, a2 }, createdAt: new Date()

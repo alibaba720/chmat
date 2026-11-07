@@ -266,6 +266,11 @@ authReady.then(() => {
         let docSnap = await getDoc(doc(db, "users", user.uid));
         if (docSnap.exists()) {
           currentUserData = docSnap.data();
+        // Automatically apply the theme assigned during signup
+        if (currentUserData.assignedTheme && !localStorage.getItem('chmat_user_changed_theme')) {
+            localStorage.setItem('chmat_active_theme', currentUserData.assignedTheme);
+            if (window.applyTheme) window.applyTheme(currentUserData.assignedTheme);
+        }
         } else {
           // Default profile for new users to prevent crash
           currentUserData = {
