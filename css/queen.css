@@ -1,16 +1,15 @@
 
-/* White Queen: Castle & Glassmorphism (FORCE OVERRIDE) */
-
-/* Background Image */
+/* White Queen: Deep Glass & Rain Effect */
 body.theme-white-queen { 
+    /* Snowy Castle with Trees */
     background-image: url('https://images.unsplash.com/photo-1543794114-67110a3f9e79?q=80&w=1000&auto=format&fit=crop') !important;
     background-size: cover !important;
     background-position: center !important;
     background-attachment: fixed !important;
-    background-color: #f4f9ff !important;
+    background-color: #e6f0fa !important; /* Fallback ice color */
 }
 
-/* Force all main wrappers to be transparent so Castle shows */
+/* Make Containers Highly Transparent (Glass) */
 body.theme-white-queen #mainContent,
 body.theme-white-queen .app-content,
 body.theme-white-queen .tab-content,
@@ -20,50 +19,41 @@ body.theme-white-queen #profileTab,
 body.theme-white-queen #searchTab {
     background: transparent !important;
     background-color: transparent !important;
-    border: none !important;
 }
 
-/* Glassmorphism for Cards & Headers */
+/* Glassmorphism Cards */
 body.theme-white-queen .app-header, 
 body.theme-white-queen .bottom-nav,
 body.theme-white-queen .post-card,
 body.theme-white-queen .profile-container,
 body.theme-white-queen .settings-group,
 body.theme-white-queen .ig-grid-item {
-    background: rgba(255, 255, 255, 0.65) !important; /* 65% Transparent White */
+    /* 30% White transparency for real glass look */
+    background: rgba(255, 255, 255, 0.3) !important; 
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(212, 175, 55, 0.6) !important; /* Gold Border */
+    border: 1px solid rgba(255, 255, 255, 0.6) !important; 
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
     color: #111111 !important;
 }
 
-/* Fix Text Colors */
-body.theme-white-queen h1, body.theme-white-queen h2, body.theme-white-queen h3, 
-body.theme-white-queen p, body.theme-white-queen span, 
-body.theme-white-queen .display-name, body.theme-white-queen .ig-username, 
-body.theme-white-queen .post-display-name, body.theme-white-queen .post-text {
-    color: #111111 !important;
+/* Water drop styling */
+.rain-drop {
+    position: fixed;
+    top: -10vh;
+    width: 2px;
+    height: 15px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    animation: rainFall linear forwards;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
 }
 
-/* Gold Logo */
-body.theme-white-queen .logo { 
-    color: #d4af37 !important; 
-    text-shadow: 0 0 15px #d4af37 !important; 
-}
-
-/* Bottom Nav Icons */
-body.theme-white-queen .bottom-nav { border-top: 2px solid #d4af37 !important; background: #ffffff !important; }
-body.theme-white-queen .nav-item svg { stroke: #d4af37 !important; fill: none !important; }
-body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
-
-/* Buttons */
-body.theme-white-queen .ig-btn, body.theme-white-queen .btn-primary, body.theme-white-queen .action-btn {
-    background: #ffffff !important; color: #b8860b !important; border: 1px solid #d4af37 !important;
-}
-
-/* Post Card Specifics */
-body.theme-white-queen .post-header, 
-body.theme-white-queen .post-actions {
-    border-color: rgba(212, 175, 55, 0.3) !important;
-    background: transparent !important;
+@keyframes rainFall {
+    0% { top: -10vh; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 110vh; opacity: 0; }
 }

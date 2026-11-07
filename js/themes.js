@@ -16,11 +16,49 @@ window.applyTheme = function(themeId) {
     if(themeId === 'white_queen') { 
         document.body.classList.add('theme-white-queen'); 
         startSnowfall();
+        startRain();
     } else { 
         document.body.classList.remove('theme-white-queen'); 
         stopSnowfall();
+        stopRain();
     }
 };
+
+
+// --- LIVE RAIN ON GLASS EFFECT ---
+let rainInterval = null;
+function startRain() {
+    if (rainInterval) return;
+    rainInterval = setInterval(() => {
+        const drop = document.createElement('div');
+        drop.classList.add('rain-drop');
+        
+        // Randomize drop size and speed
+        const duration = Math.random() * 1 + 0.5; // Fast drops
+        const left = Math.random() * 100;
+        
+        drop.style.left = left + 'vw';
+        drop.style.animationDuration = duration + 's';
+        
+        // 50% chance for a larger drop
+        if (Math.random() > 0.5) {
+            drop.style.height = '25px';
+            drop.style.width = '3px';
+            drop.style.background = 'rgba(255, 255, 255, 0.8)';
+        }
+
+        document.body.appendChild(drop);
+        setTimeout(() => { drop.remove(); }, duration * 1000);
+    }, 100); // Spawn rate
+}
+
+function stopRain() {
+    if (rainInterval) {
+        clearInterval(rainInterval);
+        rainInterval = null;
+    }
+    document.querySelectorAll('.rain-drop').forEach(el => el.remove());
+}
 
 // --- SNOWFALL ---
 let snowInterval = null;
@@ -80,6 +118,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(active === 'white_queen') {
         document.body.classList.add('theme-white-queen');
         startSnowfall();
+        startRain();
     }
 
     // Force Roses to show (Clear old session)
