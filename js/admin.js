@@ -130,6 +130,23 @@ window.updateRole = async function(userId, newRole) {
 
 // --- BAN & UNBAN LOGIC ---
 window.banUser = async function(userId, username) {
+  // --- STRICT BAN SECURITY CHECK ---
+  const targetDoc = await getDoc(doc(db, "users", userId));
+  if (targetDoc.exists()) {
+      const targetData = targetDoc.data();
+      const targetMobile = targetData.mobile ? String(targetData.mobile).replace(/[^0-9]/g, '') : "";
+      if (targetMobile === OWNER_MOBILE) { alert("You cannot ban the Owner!"); return; }
+      
+      let targetRole = targetData.role || "user";
+      let targetLevel = 1;
+      if(targetRole === 'coowner') targetLevel = 4;
+      else if(targetRole === 'admin') targetLevel = 3;
+      else if(targetRole === 'mod') targetLevel = 2;
+      
+      if (myRoleLevel <= targetLevel) { alert("Access Denied: You do not have enough power to ban this user."); return; }
+  }
+  // ---------------------------------
+
   const reasons = "1. Misbehavior\n2. Abusing / Harassment\n3. Spamming\n4. Adult Content\n5. Fake Account";
   let reasonChoice = prompt(`Ban @${username}\nChoose Reason (Type 1-5):\n${reasons}`);
   if(!reasonChoice) return;
@@ -196,6 +213,13 @@ async function loadBans() {
 }
 
 window.unbanUser = async function(userId) {
+    // --- STRICT OWNER-ONLY UNBAN CHECK ---
+    if (myRole !== 'owner') {
+        alert("Access Denied: Only the Owner (Mr. Tiger) can unban users.");
+        return;
+    }
+    // -------------------------------------
+    
     try {
         await updateDoc(doc(db, "users", userId), { isBanned: false, banReason: null, bannedBy: null });
         alert("User unbanned successfully!");
@@ -315,6 +339,13 @@ async function loadAppeals() {
 }
 
 window.handleAppeal = async function(appealId, userId) {
+    // --- STRICT OWNER-ONLY APPEAL RESOLVE CHECK ---
+    if (myRole !== 'owner') {
+        alert("Access Denied: Only the Owner (Mr. Tiger) can resolve appeals and unban users.");
+        return;
+    }
+    // ----------------------------------------------
+    
     try {
         await updateDoc(doc(db, "users", userId), { isBanned: false, banReason: null, bannedBy: null });
         await updateDoc(doc(db, "appeals", appealId), { status: "resolved" });
