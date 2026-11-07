@@ -1,15 +1,14 @@
 
-/* White Queen: Deep Glass & Rain Effect */
+/* White Queen: Ultra Clear Glass Look */
+
+/* 1. Background base (Icy blue gradient so glass is visible) */
 body.theme-white-queen { 
-    /* Snowy Castle with Trees */
-    background-image: url('https://images.unsplash.com/photo-1543794114-67110a3f9e79?q=80&w=1000&auto=format&fit=crop') !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-attachment: fixed !important;
-    background-color: #e6f0fa !important; /* Fallback ice color */
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+    background-color: #e0f2fe !important;
+    color: #111111 !important;
 }
 
-/* Make Containers Highly Transparent (Glass) */
+/* 2. Make containers completely transparent */
 body.theme-white-queen #mainContent,
 body.theme-white-queen .app-content,
 body.theme-white-queen .tab-content,
@@ -21,39 +20,52 @@ body.theme-white-queen #searchTab {
     background-color: transparent !important;
 }
 
-/* Glassmorphism Cards */
+/* 3. THE GLASS EFFECT (For headers, cards, nav, etc.) */
 body.theme-white-queen .app-header, 
 body.theme-white-queen .bottom-nav,
 body.theme-white-queen .post-card,
 body.theme-white-queen .profile-container,
 body.theme-white-queen .settings-group,
-body.theme-white-queen .ig-grid-item {
-    /* 30% White transparency for real glass look */
-    background: rgba(255, 255, 255, 0.3) !important; 
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.6) !important; 
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+body.theme-white-queen .ig-grid-item,
+body.theme-white-queen .dropdown-menu {
+    
+    /* 15% White gives that clear shishe (glass) effect */
+    background: rgba(255, 255, 255, 0.15) !important; 
+    
+    /* Heavy blur for frosted glass look */
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    
+    /* White border to show the edge of the glass */
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    
+    /* Soft shadow for depth */
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
     color: #111111 !important;
 }
 
-/* Water drop styling */
-.rain-drop {
-    position: fixed;
-    top: -10vh;
-    width: 2px;
-    height: 15px;
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 1;
-    animation: rainFall linear forwards;
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+/* 4. Fix Text Colors so they stay readable on glass */
+body.theme-white-queen h1, body.theme-white-queen h2, body.theme-white-queen h3, 
+body.theme-white-queen p, body.theme-white-queen span, 
+body.theme-white-queen .display-name, body.theme-white-queen .ig-username, 
+body.theme-white-queen .post-display-name, body.theme-white-queen .post-text {
+    color: #111111 !important;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8); /* Text readable rahe */
 }
 
-@keyframes rainFall {
-    0% { top: -10vh; opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { top: 110vh; opacity: 0; }
+/* 5. Logo and Icons */
+body.theme-white-queen .logo { 
+    color: #b8860b !important; /* Gold */
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.5) !important; 
+}
+body.theme-white-queen .bottom-nav { border-top: 1px solid rgba(255, 255, 255, 0.6) !important; }
+body.theme-white-queen .nav-item svg { stroke: #b8860b !important; fill: none !important; }
+body.theme-white-queen .nav-item.active svg { stroke: #b8860b !important; fill: #b8860b !important; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6)) !important; }
+
+/* 6. Buttons */
+body.theme-white-queen .ig-btn, body.theme-white-queen .btn-primary, body.theme-white-queen .action-btn {
+    background: rgba(255, 255, 255, 0.4) !important; 
+    color: #b8860b !important; 
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(5px) !important;
 }
