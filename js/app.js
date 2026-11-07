@@ -266,6 +266,14 @@ authReady.then(() => {
         let docSnap = await getDoc(doc(db, "users", user.uid));
         if (docSnap.exists()) {
           currentUserData = docSnap.data();
+          
+          // --- BAN CHECK SYSTEM ---
+          if (currentUserData.isBanned === true) {
+              document.body.innerHTML = '<div style="color:white; text-align:center; margin-top:50px; font-family:sans-serif;"><h2>Account Suspended</h2><p>Redirecting...</p></div>';
+              window.location.href = "suspended.html";
+              return; // Stop further execution
+          }
+          // -------------------------
         // Automatically apply the theme assigned during signup
         if (currentUserData.assignedTheme && !localStorage.getItem('chmat_user_changed_theme')) {
             localStorage.setItem('chmat_active_theme', currentUserData.assignedTheme);

@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { collection, getDocs, doc, updateDoc, query, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, query, where, addDoc, serverTimestamp, onSnapshot, onSnapshot } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const OWNER_MOBILE = "03016631720"; 
 let currentUser = null;
@@ -55,18 +55,20 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // --- MEMBERS TAB ---
-async function loadMembers() {
+function loadMembers() {
   const membersList = document.getElementById('membersList');
-  try {
-    const querySnapshot = await getDocs(collection(db, "users"));
+  
+  // Use onSnapshot for Real-time updates
+  const q = query(collection(db, "users"));
+  onSnapshot(q, (querySnapshot) => {
     let html = '';
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       const userId = docSnap.id;
-      
+
       const targetMobile = data.mobile ? String(data.mobile).replace(/[^0-9]/g, '') : "";
       const isTargetOwner = targetMobile === OWNER_MOBILE;
-      
+
       let targetRole = isTargetOwner ? "owner" : (data.role || "user");
       let targetLevel = 1;
       if(targetRole === 'owner') targetLevel = 5;
@@ -74,15 +76,12 @@ async function loadMembers() {
       else if(targetRole === 'admin') targetLevel = 3;
       else if(targetRole === 'mod') targetLevel = 2;
 
-      // Only show mobile to Owner
       let mobileDisplay = myRole === 'owner' ? `| ${data.mobile || 'No Mobile'}` : ``;
 
-      // Role Dropdown Logic (Hierarchy)
       let roleHtml = '';
       if (isTargetOwner) {
         roleHtml = `<div style="background: #ffd700; color: #000; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 12px;">👑 Owner</div>`;
       } else if (myRoleLevel > targetLevel) {
-        // Can change role
         roleHtml = `
           <select class="role-select" onchange="updateRole('${userId}', this.value)">
             <option value="user" ${targetRole === 'user' ? 'selected' : ''}>User</option>
@@ -92,11 +91,9 @@ async function loadMembers() {
           </select>
         `;
       } else {
-        // Cannot change role
         roleHtml = `<div style="color:#888; font-size:12px;">${targetRole.toUpperCase()}</div>`;
       }
 
-      // Ban Button (If Target is not Owner and Current user has higher power)
       let banBtn = '';
       if (!isTargetOwner && myRoleLevel > targetLevel && !data.isBanned) {
           banBtn = `<button onclick="banUser('${userId}', '${data.username}')" style="background:#ff3b30; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:12px; margin-left:10px; cursor:pointer;">Ban</button>`;
@@ -117,8 +114,10 @@ async function loadMembers() {
         </div>
       `;
     });
-    membersList.innerHTML = html;
-  } catch (error) { membersList.innerHTML = `<p style="color:red; text-align:center;">Error: ${error.message}</p>`; }
+    membersList.innerHTML = html !== '' ? html : '<p style="text-align:center; color:#888;">No users found.</p>';
+  }, (error) => {
+      membersList.innerHTML = `<p style="color:red; text-align:center;">Error: ${error.message}</p>`;
+  });
 }
 
 window.updateRole = async function(userId, newRole) {
