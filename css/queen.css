@@ -104,3 +104,14 @@ body.theme-white-queen input, body.theme-white-queen textarea {
     border: 1px solid #d4af37 !important;
     color: #111111 !important;
 }
+
+/* --- ROYAL PROFILE FRAME --- */
+body.theme-white-queen .ig-dp-container {
+}
+
+body.theme-white-queen .ig-dp-img {
+}
+
+/* Adding the frame over the DP */
+body.theme-white-queen .ig-dp-container::after {
+}
