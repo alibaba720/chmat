@@ -1,14 +1,15 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
 
-/* --- 1. DEEP DARK CASTLE BACKGROUND --- */
+/* --- 1. BRIGHT ICY CASTLE BACKGROUND --- */
 body.theme-white-queen { 
-    background-image: linear-gradient(rgba(10, 20, 40, 0.6), rgba(10, 20, 40, 0.8)), url('https://images.unsplash.com/photo-1543794114-67110a3f9e79?q=80&w=1500&auto=format&fit=crop') !important;
+    /* Using a bright, magical icy castle */
+    background-image: url('https://images.unsplash.com/photo-1543794114-67110a3f9e79?q=80&w=1500&auto=format&fit=crop') !important;
     background-size: cover !important;
     background-position: center !important;
     background-attachment: fixed !important;
-    background-color: #0b1320 !important;
-    color: #ffffff !important;
+    background-color: #e0f2fe !important; /* Bright Ice Blue Fallback */
+    color: #111111 !important; /* Dark text for bright background */
 }
 
 /* Make containers transparent */
@@ -20,34 +21,34 @@ body.theme-white-queen #profileTab {
     background: transparent !important;
 }
 
-/* --- 2. HEAVY 3D GLASS CARDS WITH GOLD BORDERS --- */
+/* --- 2. LIGHT & CLEAR GLASS CARDS (Like clear ice) --- */
 body.theme-white-queen .app-header, 
 body.theme-white-queen .bottom-nav,
 body.theme-white-queen .post-card,
 body.theme-white-queen .profile-container,
 body.theme-white-queen .settings-group,
 body.theme-white-queen .ig-grid-item {
-    background: rgba(15, 30, 60, 0.5) !important; /* Dark Glass */
-    backdrop-filter: blur(25px) saturate(150%) !important;
-    -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
-    border: 2px solid #d4af37 !important; /* Thick Gold Border */
+    
+    /* Very light white glass */
+    background: rgba(255, 255, 255, 0.3) !important; 
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    
+    /* Strong Gold Border */
+    border: 2px solid #d4af37 !important; 
     border-radius: 16px !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 15px rgba(212,175,55,0.4) !important; /* Inner Gold Glow */
-    color: #ffffff !important;
-    margin: 10px !important; /* Space between cards */
+    
+    /* Shadows for 3D effect */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15), inset 0 0 10px rgba(255, 255, 255, 0.8) !important;
+    color: #111111 !important;
+    margin: 10px !important;
 }
 
-/* --- 3. 3D GOLDEN TYPOGRAPHY --- */
+/* --- 3. DARK GOLD TYPOGRAPHY (For readability on bright background) --- */
 body.theme-white-queen .logo {
     font-family: 'Cinzel', serif !important;
-    color: #ffd700 !important; /* Bright Gold */
-    text-shadow: 
-        2px 2px 0px #000, 
-        -1px -1px 0px #000,  
-        1px -1px 0px #000,
-        -1px 1px 0px #000,
-        1px 1px 0px #000,
-        0 0 20px #ffd700 !important;
+    color: #b8860b !important; /* Darker Gold */
+    text-shadow: 1px 1px 2px #fff, 0 0 15px rgba(255, 215, 0, 0.8) !important;
     font-weight: 900 !important;
     letter-spacing: 2px !important;
 }
@@ -56,52 +57,50 @@ body.theme-white-queen h1, body.theme-white-queen h2,
 body.theme-white-queen .display-name, body.theme-white-queen .ig-username,
 body.theme-white-queen .post-display-name {
     font-family: 'Cinzel', serif !important;
-    color: #d4af37 !important; 
-    text-shadow: 1px 1px 3px #000, 0 0 10px rgba(212,175,55,0.5) !important;
+    color: #111111 !important; /* Dark text */
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8) !important;
     font-weight: 700 !important;
 }
 
 body.theme-white-queen p, body.theme-white-queen span, body.theme-white-queen .post-text {
-    color: #e6f0fa !important; /* Icy white text */
-    text-shadow: 1px 1px 2px #000 !important;
+    color: #222222 !important; /* Dark grey for readability */
 }
 
-/* --- 4. GOLDEN BUTTONS & BORDERS --- */
+/* --- 4. GOLDEN BUTTONS (Light Glass) --- */
 body.theme-white-queen .ig-btn, 
 body.theme-white-queen .btn-primary, 
 body.theme-white-queen .action-btn,
 body.theme-white-queen .edit-profile-btn {
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(0, 0, 0, 0.5)) !important; 
-    color: #ffd700 !important; 
+    background: rgba(255, 255, 255, 0.5) !important; 
+    color: #b8860b !important; /* Dark Gold text */
     border: 1.5px solid #d4af37 !important;
     font-family: 'Cinzel', serif !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+    font-weight: bold !important;
     border-radius: 10px !important;
 }
 body.theme-white-queen .ig-btn:active {
     background: #d4af37 !important;
-    color: #000000 !important;
+    color: #ffffff !important;
 }
 
-/* --- 5. BOTTOM NAVIGATION --- */
+/* --- 5. BOTTOM NAVIGATION (White Glass) --- */
 body.theme-white-queen .bottom-nav {
-    background: rgba(10, 20, 40, 0.85) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
     border-top: 2px solid #d4af37 !important;
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.8) !important;
 }
 body.theme-white-queen .nav-item svg { 
-    stroke: #a0a0a0 !important; 
+    stroke: #b8860b !important; 
     fill: none !important; 
 }
 body.theme-white-queen .nav-item.active svg { 
-    stroke: #ffd700 !important; 
-    fill: #ffd700 !important; 
-    filter: drop-shadow(0 0 10px #ffd700) !important; 
+    stroke: #d4af37 !important; 
+    fill: #d4af37 !important; 
+    filter: drop-shadow(0 0 8px #d4af37) !important; 
 }
 
 /* Inputs */
 body.theme-white-queen input, body.theme-white-queen textarea {
-    background: rgba(0, 0, 0, 0.6) !important;
+    background: rgba(255, 255, 255, 0.5) !important;
     border: 1px solid #d4af37 !important;
-    color: #ffd700 !important;
+    color: #111111 !important;
 }
