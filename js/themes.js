@@ -5,7 +5,7 @@ const themes = {
     "white_queen": { 
         name: "White Queen", 
         type: "angel", 
-        isReserved: true, // LOCKED
+        isReserved: false, // LOCKED
         image: "assets/themes/white_queen.png", 
         caption: "Elegance and unmatched power.", 
         bgGradient: "linear-gradient(135deg, #f4f9ff 0%, #dbe9f4 100%)", 
