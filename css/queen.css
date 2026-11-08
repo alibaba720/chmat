@@ -81,3 +81,51 @@ body.theme-white-queen .ig-tab.active {
     color: #d4af37 !important; /* Bright Gold for active tab */
     border-bottom: 2px solid #d4af37 !important;
 }
+
+
+/* --- BACK BUTTON FIX --- */
+body.theme-white-queen .back-btn,
+body.theme-white-queen #backBtn,
+body.theme-white-queen #backFromNoti {
+    background: transparent !important;
+    color: #b8860b !important; /* Dark Gold */
+    border: none !important;
+    box-shadow: none !important;
+    font-weight: bold !important;
+}
+body.theme-white-queen .back-btn:active {
+    color: #d4af37 !important;
+}
+
+/* --- DROPDOWN MENU (Settings/Logout) FIX --- */
+body.theme-white-queen #dropdownMenu {
+    background: rgba(255, 255, 255, 0.95) !important; /* Light glass */
+    border: 2px solid #d4af37 !important; /* Gold Border */
+}
+body.theme-white-queen .dropdown-item {
+    color: #111111 !important; /* Dark Text */
+    font-weight: 700 !important;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3) !important;
+}
+body.theme-white-queen #logoutBtn {
+    color: #b8860b !important; /* Gold Logout */
+    font-weight: 700 !important;
+}
+
+/* --- SETTINGS PAGE TEXT & BORDERS --- */
+body.theme-white-queen .settings-item span {
+    color: #111111 !important; /* Dark Text */
+    font-weight: 600 !important;
+}
+body.theme-white-queen .settings-group {
+    border: 2px solid #d4af37 !important;
+}
+body.theme-white-queen .settings-item {
+    border-bottom: 1px solid rgba(212, 175, 55, 0.4) !important;
+}
+body.theme-white-queen .settings-header {
+    border-bottom: 2px solid #d4af37 !important;
+}
+body.theme-white-queen .chevron {
+    color: #b8860b !important; /* Gold arrow */
+}
