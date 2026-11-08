@@ -87,16 +87,24 @@ window.startRoseShower = function(callback) {
     }, 150);
 };
 
-window.addEventListener('DOMContentLoaded', () => {
-    let active = localStorage.getItem('chmat_active_theme') || 'iron_man';
-    if(active === 'white_queen') {
-        document.body.classList.add('theme-white-queen');
-        startSnowfall();
-    }
-    // Force Roses to show on load
-    setTimeout(() => { 
-        if (typeof window.startRoseShower === 'function') window.startRoseShower(); 
-    }, 1000);
-});
+
 
 window.themesData = themes;
+
+window.addEventListener('DOMContentLoaded', () => {
+    // FORCE White Queen Theme on Load
+    let active = 'white_queen'; 
+    localStorage.setItem('chmat_active_theme', active);
+    
+    // Apply the theme
+    if (typeof window.applyTheme === 'function') {
+        window.applyTheme(active);
+    }
+
+    // Trigger Roses and Snowfall ONLY for White Queen
+    if (active === 'white_queen') {
+        setTimeout(() => { 
+            if (typeof window.startRoseShower === 'function') window.startRoseShower(); 
+        }, 1000);
+    }
+});
