@@ -49,3 +49,35 @@ body.theme-white-queen .post-display-name, body.theme-white-queen .logo {
 body.theme-white-queen .bottom-nav { border-top: 2px solid #d4af37 !important; }
 body.theme-white-queen .nav-item svg { stroke: #b8860b !important; fill: none !important; }
 body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
+
+
+/* --- FORCE ALL TEXT TO GOLD --- */
+body.theme-white-queen h1, 
+body.theme-white-queen h2, 
+body.theme-white-queen h3, 
+body.theme-white-queen h4, 
+body.theme-white-queen p, 
+body.theme-white-queen span:not(.theme-badge), 
+body.theme-white-queen a, 
+body.theme-white-queen div:not(.mockup-phone):not(.modal-overlay),
+body.theme-white-queen .display-name, 
+body.theme-white-queen .ig-username,
+body.theme-white-queen .ig-text,
+body.theme-white-queen .stat-item,
+body.theme-white-queen .ig-tab,
+body.theme-white-queen .post-display-name,
+body.theme-white-queen .post-text,
+body.theme-white-queen .bio {
+    color: #b8860b !important; /* Dark Gold */
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important; /* White shadow for readability */
+}
+
+/* Tab Text (STATUS / PHOTOS) */
+body.theme-white-queen .ig-tab {
+    color: #b8860b !important; 
+    font-weight: 700 !important;
+}
+body.theme-white-queen .ig-tab.active {
+    color: #d4af37 !important; /* Bright Gold for active tab */
+    border-bottom: 2px solid #d4af37 !important;
+}

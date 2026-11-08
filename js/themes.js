@@ -93,10 +93,10 @@ window.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('theme-white-queen');
         startSnowfall();
     }
-    if (sessionStorage.getItem('rani_entry_shown') !== 'true') {
-        sessionStorage.setItem('rani_entry_shown', 'true');
-        setTimeout(() => { window.startRoseShower(); }, 1000);
-    }
+    // Force Roses to show on load
+    setTimeout(() => { 
+        if (typeof window.startRoseShower === 'function') window.startRoseShower(); 
+    }, 1000);
 });
 
 window.themesData = themes;
