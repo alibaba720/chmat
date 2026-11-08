@@ -267,6 +267,20 @@ authReady.then(() => {
         if (docSnap.exists()) {
           currentUserData = docSnap.data();
           
+          // --- FORCE LOCKED THEME RESET ---
+          const ownerMobile = "03016631720";
+          let cleanDbMobile = currentUserData.mobile ? String(currentUserData.mobile).replace(/[^0-9]/g, '') : "";
+          const isOwner = (cleanDbMobile === ownerMobile);
+          
+          let activeTheme = localStorage.getItem('chmat_active_theme');
+          
+          // Agar theme White Queen hai aur user Owner nahi hai, toh default kar do
+          if (activeTheme === 'white_queen' && !isOwner) {
+              localStorage.setItem('chmat_active_theme', 'iron_man');
+              if (window.applyTheme) window.applyTheme('iron_man');
+          }
+          // ---------------------------------
+          
           // --- BAN CHECK SYSTEM ---
           if (currentUserData.isBanned === true) {
               document.body.innerHTML = '<div style="color:white; text-align:center; margin-top:50px; font-family:sans-serif;"><h2>Account Suspended</h2><p>Redirecting...</p></div>';
