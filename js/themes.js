@@ -160,3 +160,56 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.themesData = themes;
+
+// --- SNOWFALL ---
+let snowInterval = null;
+function startSnowfall() {
+    if (snowInterval) return;
+    snowInterval = setInterval(() => {
+        const flake = document.createElement('div'); 
+        flake.style.cssText = `position:fixed; top:-10vh; color:#fff; pointer-events:none; z-index:9999; font-size:${Math.random()*6+5}px; left:${Math.random()*100}vw; animation: fall ${Math.random()*4+5}s linear forwards;`;
+        flake.innerText = '❄️';
+        document.body.appendChild(flake); setTimeout(() => { flake.remove(); }, 10000);
+    }, 150);
+}
+function stopSnowfall() { if (snowInterval) { clearInterval(snowInterval); snowInterval = null; } document.querySelectorAll('.snowflake').forEach(el => el.remove()); }
+
+// --- RANI ENTRY (ROSES) ---
+let roseInterval = null;
+window.startRoseShower = function(callback) {
+    if (roseInterval) return;
+    let startTime = Date.now(); 
+    let roseDuration = 30000; // 30 seconds
+    
+    roseInterval = setInterval(() => {
+        if (Date.now() - startTime > roseDuration) {
+            clearInterval(roseInterval); roseInterval = null;
+            document.querySelectorAll('.rose-particle').forEach(el => el.remove());
+            if (callback) callback();
+            return;
+        }
+
+        const particle = document.createElement('div'); 
+        const isPetal = Math.random() > 0.3; 
+        let size = isPetal ? Math.random() * 12 + 8 + 'px' : Math.random() * 10 + 15 + 'px';
+        let duration = isPetal ? Math.random() * 6 + 6 + 's' : Math.random() * 3 + 3 + 's';
+        
+        particle.style.cssText = `position:fixed; top:-10vh; pointer-events:none; z-index:10000; font-size:${size}; left:${Math.random()*100}vw; animation: fall ${duration} linear forwards;`;
+        if (isPetal) {
+            particle.style.filter = 'sepia(1) saturate(8) hue-rotate(330deg) brightness(0.7) drop-shadow(0 0 3px rgba(255,0,0,0.8))';
+            particle.style.transform = 'scaleX(0.6) scaleY(0.8)';
+        }
+        particle.innerText = '🌹';
+        document.body.appendChild(particle); 
+        setTimeout(() => { particle.remove(); }, parseFloat(duration) * 1000);
+    }, 150);
+};
+
+// Trigger on load if White Queen is active
+window.addEventListener('DOMContentLoaded', () => {
+    let active = localStorage.getItem('chmat_active_theme');
+    if(active === 'white_queen') {
+        startSnowfall();
+        setTimeout(() => { window.startRoseShower(); }, 500);
+    }
+});

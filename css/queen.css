@@ -1,6 +1,7 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap');
 
-/* --- BACKGROUND (Castle) --- */
+/* --- ICE CASTLE BACKGROUND --- */
 body.theme-white-queen { 
     background-image: url('https://images.unsplash.com/photo-1543794114-67110a3f9e79?q=80&w=1500&auto=format&fit=crop') !important;
     background-size: cover !important;
@@ -10,31 +11,31 @@ body.theme-white-queen {
     color: #111111 !important;
 }
 
-/* --- TRANSPARENT CONTAINERS --- */
+/* Transparent Containers */
 body.theme-white-queen #mainContent,
 body.theme-white-queen .app-content,
 body.theme-white-queen .tab-content,
-body.theme-white-queen #profileTab {
+body.theme-white-queen #profileTab,
+body.theme-white-queen #homeTab {
     background: transparent !important;
 }
 
-/* --- GLASS CARDS --- */
+/* Glass Cards */
 body.theme-white-queen .app-header, 
 body.theme-white-queen .bottom-nav,
 body.theme-white-queen .post-card,
 body.theme-white-queen .profile-container,
 body.theme-white-queen .settings-group {
-    background: rgba(255, 255, 255, 0.4) !important; 
+    background: rgba(255, 255, 255, 0.45) !important; 
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
     border: 2px solid #d4af37 !important; 
     border-radius: 16px !important;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
     color: #111111 !important;
-    margin: 10px !important;
 }
 
-/* --- GOLD TEXT --- */
+/* Gold Text */
 body.theme-white-queen h1, body.theme-white-queen h2, 
 body.theme-white-queen .display-name, body.theme-white-queen .ig-username,
 body.theme-white-queen .post-display-name, body.theme-white-queen .logo {
@@ -44,58 +45,7 @@ body.theme-white-queen .post-display-name, body.theme-white-queen .logo {
     font-weight: 900 !important;
 }
 
-/* --- BUTTONS --- */
-body.theme-white-queen .ig-btn, 
-body.theme-white-queen .btn-primary, 
-body.theme-white-queen .action-btn {
-    background: rgba(255, 255, 255, 0.6) !important; 
-    color: #b8860b !important; 
-    border: 1.5px solid #d4af37 !important;
-    font-family: 'Cinzel', serif !important;
-    font-weight: bold !important;
-}
-
-/* --- BOTTOM NAV --- */
-body.theme-white-queen .bottom-nav {
-    background: rgba(255, 255, 255, 0.8) !important;
-    border-top: 2px solid #d4af37 !important;
-}
+/* Nav */
+body.theme-white-queen .bottom-nav { border-top: 2px solid #d4af37 !important; }
 body.theme-white-queen .nav-item svg { stroke: #b8860b !important; fill: none !important; }
 body.theme-white-queen .nav-item.active svg { stroke: #d4af37 !important; fill: #d4af37 !important; filter: drop-shadow(0 0 8px #d4af37) !important; }
-
-
-
-/* --- STRICT PROFILE FRAME OVERLAY --- */
-body.theme-white-queen .ig-dp-container {
-    position: relative !important;
-    width: 86px !important; 
-    height: 86px !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-body.theme-white-queen .ig-dp-img {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 50% !important;
-    border: none !important;
-    z-index: 1 !important;
-}
-
-/* The Frame Overlay */
-body.theme-white-queen .ig-dp-container::after {
-    content: "" !important;
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important; /* Perfectly center */
-    width: 130px !important; /* Slightly larger than DP */
-    height: 130px !important;
-    background-image: url('assets/themes/profile_frame.png') !important;
-    background-size: contain !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-    z-index: 10 !important; 
-    pointer-events: none !important; 
-}
